@@ -7,11 +7,12 @@ Write-Host "====================================================" -ForegroundCol
 Write-Host "        AG Kit v2 Installer for Antigravity          " -ForegroundColor Cyan
 Write-Host "====================================================" -ForegroundColor Cyan
 
+$UserProfileForward = ($env:USERPROFILE -replace '\\', '/')
 $AntigravityConfig = "$env:USERPROFILE\.gemini\config"
 $PluginsDir = Join-Path $AntigravityConfig "plugins\ag-kit-v2"
 $RulesDir = Join-Path $AntigravityConfig "rules"
 
-Write-Host "[1/3] Setting up directories..." -ForegroundColor Yellow
+Write-Host "[1/4] Setting up directories..." -ForegroundColor Yellow
 if (-not (Test-Path $PluginsDir)) {
     New-Item -ItemType Directory -Path $PluginsDir -Force | Out-Null
 }
@@ -19,20 +20,31 @@ if (-not (Test-Path $RulesDir)) {
     New-Item -ItemType Directory -Path $RulesDir -Force | Out-Null
 }
 
-Write-Host "[2/3] Installing AG Kit v2 plugin and rules..." -ForegroundColor Yellow
-
-# Copy plugin files (excluding rules, git, installer)
+Write-Host "[2/4] Installing AG Kit v2 plugin and rules..." -ForegroundColor Yellow
 $CurrentDir = $PSScriptRoot
 Get-ChildItem -Path $CurrentDir -Exclude "rules", ".git", "install.ps1", "README.md" | ForEach-Object {
     Copy-Item -Path $_.FullName -Destination $PluginsDir -Recurse -Force
 }
 
-# Copy rules
 if (Test-Path (Join-Path $CurrentDir "rules")) {
     Copy-Item -Path (Join-Path $CurrentDir "rules\*") -Destination $RulesDir -Recurse -Force
 }
 
-Write-Host "[3/3] Validating installation..." -ForegroundColor Yellow
+Write-Host "[3/4] Adapting user paths for current machine ($env:USERNAME)..." -ForegroundColor Yellow
+$DefaultUserPath = "C:/Users/Keith"
+if ($UserProfileForward -ne $DefaultUserPath) {
+    Write-Host "Updating user directory paths from '$DefaultUserPath' to '$UserProfileForward'..." -ForegroundColor Cyan
+    $FilesToPatch = Get-ChildItem -Path $PluginsDir, $RulesDir -Include *.md, *.py, *.json -Recurse
+    foreach ($file in $FilesToPatch) {
+        $content = [System.IO.File]::ReadAllText($file.FullName)
+        if ($content -match "C:/Users/Keith") {
+            $updated = $content.Replace("C:/Users/Keith", $UserProfileForward)
+            [System.IO.File]::WriteAllText($file.FullName, $updated)
+        }
+    }
+}
+
+Write-Host "[4/4] Validating installation..." -ForegroundColor Yellow
 $ValidateScript = Join-Path $PluginsDir "scripts\validate_kit.py"
 if (Test-Path $ValidateScript) {
     python $ValidateScript
