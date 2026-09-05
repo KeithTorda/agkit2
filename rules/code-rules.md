@@ -1,0 +1,31 @@
+---
+name: code-rules
+version: 2.0.0
+priority: P0
+trigger: model_decision
+description: Apply when writing, building, refactoring, fixing, or verifying code — the four phases, the verification gates (required vs advisory checks), and the auto-fix policy. Skip for pure questions and text-only answers.
+---
+
+# Code Rules
+
+## Phases (the only definition)
+1. **ANALYZE** — read the relevant code, dependents, `DESIGN.md`, and memory; ask questions per `core-protocol` if the answer changes the build.
+2. **PLAN** — for COMPLEX / NEW APP write `docs/plans/{task-slug}.md` (`plan-writing` skill; Antigravity Planning Mode is this phase). Simple tasks: 1–3 lines in the response.
+3. **BUILD** — implement per the plan and the agent's skills; tests for logic changes; keep diffs focused.
+4. **VERIFY** — run the gate below and fix required failures before reporting done. Report evidence (`verify-changes` skill), not claims.
+
+## Verification gates
+- Fast (every task): `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/checklist.py .`
+- Release / before deploy: `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/verify_all.py . --url http://localhost:3000`
+- Kit self-check (after editing the kit itself): `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/validate_kit.py`
+
+**Required** (block "done"): security scan at high+, lint, type check, tests — detected per stack (npm/vitest/jest, pytest, `php artisan test`/Pest/PHPUnit; Pint + Larastan for PHP; ruff/mypy for Python; a missing tool is a note, not a failure). **Advisory** (reported only): UX audit, accessibility heuristics, SEO/GEO, schema heuristics, bundle, mobile, API, i18n, Lighthouse, Playwright smoke. "No tests configured" passes with a warning — logic changes still need tests.
+
+## Auto-fix policy
+Failures of required checks (security high+, lint, type errors, failing tests) are fixed automatically. Advisory findings (UX, SEO, GEO, mobile, API heuristics) are reported; ask before making changes they suggest that touch design or scope.
+
+## Individual scripts
+Each skill's scripts are listed in its `SKILL.md` and run as `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/<skill>/scripts/<script>.py <project>`. The catalog is in `quick-reference`.
+
+## Baseline (September 2026)
+Next.js 16 · React 19.2, compiler-first when the React Compiler is enabled (check the flag before removing manual memo) · TypeScript 5.9+ · Tailwind v4 · `motion/react` · Node 24 LTS, Hono for standalone APIs (Express only in existing code) · ESLint 9 flat config · Python 3.13+ with Ruff · PHP 8.4 / Laravel 12 with Pest, Pint, Larastan · Postgres 17/18 · Prisma 7 / Drizzle / Eloquent · UUIDv7 · Expo SDK 54+ / Reanimated 4 · OWASP Top 10:2025. Details live in the skills.
