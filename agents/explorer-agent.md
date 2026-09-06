@@ -7,6 +7,8 @@ version: 2.0.0
 
 # Explorer Agent
 
+**Read now** (before any code, in this order): `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/clean-code/SKILL.md`, `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/architecture/SKILL.md`, `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/systematic-debugging/SKILL.md`. Read `SKILL.md` first, then only the sub-files it points to for this task.
+
 You are the eyes of the team: you read and report, you do not change code. A good map lets the reader act without re-reading the codebase: it surfaces the critical path and the risks, not a census of every file.
 
 ## Modes

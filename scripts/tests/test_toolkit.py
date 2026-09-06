@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import sys
 import tempfile
 import unittest
@@ -160,7 +161,9 @@ eval(user_input)
             self.assertEqual([], checker.issues)
 
     def test_no_legacy_directories(self):
-        for legacy in ("rules", "workflows", "agent"):
+        is_repo = (TOOLKIT / "install.ps1").is_file() or (TOOLKIT / ".git").is_dir()
+        legacy_dirs = ("workflows", "agent") if is_repo else ("rules", "workflows", "agent")
+        for legacy in legacy_dirs:
             self.assertFalse((TOOLKIT / legacy).exists(), f"{legacy}/ must not exist in the plugin")
 
     def test_every_agent_skill_reference_resolves(self):
@@ -172,6 +175,45 @@ eval(user_input)
             for skill in validate_kit.normalize_list(data.get("skills")):
                 with self.subTest(agent=agent.name, skill=skill):
                     self.assertIn(skill, skills)
+
+    # --- procedural spine: the failures observed in use (rules not reaching the model) ---
+    KIT_PREFIX = "C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/"
+
+    def _rules_dir(self):
+        # global rules live beside the plugin: ~/.gemini/config/rules (dev checkout: ../global/rules)
+        for cand in (TOOLKIT.parent / "global" / "rules", Path.home() / ".gemini" / "config" / "rules"):
+            if (cand / "core-protocol.md").exists():
+                return cand
+        self.skipTest("global rules directory not found")
+
+    def test_every_agent_has_imperative_read_now_line_with_resolvable_paths(self):
+        for agent in (TOOLKIT / "agents").glob("*.md"):
+            body = agent.read_text("utf-8")
+            with self.subTest(agent=agent.name):
+                self.assertIn("**Read now**", body, "agent must tell the model to read its skills, not rely on YAML")
+                m = re.search(r"^\*\*Read now\*\*.*$", body, re.M)
+                self.assertIsNotNone(m, "Read now line missing")
+                paths = re.findall(r"`" + re.escape(self.KIT_PREFIX) + r"(skills/[^`]+)`", m.group(0))
+                self.assertTrue(paths, "Read now line has no skill paths")
+                for rel in paths:
+                    self.assertTrue((TOOLKIT / rel).exists(), f"Read now path does not resolve: {rel}")
+                # Read now must match the frontmatter skills list exactly (no drift)
+                raw = validate_kit.extract_frontmatter(body)
+                fm = validate_kit.normalize_list(validate_kit.fallback_frontmatter(raw).get("skills"))
+                listed = [Path(r).parts[1] for r in paths]
+                self.assertEqual(listed, fm, "Read now paths drifted from frontmatter skills")
+
+    def test_gate_policy_is_always_on(self):
+        rules = self._rules_dir()
+        fm = validate_kit.fallback_frontmatter(validate_kit.extract_frontmatter((rules / "code-rules.md").read_text("utf-8")))
+        self.assertEqual(str(fm.get("trigger")), "always_on", "code-rules defines done; it cannot be model_decision")
+
+    def test_always_on_spine_contains_literal_gate_commands(self):
+        rules = self._rules_dir()
+        spine = (rules / "core-protocol.md").read_text("utf-8")
+        for needle in ("scripts/checklist.py", "/see", "/review", "Read the agent file", "plan line"):
+            with self.subTest(needle=needle):
+                self.assertIn(needle, spine, f"core-protocol must inline: {needle}")
 
     def test_required_checks_gate_only(self):
         ok = validation_runner.CheckResult("a", "c", "failed", required=False)

@@ -23,7 +23,7 @@ Evidence is output you produced, not a prediction of it: the command you ran and
 | New feature | Run it → expected output, plus one error path |
 | Refactor | Existing tests pass; behavior unchanged |
 | API change | Call the endpoint → response shape and status codes |
-| UI change | Render the page or component → visual output, no console errors |
+| UI change | **Required UI-render gate** — `browser-verification` (`/see`): render it, check computed styles vs `DESIGN.md`, console/network, one interaction, breakpoints. Gate and escape hatch: `code-rules` |
 | Config or build | Load the config / run the build → values applied, build succeeds |
 
 3. **Run the gates.**
@@ -33,7 +33,7 @@ Evidence is output you produced, not a prediction of it: the command you ran and
 
 | Kind | Checks | On failure |
 |---|---|---|
-| Required | Security (high+), lint, type errors, tests | Fixed before "done" |
+| Required | Security (high+), lint, type errors, tests, UI-render gate for rendered UI | Fixed before "done" |
 | Advisory | UX, accessibility heuristics, SEO, GEO, mobile, API heuristics, bundle, Lighthouse | Reported with findings |
 
 The required/advisory split and the auto-fix policy live in the global `code-rules` rule; this skill is how you run the checks and prove the result. "Done" means required checks pass and logic changes have tests.

@@ -31,7 +31,7 @@ Kit root: `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2`. Agents are files un
 | seo-specialist | seo, geo, search ranking, core web vitals, meta tags, structured data, schema markup, sit… |
 | test-engineer | test, tests, spec, coverage, unit test, integration test, e2e, playwright, vitest, jest,… |
 
-## Slash commands (11)
+## Slash commands (13)
 | Command | Does |
 |---|---|
 | /brainstorm | Explores 2–4 approaches with trade-offs and recommends one before any code is written. Use when the user want… |
@@ -42,17 +42,21 @@ Kit root: `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2`. Agents are files un
 | /orchestrate | Coordinates specialist subagents for a multi-domain task: parallel research, one plan, parallel build by file… |
 | /plan | Writes an implementation plan to docs/plans/{task-slug}.md without writing code. Use when the user wants a pl… |
 | /remember | Saves a preference, convention, decision, or reference note to the project's memory at .agents/memory/MEMORY.… |
+| /review | Attacks the current diff as a hostile reviewer and reports concrete defects: the untested edge, the unhandled… |
+| /see | Opens the running app in the browser and reports what actually rendered: screenshot, real DOM, computed style… |
 | /status | Summarizes project health without changing anything: stack and file counts, recent changes, required-check st… |
 | /test | Runs the project's tests, generates tests for a file or feature, reports coverage, or fixes failing tests. Us… |
 | /verify | Proves code works by running it: build, tests, checklist gates, a runtime request or render, and an error pat… |
 
-## Skills (29)
+## Skills (31)
 | Skill | Use when |
 |---|---|
+| adversarial-review | Attacks your own diff before you report it done — hunting the likeliest bug, the untested edge, the unhandled error pat… |
 | api-patterns | API design decisions - choosing REST, GraphQL, or tRPC, resource naming and status codes, response and error envelopes,… |
 | app-builder | Builds a new application from a natural-language request — detects the project type, picks the template and tech stack,… |
 | architecture | Architecture decision framework — context discovery, trade-off analysis, pattern selection, and ADR templates. Use when… |
 | brainstorming | Clarifies requirements and explores options before building. Covers how to write a question that changes the implementa… |
+| browser-verification | Verifies what actually rendered by opening the running app in the browser: screenshot, real DOM, computed styles agains… |
 | clean-code | Pragmatic coding standards for every code change — naming, function limits (30 lines, 4 parameters, nesting 3), no over… |
 | database-design | Database decisions and schema design - choosing Postgres, SQLite, or a serverless option, Prisma versus Drizzle, normal… |
 | design-spec | Owns the DESIGN.md format - the project-root file that holds machine-readable design tokens (YAML front matter for colo… |

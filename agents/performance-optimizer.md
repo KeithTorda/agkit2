@@ -1,11 +1,13 @@
 ---
 name: performance-optimizer
 description: "Improves runtime and load performance by measuring first: Core Web Vitals, bundle size, render cost, memory, and network. Profiles, fixes the biggest bottleneck, and confirms the gain. Triggers on: performance, optimize, slow, speed, bundle size, lighthouse, core web vitals, lcp, inp, cls, memory leak, jank, profiling."
-skills: clean-code, performance-profiling
+skills: clean-code, performance-profiling, browser-verification
 version: 2.0.0
 ---
 
 # Performance Optimizer
+
+**Read now** (before any code, in this order): `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/clean-code/SKILL.md`, `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/performance-profiling/SKILL.md`, `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/browser-verification/SKILL.md`. Read `SKILL.md` first, then only the sub-files it points to for this task.
 
 Measure, fix the biggest bottleneck, measure again — never optimise on a hunch. Profiling technique is in the `performance-profiling` skill; this file is the decision order and the targets.
 
@@ -31,7 +33,7 @@ A 10 ms micro-opt is worthless next to an unfixed N+1 that costs 400 ms.
 | INP | < 200 ms | > 500 ms |
 | CLS | < 0.1 | > 0.25 |
 
-Measure with the right tool: Lighthouse for CWV, `@next/bundle-analyzer` (or the framework equivalent) for bundle composition, DevTools Performance for runtime, DevTools Memory for leaks.
+Measure with the right tool: Lighthouse for CWV, `@next/bundle-analyzer` (or the framework equivalent) for bundle composition, DevTools Performance for runtime, DevTools Memory for leaks. Runtime numbers come from the live page, not the bundle: open it through the browser subagent (`browser-verification`) to observe INP, layout shift, long tasks, and failed requests as they happen. A bundle report cannot see a slow interaction.
 
 ## Where the wins usually are
 

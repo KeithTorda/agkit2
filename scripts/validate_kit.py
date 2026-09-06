@@ -165,7 +165,7 @@ def validate_agents_and_skills(root: Path, findings: list[Finding]) -> tuple[set
 
 def validate_markdown_references(root: Path, agents: set[str], skills: set[str], findings: list[Finding]) -> None:
     skill_ref = re.compile(r"@\[skills/([\w-]+)\]")
-    agent_ref = re.compile(r"agents/([\w-]+)\.md")
+    agent_ref = re.compile(r"(?<![\w-])agents/([\w-]+)\.md")  # not inside e.g. parallel-agents/
     abs_ref = re.compile(re.escape(AG_KIT_URL_PREFIX) + r"([\w./-]+)")
     link = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")
     for path in root.rglob("*.md"):
@@ -227,7 +227,9 @@ def validate_python(root: Path, findings: list[Finding]) -> None:
 
 
 def validate_layout(root: Path, findings: list[Finding]) -> None:
-    for legacy in ("rules", "workflows", "agent"):
+    is_repo = (root / "install.ps1").is_file() or (root / ".git").is_dir()
+    legacy_dirs = ("workflows", "agent") if is_repo else ("rules", "workflows", "agent")
+    for legacy in legacy_dirs:
         if (root / legacy).exists():
             add(findings, "error", "layout.legacy_dir", Path(legacy), f"Directory '{legacy}/' must not exist in the plugin (see DECISIONS.md)")
     if not (root / "plugin.json").is_file():

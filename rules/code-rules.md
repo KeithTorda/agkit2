@@ -2,7 +2,7 @@
 name: code-rules
 version: 2.0.0
 priority: P0
-trigger: model_decision
+trigger: always_on
 description: Apply when writing, building, refactoring, fixing, or verifying code — the four phases, the verification gates (required vs advisory checks), and the auto-fix policy. Skip for pure questions and text-only answers.
 ---
 
@@ -21,8 +21,22 @@ description: Apply when writing, building, refactoring, fixing, or verifying cod
 
 **Required** (block "done"): security scan at high+, lint, type check, tests — detected per stack (npm/vitest/jest, pytest, `php artisan test`/Pest/PHPUnit; Pint + Larastan for PHP; ruff/mypy for Python; a missing tool is a note, not a failure). **Advisory** (reported only): UX audit, accessibility heuristics, SEO/GEO, schema heuristics, bundle, mobile, API, i18n, Lighthouse, Playwright smoke. "No tests configured" passes with a warning — logic changes still need tests.
 
+## UI-render gate (required — the only definition)
+A change that affects rendered UI is not done until it has been **seen in the browser**. Run the
+`browser-verification` skill (`/see`) and report its Visual Verification Report: rendered output,
+computed styles vs `DESIGN.md` tokens, console and network errors, one interaction pass, and the
+breakpoint matrix. Reading the source is not verification of a render.
+
+Required failures from this gate: the route does not render, an uncaught console error, a failed
+request for the route's own data, or an interaction that does not work. Token violations, spacing
+rhythm, and polish are advisory.
+
+**Escape hatch** — skip the gate when there is no dev server, no browser is available, or the change
+is non-visual (logic, config, build, docs). Skipping is allowed; skipping silently is not: state
+which reason applied in one line under "Not verified".
+
 ## Auto-fix policy
-Failures of required checks (security high+, lint, type errors, failing tests) are fixed automatically. Advisory findings (UX, SEO, GEO, mobile, API heuristics) are reported; ask before making changes they suggest that touch design or scope.
+Failures of required checks (security high+, lint, type errors, failing tests) are fixed automatically. Advisory findings (UX, SEO, GEO, mobile, API heuristics) are reported; ask before making changes they suggest that touch design or scope — **except an agent's own un-reviewed UI in the same task**, which it critiques and refines without asking (`browser-verification` §2b). Asking permission to improve your own first draft is not caution; it is shipping the draft.
 
 ## Individual scripts
 Each skill's scripts are listed in its `SKILL.md` and run as `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/<skill>/scripts/<script>.py <project>`. The catalog is in `quick-reference`.

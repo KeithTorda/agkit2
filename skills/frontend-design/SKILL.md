@@ -17,6 +17,7 @@ Sub-files (read only when the brief calls for it):
 | [style-minimalist.md](./style-minimalist.md) | Brief chooses clean, warm-monochrome, editorial minimalism |
 | [style-brutalist.md](./style-brutalist.md) | Brief chooses raw Swiss-industrial or terminal/telemetry aesthetics |
 | [redesign.md](./redesign.md) | Audit checklist for an existing codebase (protocol is §8 here) |
+| `../design-spec/collection.md` | Every design read (§0.C): 70+ shipped products with their visual language, to pick the named reference from |
 | `./scripts/ux_audit.py`, `./scripts/accessibility_checker.py` | See §9 |
 
 Design rules adapted from [taste-skill](https://github.com/Leonxlnx/taste-skill) by Leonxlnx (MIT).
@@ -41,13 +42,26 @@ The gate lives in the global `design-rules` rule (when it applies, when to infer
 6. **Quiet constraints**: accessibility-first audiences, public sector, regulated industries, trust-first commerce, kids' products. These override aesthetic preference.
 
 ### 0.C State the design read in one line
-Before code, name page kind, audience, vibe, and the design system or aesthetic family you lean toward. Example: *"Reading this as: B2B SaaS landing for technical buyers, with a Linear-style minimalist language, leaning toward Tailwind utilities + Geist + restrained motion."*
+Before code, name page kind, audience, vibe, **and 1-2 shipped products or sites this should sit next to, plus the one thing you are borrowing from each** (grid, type treatment, nav, density, color logic). Pick from `design-spec/collection.md` or your own knowledge; if the user gave references, use theirs. Example: *"Reading this as: B2B SaaS landing for technical buyers. References: Linear (type scale and restraint), Vercel (dark-on-light section rhythm). Tailwind + Geist + restrained motion."*
+
+Adjectives and dials constrain; only a named reference gives you something to aim at. A read without one is not a read, and it is the single largest cause of generic output.
 
 ### 0.D One question, or none
 Questions follow the global `core-protocol` rule. Design questions count toward that budget: at most one, in the same message as any planning questions, never a second round (example: "Closer to Linear-clean or Awwwards-experimental?"). If you can infer the direction, do not ask: declare the design read and proceed.
 
 ### 0.E Anti-defaults, not bans
 Purple/violet primaries, Inter, shadcn/ui, glassmorphism, three equal cards, a centered hero over a dark mesh, micro-animations on every card: *anti-default heuristics*, not bans. Don't reach for them unexamined; use them when the brief, brand, or `DESIGN.md` asks, and note the reason in one line when you do.
+
+### 0.F Screen read (UX, before layout)
+For any page-level or net-new UI, write these five lines before touching §1. The design read says how it should look; this says what it must do.
+
+1. **Job**: what the user is here to accomplish, in one sentence.
+2. **Entry and exit**: where they arrive from, what they know on arrival, and the next screen on success.
+3. **Primary action**: exactly one; at most one secondary. Everything else is demoted.
+4. **First-seen**: the one piece of information they need to decide, placed where the eye lands first.
+5. **States and their words**: loading, empty (first-run: the action that creates the first item), error (what happened + the way forward), long content, permission-denied. Write the actual sentence for each, not "show an error".
+
+Inputs come from the PRD's *Screens and flows* when `product-manager` wrote one (`docs/`); otherwise infer and state your assumptions. A screen you cannot describe this way is not ready to lay out.
 
 ---
 
@@ -175,8 +189,8 @@ The bar for every design; §4.1-§4.9 are the code-level rules that apply it.
 - Z-index only for systemic layers (sticky nav, modal, overlay, grain), documented in one constants file; no arbitrary `z-50`.
 
 ### 4.4 States and forms
-- Ship the full cycle: loading (skeletons matching the final layout, not spinners), empty (composed, says how to populate), error (inline for forms, toast only for transient), `:active` feedback (`scale-[0.98]` or `-translate-y-px`).
-- Visible `focus-visible` ring on every interactive element; never `outline: none` without a replacement.
+- Ship the full cycle, designed in the screen read (§0.F) rather than bolted on: loading (skeletons matching the final layout, not spinners), empty (composed, says how to populate; on first run it shows the one action that creates the first item), error (inline for forms, toast only for transient, announced via `aria-live`, always with a way forward: retry, edit, or a link out, never a dead end), long content (design for the 200-character title and the 500-row list; truncate or paginate deliberately), `:active` feedback (`scale-[0.98]` or `-translate-y-px`).
+- Visible `focus-visible` ring on every interactive element; never `outline: none` without a replacement. State is never carried by colour alone (pair it with an icon, label, or weight).
 - Buttons: text readable against its own background at WCAG AA (4.5:1, 3:1 for 18px+); ghost buttons over photos get a scrim or stroke. Primary CTA labels fit one line at desktop (three words max). One label per intent per page ("Get in touch" and "Let's talk" are one intent: pick one for nav, hero, footer).
 - Forms: label above input (never placeholder-as-label), helper text in markup, error text below, `gap-2` blocks; inputs, placeholders, labels, focus rings, and error text pass AA against the section background. Validate against a schema, not `window.alert()`.
 
@@ -202,7 +216,12 @@ Landing pages and portfolios are visual products; text-only pages with fake-scre
 - Product previews: real screenshot, generated image, or live mini-component; never a dashboard, task list, or terminal made of `<div>`s.
 - Every meaningful image has descriptive `alt`, decorative images `alt=""`; hero image `priority` / preloaded; every image has reserved dimensions.
 
-### 4.7 Content and copy (one rule set for all visible strings)
+### 4.7 Content and copy (marketing and app UI, one rule set for all visible strings)
+The words on the screen are part of the design and are owned by whoever builds the screen. App-UI strings first, because these are the ones a model emits by reflex:
+- **Error messages** say what happened, then what to do, in that order; no error codes to users, no "Oops", no "Something went wrong" without a next step. *"Card declined. Try another card or contact your bank."*
+- **Empty states** name the thing that is missing and the action that creates it; never "No data" or "Nothing here". *"No invoices yet. Create your first invoice."*
+- **Buttons** are verb + object ("Save changes", "Delete project"), never "Submit", "OK", "Yes"; a destructive confirmation repeats the object's name ("Delete *Q3 report*?").
+- **Placeholders** are example values ("name@company.com"), never the label and never an instruction; the label stays visible above.
 - Per section: headline ≤ 8 words, sub-paragraph ≤ 25 words, one visual or one CTA. Cut the rest.
 - No data-dump sections on marketing pages (20-row tables, 30-row award lists): top 3-5 + "View all", or another page. Lists over 5 items get a real component (2-col groups, card grid, tabs, scroll-snap pills, one marquee), not a longer `<ul>` with a hairline under every row. Spec sheets: grouped chunks, featured-vs-rest disclosure, or a 2-col spec card grid.
 - Quotes ≤ 3 lines, attribution name + role (+ company), typographic quotes or none.
@@ -218,6 +237,7 @@ Landing pages and portfolios are visual products; text-only pages with fake-scre
 - Copy: "Quietly trusted by", "Field notes"-style poetic labels, "Stage 1 / Stage 2" (use the verb-noun), micro-meta sentences under headings, mock-humble asides, photo-credit captions on stock images, tags overlaid on photos, fake version footers (`v1.4.2`, "last sync 4s ago").
 - Layout: `border-t` and `border-b` on every row; filled-track progress bars as comparison visuals; `<br>`-split italic headlines; vertical rotated text; H1s that scream by size alone.
 - Components (discouraged defaults, not bans): accordion FAQ, three-tower pricing, dotted testimonial carousel, sun/moon toggle, 4-column footer link farm, filled-plus-ghost button pair. Fine when the content shape fits (ten questions is an accordion); the tell is reaching for them unexamined.
+- App UI: a 4-up stat-tile row on top of every dashboard, sidebar + grid of identical cards, "Welcome back, {name}" headers, gradient-circle avatars, a chart in every card whether or not the data is a series, a table with an avatar column for no reason. Ask what the user checks first on this screen and lead with that.
 - shadcn/ui is a fine foundation, never in its default look (radii, colors, shadows, type adjusted to the project).
 
 ### 4.9 Color scheme (light / dark)
@@ -236,71 +256,24 @@ Motion is motivated or absent: before adding an animation, name what it communic
 - **One animation library per component.** A component imports `motion/react` or `gsap`, never both; they fight over the same frames. GSAP and Three.js live in dedicated client leaves with cleanup. Reduced motion is handled by the library in use: `useReducedMotion()` for Motion, `gsap.matchMedia()` for GSAP, `@media (prefers-reduced-motion)` for CSS.
 
 ### 5.A Sticky stack (GSAP, pin/scrub)
+The one GSAP recipe worth memorising; §5.B is a variant of it.
 ```tsx
 "use client";
-import { useRef, useEffect } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
 gsap.registerPlugin(ScrollTrigger);
-
-export function StickyStack({ cards }: { cards: React.ReactNode[] }) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const mm = gsap.matchMedia();                       // reduced-motion handled by GSAP itself
-    mm.add("(prefers-reduced-motion: no-preference)", () => {
-      const els = Array.from(ref.current!.querySelectorAll<HTMLElement>(".stack-card"));
-      els.forEach((card, i) => {
-        if (i === els.length - 1) return;
-        ScrollTrigger.create({ trigger: card, start: "top top", endTrigger: els[els.length - 1],
-          end: "top top", pin: true, pinSpacing: false });   // "top top", never "top center"
-        gsap.to(card, { scale: 0.92, opacity: 0.55, ease: "none",
-          scrollTrigger: { trigger: els[i + 1], start: "top bottom", end: "top top", scrub: true } });
-      });
-    });
-    return () => mm.revert();                           // kills triggers and tweens on unmount
-  }, []);
-  return (
-    <div ref={ref} className="relative">
-      {cards.map((card, i) => (
-        <div key={i} className="stack-card sticky top-0 flex min-h-[100dvh] items-center justify-center">{card}</div>
-      ))}
-    </div>
-  );
-}
+useEffect(() => {
+  const mm = gsap.matchMedia();                                   // reduced-motion guard
+  mm.add("(prefers-reduced-motion: no-preference)", () => {
+    gsap.timeline({ scrollTrigger: { trigger: wrap.current, start: "top top",
+      end: () => `+=${panels.length * 100}%`, pin: true, scrub: 1, invalidateOnRefresh: true } })
+      .to(panels, { yPercent: -100, stagger: 1, ease: "none" }); // each panel scrolls over the last
+  });
+  return () => mm.revert();                                       // cleanup, always
+}, []);
 ```
-Every card except the last is pinned; card *i* shrinks on card *i+1*'s trigger.
+Panels are absolutely positioned, full-height (`h-[100dvh]`), inside a `relative overflow-hidden` wrap. No `scroll` listeners; ScrollTrigger owns the scroll.
 
 ### 5.B Horizontal pan (GSAP, pin/scrub)
-```tsx
-"use client";
-import { useRef, useEffect } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
-
-export function HorizontalPan({ children }: { children: React.ReactNode }) {
-  const wrap = useRef<HTMLElement>(null);
-  const track = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const mm = gsap.matchMedia();
-    mm.add("(prefers-reduced-motion: no-preference)", () => {
-      const distance = () => track.current!.scrollWidth - window.innerWidth;
-      gsap.to(track.current, { x: () => -distance(), ease: "none",
-        scrollTrigger: { trigger: wrap.current, start: "top top",   // pin before the first slide moves
-          end: () => `+=${distance()}`,                              // scroll length = horizontal travel
-          pin: true, scrub: 1, invalidateOnRefresh: true } });
-    });
-    return () => mm.revert();
-  }, []);
-  return (
-    <section ref={wrap} className="relative overflow-hidden">
-      <div ref={track} className="flex h-[100dvh] items-center">{children}</div>
-    </section>
-  );
-}
-```
+Same structure as §5.A (`matchMedia` reduced-motion guard, `pin: true`, `scrub: 1`, `invalidateOnRefresh`, `mm.revert()` on cleanup) with two changes: the track is `flex h-[100dvh] items-center` inside an `overflow-hidden` section, and the tween is `x: () => -(track.scrollWidth - window.innerWidth)` with `end: () => \`+=${distance()}\`` so the scroll length equals the horizontal travel. Pin before the first slide moves (`start: "top top"`).
 
 ### 5.C Reveal stagger (Motion, no pinning)
 For "items appear as they enter", prefer `motion/react` over GSAP: lighter, no ScrollTrigger.
@@ -333,6 +306,16 @@ export function RevealStagger({ items }: { items: string[] }) {
 
 ---
 
+### 5.E Feedback on action (interaction, not decoration)
+The motion that matters most is the half-second after a click. Rules, no code:
+- Every mutation shows pending **on the control that triggered it** (disabled + label change: "Saving..."), not a page-wide spinner; success is shown inline or by navigating, with a toast only when the user has already left the context.
+- Errors appear next to their cause and read per §4.7 (what happened, then what to do).
+- Optimistic UI only for reversible, high-frequency actions (like, toggle, reorder), with a visible revert on failure; never for payments, deletes, or anything with a receipt.
+- Destructive actions confirm with the object's name; the confirm button is the verb ("Delete project"), never "OK".
+- Hover changes one property (colour or elevation) over `DESIGN.md` `motion.duration.fast`; state transitions use `motion.duration.base`. A control that responds in under 100 ms feels instant; over 300 ms needs a pending state.
+
+---
+
 ## 6. Performance guardrails
 - LCP < 2.5s (hero image `priority` or preloaded), INP < 200ms, CLS < 0.1 (reserved space for images, fonts, embeds). Lighthouse is advisory; run it when a URL is available.
 - Motion is not tiny and Three.js is large: lazy-load anything below the fold; one heavy library per page section.
@@ -340,7 +323,14 @@ export function RevealStagger({ items }: { items: string[] }) {
 ---
 
 ## 7. App-page and component work
-Page-level app UI (settings, onboarding, non-data dashboards): "App page" dials, `DESIGN.md` component tokens, a §2.A system when the brief names one. Dense tables: TanStack Table or AG Grid; editors: Monaco / CodeMirror; multi-step forms: form-library patterns. §4.4 states and §4.9 color scheme apply everywhere; marketing rules (hero, eyebrows, logo walls) do not.
+Page-level app UI (settings, onboarding, dashboards, forms, tables): "App page" dials, `DESIGN.md` component tokens, a §2.A system when the brief names one. Dense tables: TanStack Table or AG Grid; editors: Monaco / CodeMirror; multi-step forms: form-library patterns. §0.F, §4.0, §4.4, §4.7, §5.E and §4.9 apply everywhere; marketing rules (hero, eyebrows, logo walls) do not.
+
+Hierarchy on an app page, parallel to §4.5 for marketing:
+- **One primary action per view**, in one fixed place (top-right of the page header, or bottom-right of a form); never the same action in two places, never two filled buttons in one region.
+- **Page header** = title, one line of context, actions. Nothing else lives there; greetings and stat rows are not headers.
+- **Forms** in groups of ≤ 5 fields under a group heading; single column below `lg`; the field the user fills first is first. Labels above inputs (§4.4); helper text only where a field is genuinely ambiguous.
+- **Tables**: numeric columns right-aligned, text left; the column the user scans first is first; row height from the density dial, not from padding guesses; a row's primary action visible without hover on touch.
+- **Lead with what the user checks first** (§0.F item 4). A dashboard opens on the one number or list that answers "is anything wrong", not on a row of tiles. The grayscale-and-squint test (§4.0) applies here exactly as on a landing page.
 
 ---
 

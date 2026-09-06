@@ -1,6 +1,6 @@
 ---
 name: memory-system
-description: Per-project persistent memory in <project>/.agents/memory/MEMORY.md — what belongs there (decisions, conventions, gotchas), the index format, optional topic files, and how to recall without reciting. Use when the user says remember, save this, or don't forget, for /remember, and at session start when the file exists.
+description: Per-project persistent memory in <project>/.agents/memory/MEMORY.md — what belongs there (decisions, conventions, gotchas, and failed approaches), the index format, optional topic files, and how to recall without reciting. Use when the user says remember, save this, or don't forget, for /remember, when an approach fails and the cause is durable, and at session start when the file exists.
 version: 2.0.0
 ---
 
@@ -22,6 +22,7 @@ Session start: if the file exists, read it once and apply what you learn silentl
 .agents/memory/
 ├── MEMORY.md                index (required, max 200 lines)
 ├── project-conventions.md   optional topic file
+├── failures.md              optional; dead ends worth the detail (see Failure memory)
 └── <topic>.md               optional; only when an entry needs detail
 ```
 
@@ -30,7 +31,7 @@ Small projects keep everything in `MEMORY.md`. Create a topic file only when a n
 ## Index format
 
 - One entry per line, at most 150 characters: `- [type] summary → topic-file.md` (the pointer is optional).
-- Types: `[user]` `[feedback]` `[project]` `[reference]`.
+- Types: `[user]` `[feedback]` `[project]` `[reference]` `[failure]`.
 - Replace an entry when the fact changes; never append a contradiction.
 
 ```markdown
@@ -48,6 +49,10 @@ Small projects keep everything in `MEMORY.md`. Create a topic file only when a n
 
 ## Reference
 - [reference] Staging API base URL is https://staging.example.com/api
+
+## Failures
+- [failure] Tried Turbopack for the build → OOM on CI's 2GB runner → fix: webpack build in CI only
+- [failure] `expo-secure-store` on web → no-op, tokens silently lost → fix: localStorage adapter behind a platform check
 ```
 
 Topic files start with frontmatter (`type`, `created`, `updated`) followed by short headed sections.
@@ -60,6 +65,7 @@ Topic files start with frontmatter (`type`, `created`, `updated`) followed by sh
 | feedback | What the user liked or disliked about output | "Too verbose; prefers tables" |
 | project | Conventions, stack decisions, and gotchas | "bun, not npm; Prisma over Drizzle; seed fails unless migrated first" |
 | reference | Non-secret infrastructure notes, public URLs | "Prod API hostname and port" |
+| failure | An approach that was tried and did not work, with the cause and what worked instead | "Turbopack build OOMs on CI → use webpack in CI" |
 
 | Never save | Why |
 |---|---|
@@ -75,6 +81,31 @@ Topic files start with frontmatter (`type`, `created`, `updated`) followed by sh
 - **Recall** (session start, "what do you remember about X"): read the index; open a topic file only when its entry matches the task.
 - **Search** ("do I have notes on X"): search `.agents/memory/*.md` and return matching entries with file names.
 - **Prune** (index over 200 lines): warn, propose merges or an `archive/` folder; never delete without asking.
+
+## Failure memory
+
+An agent that does not record its dead ends re-walks them every session. This is the cheapest
+intelligence the kit has: one line, written once, saves the same hour forever.
+
+**Record a `[failure]` when** an approach was tried and abandoned for a *durable* reason — a library
+that does not work on the target platform, a config that breaks the build, a pattern the codebase
+rejects, an API that does not behave as documented. Write it the moment it happens, not at the end.
+
+**Format** — cause and cure, never just the symptom:
+
+```text
+- [failure] <what was tried> → <why it failed> → fix: <what worked instead>
+```
+
+A failure entry without a cause is noise ("the build broke" teaches nothing). The cause is what
+makes it transferable to the next attempt.
+
+**Do not record**: a typo you fixed in the same minute, a one-off environment hiccup, anything the
+error message itself makes obvious on the next run, or a failure specific to a branch that no longer
+exists. Transient trouble is not a lesson.
+
+**On recall**, check failures before proposing an approach in the same area — proposing something
+memory already says does not work is the exact waste this exists to prevent.
 
 ## Memory vs. plan vs. task
 

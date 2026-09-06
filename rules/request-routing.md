@@ -17,7 +17,7 @@ description: Classifies every request and routes it to the right specialist agen
 | COMPLEX CODE | build / implement / refactor across files | Specialist, plan file required |
 | NEW APP | new app, from scratch, multi-page | `/create` → `project-planner` → `orchestrator` |
 | MULTI-DOMAIN | frontend + backend + data in one task | `orchestrator` |
-| COMMAND | `/plan` `/debug` `/test` `/verify` `/deploy` `/orchestrate` `/enhance` `/brainstorm` `/remember` `/status` | Follow that skill |
+| COMMAND | `/plan` `/debug` `/test` `/verify` `/see` `/review` `/deploy` `/orchestrate` `/enhance` `/brainstorm` `/remember` `/status` `/create` | Read `skills/<command>/SKILL.md`, follow its Steps |
 
 ## 2. Pick the agent (`C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/agents/<name>.md`)
 | Agent | Triggers |
@@ -40,4 +40,4 @@ description: Classifies every request and routes it to the right specialist agen
 | explorer-agent | explore, map codebase, architecture overview |
 | orchestrator | orchestrate, multi-agent, full-stack, end-to-end |
 
-Mobile ≠ frontend-specialist; a mobile app's backend goes to backend-specialist. If the user names `@agent`, use it. Unclear domain → the closest specialist, not the orchestrator. Then apply `core-protocol` and, for code, `code-rules`.
+Mobile ≠ frontend-specialist; a mobile app's backend goes to backend-specialist. If the user names `@agent`, use it. Unclear domain → the closest specialist, not the orchestrator. Then continue with `core-protocol` step 2: read that agent file now.

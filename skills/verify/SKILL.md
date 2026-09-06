@@ -13,7 +13,7 @@ version: 2.0.0
 ## Steps
 
 1. **Identify** what changed: files, behavior, the original requirement (`git status`, `git diff`).
-2. **Choose the method** from the table in `verify-changes`: bug fix → reproduce; feature → run it; refactor → existing tests; API → call it; UI → render it.
+2. **Choose the method** from the table in `verify-changes`: bug fix → reproduce; feature → run it; refactor → existing tests; API → call it; UI → the required render gate (`/see`, `browser-verification`).
 3. **Run the gates.**
    - Fast gate: `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/checklist.py .`
    - Release gate (before deploy, app running): `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/verify_all.py . --url <url>`

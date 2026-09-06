@@ -1,31 +1,72 @@
 ---
 name: core-protocol
-version: 2.0.0
+version: 2.1.0
 priority: P0
 trigger: always_on
-description: How the agent works on every request — routing to a specialist, loading skills on demand, the questions policy, the announcement line, and the plan-file rule.
+description: The ordered procedure for every request — classify, read the agent file, read its skills, print the plan line, build, run the gates, report evidence. Do these steps in order; do not skip one.
 ---
 
-# Core Protocol
+# Core Protocol — do this, in this order, on every request
 
-Every task is held to `engineering-excellence` (how to think — always on) and, for code, `code-rules` (the phases and gates). This file is the mechanics: route, load, ask, announce, plan.
+`engineering-excellence` is how to think. `code-rules` holds the gate policy. This file is what you
+do, step by step. A text-only QUESTION stops after step 1.
 
-## Loading
-- Route the request with `request-routing`, then read that agent's file: `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/agents/<agent>.md`.
-- Load a skill only when its description matches the task. Inside a skill, read `SKILL.md` first, then only the section files it points to for the current need. Never load every skill in an agent's list up front.
-- Precedence: global rules → agent file → skill. A `DESIGN.md` in the project overrides design guidance in any skill.
+## 1. Classify
+Use the table in `request-routing`. Output one of: QUESTION, SURVEY, SIMPLE CODE, COMPLEX CODE,
+NEW APP, MULTI-DOMAIN, COMMAND. A QUESTION gets a text answer and ends here.
 
-## Questions
-Ask only when the answer changes what you would build — scope, data model, security, architecture, or a design direction you cannot infer. New app or multi-file feature: ask 1–3 targeted questions in one message before planning. Bug fix, single-file change, UI tweak: proceed and state your assumptions. Never ask twice before starting; if the user says "proceed", proceed with stated defaults.
+## 2. Read the agent file
+Pick the agent from the routing table. **Read the file now:**
+`C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/agents/<agent>.md`. Do not build from memory of
+what the agent does; read it. If the user wrote `@agent`, use that one.
 
-## Announcement
-At most one line at the top of a code or design response: `🤖 @<agent> · skills: <a>, <b>`. It is informational, never a gate. No other announcement formats exist.
+## 3. Read the skill files the agent names
+The agent file has a "Read now:" line with absolute paths. Read every file on it before writing
+code. Inside a skill, `SKILL.md` first, then only the sub-files it points to for this task. A
+COMMAND (`/plan`, `/see`, `/review`, ...) is a skill at
+`C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/<command>/SKILL.md`; read it and follow its
+Steps.
 
-## Plan file
-Required for NEW APP and COMPLEX tasks (multi-file or structural change): `docs/plans/{task-slug}.md`, kebab-case, never `plan.md`/`PLAN.md` (format: `plan-writing` skill). Simple tasks: a 1–3 line plan in the response is enough. A missing plan file never blocks a simple task.
+## 4. Ask only if the answer changes the build
+Scope, data model, security, architecture, or a design direction you cannot infer. NEW APP or
+multi-file feature: at most 1-3 questions, one message, before planning. Bug fix, single file, UI
+tweak: do not ask; proceed and state assumptions. Never a second round; on "proceed", proceed with
+stated defaults.
 
-## Phases and verification
-Phases (ANALYZE → PLAN → BUILD → VERIFY), the required-vs-advisory check split, and the auto-fix policy are defined once in `code-rules`. Do not redefine them. Any UI work also applies `design-rules` (the `DESIGN.md` gate), even if that rule did not auto-load.
+## 5. Print the plan line
+First line of every code or design response, exactly this shape, then nothing else on that line:
+
+`@<agent> · skills: <a>, <b> · steps: <the ordered steps you will run for this task>`
+
+Example: `@frontend-specialist · skills: frontend-design, browser-verification · steps: screen read → build → checklist → /see → report`
+
+This line is mandatory. It proves you routed, loaded, and planned. No other announcement format.
+
+## 6. Plan file when required
+NEW APP and COMPLEX CODE: write `docs/plans/{task-slug}.md` (kebab-case; format in the
+`plan-writing` skill) before code. SIMPLE CODE: 1-3 plan lines in the response are enough.
+
+## 7. Build
+Follow the agent file and the skills you read. Tests for logic changes. Focused diffs. UI work:
+the design read, screen read, and `DESIGN.md` gate come from `frontend-design` / `design-rules`;
+you already read them in step 3.
+
+## 8. Run the gates (literal commands, every code task)
+1. `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/checklist.py .` — required
+   checks (security high+, lint, types, tests) must pass. Fix failures; do not report around them.
+2. **If anything rendered changed:** run `/see` (read
+   `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/see/SKILL.md` and follow it). Look at the
+   page, critique your own draft, refine it, look again. A UI change you have not seen is not done.
+   Skip only with a stated reason (no dev server / not visual / no browser).
+3. Non-trivial diff: `/review` (`skills/review/SKILL.md`) before you call it done.
+Required-vs-advisory detail and the auto-fix policy are in `code-rules` (always on).
+
+## 9. Report evidence
+What changed, the exact commands run and what they printed, what you assumed, and a "Not verified"
+line for anything you did not run. "Passing", "fixed", "works" without the output you saw is a
+claim, not a report. Record a durable dead end as a `[failure]` entry (`memory-system`).
 
 ## Multi-agent work
-Use the minimum number of agents the task needs; a single specialist is a valid outcome. File ownership per agent is defined in `agents/orchestrator.md`; the delegation method in the `parallel-agents` skill.
+Fewest agents that fit; one specialist is a valid answer. File ownership: `agents/orchestrator.md`.
+Delegation method: `parallel-agents` skill. Precedence when files disagree: global rules → agent
+file → skill; a project `DESIGN.md` overrides any skill's design guidance.
