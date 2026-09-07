@@ -13,7 +13,8 @@ This skill owns the format only. Whether and when the file is required is the gl
 | File | Read when |
 |---|---|
 | [tokens-reference.md](./tokens-reference.md) | Writing or extending the token block: full schema, value types, component properties, dark values, section table, consumer mapping, complete template |
-| [collection.md](./collection.md) | Picking references: 70+ published DESIGN.md files (Stripe, Linear, Vercel, Airbnb, Apple, ...) by industry, each with a one-line vibe summary and a URL |
+| [collection.md](./collection.md) | Picking references: 85+ shipped products in 12 sections **by audience and domain** (civic, money, retail/POS, marketplace, health, education, logistics, booking, work tools, media, consumer, developer last), each with the one thing worth borrowing |
+| [fetchable.md](./fetchable.md) | Fetching a published DESIGN.md to study its token structure: the slug list and URL shape. Only when a browsing tool is available |
 
 ## 1. File structure
 
@@ -66,7 +67,7 @@ Scales are named levels (`xs sm md lg xl full`; any descriptive key is valid). `
 ## 4. Authoring procedure
 
 1. Read the brief; write the design read and the three dials (`frontend-design` §0-§1 or `mobile-design`); choose `colorScheme`.
-2. Read [collection.md](./collection.md); pick the 1-2 references closest in vibe and industry. If a browsing or fetch tool is available in the session, fetch those files and study how they structure tokens and rationale. Adapt, never copy.
+2. Read [collection.md](./collection.md); go to the section for this project's **audience and domain**, not the one whose aesthetic you know best, and pick the 1-2 closest references there. A developer-product reference belongs only on a developer product. If one of them carries a `(slug)` and a browsing tool is available, fetch it via [fetchable.md](./fetchable.md) and study how it structures tokens and rationale. Adapt, never copy.
 3. Copy the template from `tokens-reference.md` §4 and delete what the project does not use. Write `DESIGN.md` at the project root: tokens first, then rationale.
 4. Lint when the `@google/design.md` CLI is available (npm, via `npx`); otherwise check the file by hand against §1-§3 and the reference:
    ```bash

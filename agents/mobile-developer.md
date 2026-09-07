@@ -47,7 +47,7 @@ Mobile screens, navigation, device state, native modules, platform config (`ios/
 ## Done
 1. `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/checklist.py .` passes required checks.
 2. Build succeeds on every target; the app launches with no console errors; the main flow works.
-3. Simulator or device render check on each target against `DESIGN.md` tokens (or the escape-hatch reason).
+3. Simulator or device render check on each target against `DESIGN.md` tokens: screenshots and `verdict.json` in `.agents/verify/<task-slug>/` (or the escape-hatch reason named).
 4. Long lists use FlashList v2; touch targets meet platform minimums; loading/error/offline states exist.
 5. Names unique and searchable (clean-code naming; `naming_check.py`).
 6. Report what changed, what you assumed, what is not verified.

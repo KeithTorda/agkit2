@@ -17,7 +17,7 @@ Not for mobile apps (`mobile-design`), dense data tables, code editors, realtime
 | redesign.md (§8, audit checklist) | The site or app already exists |
 | style-minimalist.md | Clean, warm-monochrome, editorial minimalism |
 | style-brutalist.md | Raw Swiss-industrial or terminal/telemetry |
-| `../design-spec/collection.md` (70+ shipped products) | Every design read (§0.C): the named reference |
+| `../design-spec/collection.md` (85+ products, 12 sections by audience) | Every design read (§0.C): the named reference. Go to your audience's section, not the aesthetic you know best |
 
 Adapted from [taste-skill](https://github.com/Leonxlnx/taste-skill) (MIT).
 
@@ -38,10 +38,10 @@ Follow the global `design-rules` rule (applies / infer / skip), never restate it
 6. **Quiet constraints** (accessibility-first, public sector, regulated, trust-first commerce, kids) override aesthetic preference.
 
 ### 0.C State the design read in one line
-Before code, name page kind, audience, vibe, **and 1-2 shipped products this should sit next to, with the one thing you borrow from each** (grid, type treatment, nav, density, color logic). From `design-spec/collection.md` or your own knowledge; the user's references win. Example: *"B2B SaaS landing, technical buyers. Linear (type scale), Vercel (section rhythm)."* Adjectives and dials constrain; only a named reference gives you something to aim at. A read without one is not a read, and the largest cause of generic output.
+Before code, name page kind, audience, vibe, **and 1-2 shipped products this should sit next to, with the one thing you borrow from each** (grid, type treatment, nav, density, color logic). Read `design-spec/collection.md` and pick from it. **Match the reference to the audience and domain, not to the design you have seen most:** a civic or government portal sits next to public-service products, a POS or storefront next to retail and payments, a clinic booking next to healthcare, a consumer app next to consumer apps. A developer tool is the right reference only when you are building a developer tool — reaching for one by default is the single most common cause of UI that feels wrong for its users. Name a product outside the collection only when nothing in it fits, and say why in one clause; the user's own references always win. Shape: *"<page kind>, <audience>. <Product> (<what you borrow>), <Product> (<what you borrow>)."* Adjectives and dials constrain; only a named reference gives you something to aim at. A read without one is not a read, and the largest cause of generic output.
 
 ### 0.D One question, or none
-Design questions count toward the global `core-protocol` budget: at most one, in the same message as planning questions, never a second round ("Linear-clean or Awwwards-experimental?"). If you can infer the direction, declare the read and proceed.
+Design questions count toward the global `core-protocol` budget: at most one, in the same message as planning questions, never a second round ("restrained and text-led, or expressive and image-led?"). If you can infer the direction, declare the read and proceed.
 
 ### 0.E Anti-defaults, not bans
 Purple/violet primaries, Inter, shadcn/ui, glassmorphism, three equal cards, a centered hero over a dark mesh, micro-animations on every card: never unexamined. Use them when brief, brand, or `DESIGN.md` asks; note the reason in one line.

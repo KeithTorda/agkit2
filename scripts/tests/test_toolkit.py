@@ -277,6 +277,41 @@ TOKEN = 'YOUR_API_KEY'
                     seen[shingle] = key
         self.assertEqual(dupes, [], f"duplicated prose across skills: {sorted(set(dupes))[:5]}")
 
+    # A skill core an agent loads on every task is L2, capped at 8 KB by the architecture so that
+    # depth lives in Read-when sub-files. This is a RATCHET, not a flat cap: a core already over
+    # 8 KB is pinned at its current size, so it can shrink but never grow, and the debt stays
+    # visible. Splitting one is a normal change — lower its number here in the same commit.
+    L2_CAP = 8000
+    L2_PINNED = {
+        # skill: (max bytes, why it is not 8 KB yet)
+        "frontend-design": (13300, "judgment is the product here (§0.C read, §0.F screen read, "
+                                   "§4.0, §4.7 copy); five sub-files already split out"),
+        "browser-verification": (8300, "gained the verify-artifact contract; troubleshooting.md split out"),
+        "tailwind-patterns": (8200, "owed a split"),
+        "api-patterns": (8400, "owed a split"),
+        "nodejs-best-practices": (11300, "owed a split"),
+        "testing-patterns": (9200, "owed a split"),
+        "vulnerability-scanner": (10400, "owed a split"),
+        "red-team-tactics": (8500, "owed a split"),
+        "shell-ops": (8100, "owed a split"),
+    }
+
+    def test_read_now_skill_cores_do_not_grow(self):
+        read_now = set()
+        for agent in (TOOLKIT / "agents").glob("*.md"):
+            line = re.search(r"^\*\*Read now:\*\*(.*)$", agent.read_text("utf-8"), re.M)
+            if line:
+                read_now.update(self._skill_paths(line.group(1)))
+        self.assertTrue(read_now, "no Read-now skills found")
+        for skill in sorted(read_now):
+            core = TOOLKIT / "skills" / skill / "SKILL.md"
+            cap, why = self.L2_PINNED.get(skill, (self.L2_CAP, "L2 cap"))
+            with self.subTest(skill=skill):
+                self.assertLessEqual(
+                    core.stat().st_size, cap,
+                    f"{skill}/SKILL.md is {core.stat().st_size}B, over {cap}B ({why}) — "
+                    "move depth into a Read-when sub-file, or lower the pin if you shrank it")
+
     def test_gate_policy_is_always_on(self):
         rules = self._rules_dir()
         fm = validate_kit.fallback_frontmatter(validate_kit.extract_frontmatter((rules / "code-rules.md").read_text("utf-8")))

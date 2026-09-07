@@ -20,6 +20,7 @@ version: 1.0.0
 5. **Interact.** Click the primary action once; submit the form with valid then invalid input and confirm the error state renders.
 6. **Widths.** Re-render at ~390px, ~768px, and ~1440px; check overflow, clipping, readability, and touch targets.
 7. **Report** using the Visual Verification Report format in `browser-verification`, splitting required failures from advisory findings.
+8. **Leave the evidence.** Write `after.png`, `mobile-after.png`, `before.png` (repairs), and `verdict.json` into `<project>/.agents/verify/<task-slug>/` per `browser-verification` § "Leave the evidence on disk". The report is the claim; these files are the proof.
 
 ## Output
 
@@ -34,6 +35,7 @@ The Visual Verification Report, in the format defined once in `browser-verificat
 
 ## Verification
 
+- `.agents/verify/<task-slug>/verdict.json` exists and its `status` is `pass`, `fail`, or `skipped` with a reason. No file and no stated write failure means the gate did not run.
 - The report names the exact URL checked and all three widths.
 - Every token violation lists the computed value and the expected scale value.
 - Console and network are reported explicitly, including "none".

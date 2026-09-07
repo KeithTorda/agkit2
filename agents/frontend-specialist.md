@@ -8,7 +8,7 @@ version: 2.2.0
 # Frontend Specialist
 
 **Read now:** `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/frontend-design/SKILL.md`, `.../skills/tailwind-patterns/SKILL.md`, `.../skills/browser-verification/SKILL.md`
-**Read when:** fixing UI that exists → `.../skills/ui-repair/SKILL.md`; adding or organising CSS → `.../skills/css-architecture/SKILL.md`; Next.js routing, data, or caching → `.../skills/nextjs-react-expert/SKILL.md`; new app structure → `.../skills/frontend-architecture/SKILL.md`; reviewing someone's UI → `.../skills/web-design-guidelines/SKILL.md`; writing DESIGN.md → `.../skills/design-spec/SKILL.md`
+**Read when:** every design read (the named reference, §0.C) → `.../skills/design-spec/collection.md`; fixing UI that exists → `.../skills/ui-repair/SKILL.md`; adding or organising CSS → `.../skills/css-architecture/SKILL.md`; Next.js routing, data, or caching → `.../skills/nextjs-react-expert/SKILL.md`; new app structure → `.../skills/frontend-architecture/SKILL.md`; reviewing someone's UI → `.../skills/web-design-guidelines/SKILL.md`; writing DESIGN.md → `.../skills/design-spec/SKILL.md`
 
 ## Own
 `components/**`, `app/**` pages and layouts, styles and tokens, client state, web `DESIGN.md` · hand off: API and Server Actions → backend-specialist, schema → database-architect, tests → test-engineer · full table: `agents/orchestrator.md`
@@ -46,7 +46,7 @@ version: 2.2.0
 
 ## Done
 1. `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/checklist.py .` passes required checks.
-2. `/see` Visual Verification Report included (or the escape-hatch reason).
+2. `/see` run: `.agents/verify/<task-slug>/verdict.json` exists with `status: pass` (or `skipped` naming the blocked precondition), and its report is in the reply. A report with no file is a claim.
 3. Names unique and searchable (clean-code naming; `naming_check.py`).
 4. Logic changes have tests (test-engineer owns the files in multi-agent work).
 5. Report what changed, what you assumed, what is not verified.

@@ -1,5 +1,36 @@
 # AG Kit v2 — Changelog
 
+## v2.2.1 (2026-09-07) — Evidence-on-Disk Verification, Audience Design System & Token Ratchets
+
+### 1. Evidence-on-Disk Verification Gate Contract
+- **Durable Disk Artifacts (`browser-verification`, `/see`, `/fix-ui`)**:
+  - Verification reports in responses are treated as claims; proof must now be persisted to disk under `<project>/.agents/verify/<task-slug>/`:
+    - `verdict.json`: Machine-readable audit artifact recording route, tested breakpoints (`[390, 768, 1440]`), console error count, failed network request count, interaction test status, token violations, overall status (`pass`, `fail`, or `skipped` with reason), and unverified items.
+    - `after.png` (1440px desktop) and `mobile-after.png` (390px mobile).
+    - `before.png` (mandatory on repairs as irrefutable evidence of the defect before remediation).
+- **Specialist Agent Done Criteria**:
+  - `agents/frontend-specialist.md`: Updated Done gate 2 to mandate that `.agents/verify/<task-slug>/verdict.json` exists with status `pass` (or `skipped` stating the blocked precondition).
+  - `agents/mobile-developer.md`: Updated Done gate 3 to mandate simulator/device screenshots and `verdict.json` in `.agents/verify/<task-slug>/`.
+
+### 2. Audience- & Domain-Driven Design Reference System
+- **`skills/design-spec/collection.md`**:
+  - Complete restructuring into 12 domain- and audience-specific sections: Public Service/Civic, Money/Fintech/Billing, Retail/Storefront/POS, Marketplace/Classifieds, Health/Clinic, Education/Learning, Logistics/Delivery, Booking/Hospitality, Work Tools/Productivity, Media/Editorial, Consumer Apps, and Developer Products (placed last).
+  - Prevents LLM design bias of defaulting to dark-mode developer tools when building portals, healthcare, public services, or e-commerce.
+- **`skills/design-spec/fetchable.md`**:
+  - Split out published `DESIGN.md` fetch URLs and slug references into a dedicated reference file for when browsing tools are available.
+- **`skills/frontend-design/SKILL.md` (§0.C)**:
+  - Updated design read guidelines to strictly require selecting references tailored to audience and domain before writing code.
+  - Linked `agents/frontend-specialist.md` directly to `design-spec/collection.md` on every design read.
+
+### 3. Context Token Ratchet & Skill Core Slimming
+- **`skills/browser-verification/troubleshooting.md`**:
+  - Split out browser actuation rules, Chrome preconditions, and the 7 common verification pitfalls from `browser-verification/SKILL.md` to conserve context window tokens.
+- **`scripts/tests/test_toolkit.py`**:
+  - Added architectural token ratchet `test_read_now_skill_cores_do_not_grow()` enforcing an 8 KB cap on all Read-now (L2) skill cores with tracked historical debt pinned.
+  - Added test suite count to 20 automated regression tests.
+
+---
+
 ## v2.2.0 (2026-09-07) — Rules Update, Fix-at-Source Invariant, UI Repair & Naming Enforcement
 
 ### 1. Global Rules Evolution

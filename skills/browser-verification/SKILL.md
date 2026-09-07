@@ -17,20 +17,9 @@ how the kit stops guessing about UI.
 Required for any change that affects rendered UI — the gate and its escape hatch are defined in the
 global `code-rules` rule. This skill is *how* to run it, not *whether*.
 
-## Preconditions (check these before blaming the code)
-
-Antigravity drives a real Chrome through its browser subagent. Three settings decide whether this
-skill can run at all, and each fails in a way that looks like a code problem:
-
-| Requirement | Where | If missing |
-|---|---|---|
-| **Google Chrome installed** | system | The browser subagent cannot start at all |
-| **Settings → Browser → Enable Browser Tools** | Antigravity settings | No navigation, no screenshot, no DOM |
-| **Browser Actuation Rules allow the dev-server URL** | Settings → Browser → Actuation Permissions | Navigation to `localhost` is refused — looks like the server is down when it is a permission |
-
-If a browser step is refused, check the actuation rules for `http://localhost:*` **before** touching
-the app. Report the blocked precondition as the escape-hatch reason; do not silently fall back to
-reading source and call it verified.
+**Read when:** a browser step is refused, or a check behaves oddly → `troubleshooting.md`
+(preconditions: Chrome, Enable Browser Tools, actuation rules; and the seven ways this verification
+goes wrong).
 
 ## Protocol
 
@@ -127,19 +116,14 @@ tappable on mobile. Most layout bugs live at exactly one width and are invisible
 
 A screenshot teaches nothing if you do not know what you are looking at. Work this list:
 
-- **Overflow** — anything forcing a horizontal scrollbar. Almost always a fixed width, a long
-  unbroken string, or an image with no `max-width`.
-- **Stacking and z-index** — a dropdown, modal, or tooltip rendering behind its neighbour.
-- **Contrast** — text over a background at the computed colors. Body text below 4.5:1 fails; large
-  text below 3:1 fails. Judge the computed pair, not the intent.
-- **Focus visibility** — tab through the interactive elements. An invisible focus ring is a real
-  accessibility failure and is invisible in source review.
-- **Layout shift** — content jumping as images or fonts load. Usually a missing dimension.
-- **The four states** — loading, empty, error, and long-content. Most UI is built for the happy
-  path only; render the empty list and the 200-character title.
+- **Overflow** — anything forcing a horizontal scrollbar: a fixed width, an unbroken string, an image with no `max-width`.
+- **Stacking** — a dropdown, modal, or tooltip rendering behind its neighbour.
+- **Contrast** — judge the *computed* pair: body below 4.5:1 fails, large text below 3:1 fails.
+- **Focus visibility** — tab through; an invisible focus ring is a real failure and is invisible in source review.
+- **Layout shift** — content jumping as images or fonts load; usually a missing dimension.
+- **The four states** — loading, empty, error, long content. Render the empty list and the 200-character title.
 - **Image aspect** — stretched or squashed media.
-- **Spacing rhythm** — inconsistent gaps between sibling elements, which reads as sloppiness even
-  when nothing is technically broken.
+- **Spacing rhythm** — inconsistent gaps between siblings; reads as sloppiness even when nothing is broken.
 
 ## Report
 
@@ -162,23 +146,20 @@ A screenshot teaches nothing if you do not know what you are looking at. Work th
 - <what needs a human eye and why>
 ```
 
-## Failure modes to watch for
+## Leave the evidence on disk
 
-- **Screenshotting the wrong thing** — an old port, a cached build, a route that redirected. Confirm
-  the URL in the report matches what you meant to check.
-- **Declaring it fine because it looks fine** — the screenshot is one of six checks. A page can look
-  perfect and be throwing console errors, failing its data fetch, and unusable by keyboard.
-- **Checking only desktop** — the width you developed at is the width least likely to be broken.
-- **Reading source styles instead of computed styles** — a class name is an intention; the computed
-  value is the fact. Tailwind arbitrary values, cascade order, and specificity all break the link
-  between them.
-- **Verifying the happy path only** — empty, error, and long-content states are where UI actually
-  fails in production.
-- **Treating a console error as advisory** — an uncaught exception or a failed request on the route
-  you changed blocks "done".
-- **Mistaking a blocked precondition for a passing check** — if browser actuation refused the URL or
-  Chrome is not installed, you verified nothing. That is an escape-hatch skip with a stated reason,
-  never a pass.
+A report in the reply is a claim; a file is evidence. Also write to
+`<project>/.agents/verify/<task-slug>/`: `after.png` (1440) and `mobile-after.png` (390), plus
+`before.png` on a repair — the only proof the defect existed — and `verdict.json`:
+
+```json
+{ "route": "/dashboard", "widths": [390,768,1440], "consoleErrors": 0, "failedRequests": 0,
+  "interaction": "pass", "tokenViolations": [], "status": "pass", "notVerified": [] }
+```
+
+`status` is `pass` only when the route rendered, no uncaught console error, no failed data request on
+this route, and the interaction pass succeeded; otherwise `fail`, or `skipped` with a `reason` naming
+the blocked precondition. If the directory cannot be written, say so in one line and report inline.
 
 ## Boundaries
 
