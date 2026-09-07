@@ -105,7 +105,7 @@ project-name/
    npm install stripe resend @prisma/client zod
    npm install -D prisma babel-plugin-react-compiler
    ```
-   Then set `reactCompiler: true` in `next.config.ts` (compiler-first when the React Compiler is enabled (`reactCompiler: true` in next.config / babel-plugin-react-compiler in Expo — the kit's templates enable it); check the flag before removing manual memo).
+   Then set `reactCompiler: true` in `next.config.ts` (compiler-first when the React Compiler is enabled; the memo rule is in `nextjs-react-expert`).
 
 3. Tailwind v4 in `globals.css`, tokens from `DESIGN.md`:
    ```css

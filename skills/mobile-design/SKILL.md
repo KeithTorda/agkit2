@@ -29,7 +29,7 @@ Read only the files the task needs. For cross-platform work read both platform f
 
 ## Questions before building
 
-Questions: follow the global `core-protocol` rule (ask only when the answer changes the build; 1–3 questions in one message for new apps / multi-file work; proceed on simple tasks).
+Questions: follow the global `core-protocol` rule.
 
 For mobile the answers that most often change the build are platform (iOS, Android, or both), framework (React Native, Flutter, or native), and whether it must work offline; infer them from the brief or existing project when you can, and state the default you chose.
 
@@ -68,7 +68,7 @@ const insets = useSafeAreaInsets();
 
 ## Memoization
 
-Compiler-first when the React Compiler is enabled (`reactCompiler: true` in next.config / babel-plugin-react-compiler in Expo — the kit's templates enable it); check the flag before removing manual memo. The New Architecture does not ship the compiler by itself: look for `babel-plugin-react-compiler` in `babel.config.js` and the lockfile. With the compiler on, do not add `useMemo`, `useCallback`, or `React.memo` by default; add them only when the compiler bails out on a component or profiling on a low-end device shows a hot path. Without it, memoize measured hot list items only. Correctness rules still apply: a stable `keyExtractor`, cleanup in `useEffect`, and `useNativeDriver: true` (or Reanimated 4, which runs on the UI thread) are not memoization and are always required. Flutter's equivalent is `const` constructors and targeted rebuilds (`ValueListenableBuilder`, `ref.watch(provider.select(...))`).
+Compiler-first when the React Compiler is enabled; the memo rule is in `nextjs-react-expert`. The New Architecture does not ship the compiler by itself: look for `babel-plugin-react-compiler` in `babel.config.js` and the lockfile. Profile on a low-end device; without the compiler, memoize measured hot list items only. Correctness rules still apply: a stable `keyExtractor`, cleanup in `useEffect`, and `useNativeDriver: true` (or Reanimated 4, which runs on the UI thread) are not memoization and are always required. Flutter's equivalent is `const` constructors and targeted rebuilds (`ValueListenableBuilder`, `ref.watch(provider.select(...))`).
 
 ## Checklist
 

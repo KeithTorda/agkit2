@@ -7,10 +7,10 @@
 
 ## Compiler first
 
-Compiler-first when the React Compiler is enabled (`reactCompiler: true` in next.config / babel-plugin-react-compiler in Expo — the kit's templates enable it); check the flag before removing manual memo. The compiler memoizes components, hooks, and JSX automatically, so:
+Compiler-first when the React Compiler is enabled; the memo rule is in `SKILL.md` (Baseline assumptions). The compiler memoizes components, hooks, and JSX automatically, so:
 
-- Do not write `useMemo`, `useCallback`, or `React.memo` by default. They add noise and can hide real bugs (missing dependencies).
-- Add manual memoization only when (a) the compiler bails out on a specific component (React DevTools shows a "Memo" badge on compiled components; `eslint-plugin-react-hooks` reports the code the compiler cannot handle), or (b) profiling shows a hot path the compiler did not cover, such as a very expensive computation whose inputs are stable.
+- Manual `useMemo`, `useCallback`, and `React.memo` add noise and can hide real bugs (missing dependencies).
+- A bailout is visible: React DevTools shows a "Memo" badge on compiled components; `eslint-plugin-react-hooks` reports the code the compiler cannot handle. A hot path the compiler did not cover looks like a very expensive computation whose inputs are stable.
 - The compiler cannot fix structural problems: state stored in the wrong place, effects that set state, context values that change on every render, or components that subscribe to values they do not need. The rules below target those.
 - If the project has the compiler off (older codebase, `reactCompiler: false`), the same structural rules apply first; add memo only after measuring.
 

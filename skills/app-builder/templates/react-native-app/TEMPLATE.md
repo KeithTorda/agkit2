@@ -13,7 +13,7 @@ description: React Native mobile app template. Expo SDK 54+, Expo Router, New Ar
 |---|---|---|
 | Core | React Native + Expo | SDK 54+, New Architecture enabled (default) |
 | Language | TypeScript | Strict mode |
-| UI logic | React 19 | React Compiler enabled by this template (`babel-plugin-react-compiler`); compiler-first when the React Compiler is enabled (`reactCompiler: true` in next.config / babel-plugin-react-compiler in Expo — the kit's templates enable it); check the flag before removing manual memo |
+| UI logic | React 19 | React Compiler enabled by this template (`babel-plugin-react-compiler`); compiler-first; the memo rule is in `nextjs-react-expert` |
 | Navigation | Expo Router | File-based, typed routes, universal links |
 | Styling | NativeWind 4+ (stable) | Tailwind classes in RN; use the Tailwind version NativeWind's install guide specifies |
 | Animation | Reanimated 4 | UI-thread animations; requires the New Architecture |

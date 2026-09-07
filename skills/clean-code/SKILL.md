@@ -29,6 +29,15 @@ version: 2.0.0
 
 If a name needs a comment, rename it.
 
+### Unique, searchable names
+
+Policy: global `code-rules` "Unique, searchable names". The rules:
+
+- Files are `<domain>-<role>.<ext>`: `invoice-table.tsx`, `invoice-total.test.ts`. Banned bare filenames, any extension: `utils.ts helpers.ts styles.css types.ts constants.ts common.ts misc.ts`. `index.*` only where the framework needs it (route folders). No two files in a repo share a basename.
+- Exported or shared identifiers are domain-prefixed and intention-revealing: `formatInvoiceTotal`, `useCartItems`, `InvoiceTable`. Never `Component2`, `NewButton`, `data`, `item`, `temp`, `result`, `handleClick`, `doStuff`, `process`, `manager`, `helper`. Local loop variables may be short (`i`, `row`).
+- A rename updates every reference: grep the old name first, then change all of them in the same task.
+- CSS classes and custom properties: `css-architecture`. Check: `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/naming_check.py .`
+
 ## Limits
 
 | Measure | Limit |
@@ -61,7 +70,7 @@ Structure: guard clauses first, small functions composed, related code colocated
 |---|---|
 | Feature requested | Write it directly |
 | Bug reported | Fix it; explain the cause in one line |
-| Requirement unclear | Follow the global `core-protocol` questions rule (ask only when the answer changes the build; 1–3 questions in one message for new apps / multi-file work; proceed on simple tasks); otherwise state assumptions |
+| Requirement unclear | Follow the global `core-protocol` questions rule; otherwise state assumptions |
 
 ## Before editing a file, check dependents
 

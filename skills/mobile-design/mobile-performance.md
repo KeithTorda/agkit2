@@ -73,7 +73,7 @@ import { FlashList } from "@shopify/flash-list";
 />
 ```
 
-v2 removed `estimatedItemSize` (and the other `estimated*` props); it measures automatically. Do not pass them. `masonry` is a prop now, not a separate component. Compiler-first when the React Compiler is enabled (`babel-plugin-react-compiler` in Expo — the kit's templates enable it); check the flag before removing manual memo. With the compiler on you usually do not wrap the row in `React.memo` or `renderItem` in `useCallback`; add them only if profiling shows the compiler bailed out.
+v2 removed `estimatedItemSize` (and the other `estimated*` props); it measures automatically. Do not pass them. `masonry` is a prop now, not a separate component. Compiler-first when the React Compiler is enabled; the memo rule is in `nextjs-react-expert`. With the compiler on, do not wrap the row in `React.memo` or `renderItem` in `useCallback` unless profiling shows the compiler bailed out.
 
 ### FlatList (short fixed lists, or when FlashList is unavailable)
 

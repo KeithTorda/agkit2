@@ -6,7 +6,7 @@ version: 2.0.0
 
 # Database Design
 
-Choose the database and ORM for the deployment target, then design the schema for the queries the app will actually run. Questions: follow the global `core-protocol` rule (ask only when the answer changes the build; 1–3 questions in one message for new apps / multi-file work; proceed on simple tasks). When the database choice is unclear and changes the architecture it is one of those questions; otherwise pick the default below and state it.
+Choose the database and ORM for the deployment target, then design the schema for the queries the app will actually run. Questions: follow the global `core-protocol` rule. When the database choice is unclear and changes the architecture it is one of those questions; otherwise pick the default below and state it.
 
 ## 1. Database selection
 

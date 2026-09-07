@@ -14,24 +14,24 @@ Kit root: `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2`. Agents are files un
 | Agent | Triggers |
 |---|---|
 | backend-specialist | backend, server, api, endpoint, route handler, server action, service, auth, webhook, que… |
-| code-archaeologist | legacy, refactor, spaghetti code, undocumented, reverse engineer, modernize, brownfield,… |
+| code-archaeologist | legacy, refactor, undocumented, reverse engineer, modernize, brownfield, technical debt,… |
 | database-architect | database, sql, schema, migration, query, index, postgres, sqlite, prisma, drizzle, orm, d… |
-| debugger | bug, error, crash, exception, stack trace, not working, broken, investigate, fix, regress… |
+| debugger | bug, error, crash, exception, stack trace, not working, broken, investigate, regression,… |
 | devops-engineer | deploy, production, staging, server, pm2, ssh, docker, kubernetes, release, rollback, ci/… |
 | documentation-writer | documentation, readme, api docs, changelog, jsdoc, tsdoc, docstring, tutorial, adr, llms.… |
-| explorer-agent | explore, map codebase, analyze repo, understand codebase, architecture overview, dependen… |
-| frontend-specialist | component, react, next.js, vue, nuxt, blade, livewire, inertia, ui, ux, css, tailwind, re… |
+| explorer-agent | explore, map codebase, analyze repo, architecture overview, dependency graph, feasibility… |
+| frontend-specialist | component, react, next.js, vue, blade, livewire, ui, css, tailwind, layout, sidebar, page… |
 | mobile-developer | mobile, react native, expo, flutter, ios, android, app store, play store, swiftui, kotlin… |
-| orchestrator | orchestrate, coordinate, multi-agent, full-stack feature, end-to-end, parallel agents, de… |
-| penetration-tester | exploit, attack simulation, red team, offensive security, vulnerability validation, proof… |
-| performance-optimizer | performance, optimize, slow, speed, bundle size, lighthouse, core web vitals, lcp, inp, c… |
-| product-manager | requirements, user story, acceptance criteria, product spec, prd, backlog, mvp, prioritiz… |
-| project-planner | plan, planning, roadmap, break down, scope, milestones, task breakdown, new project, arch… |
-| security-auditor | security, vulnerability, owasp, xss, injection, csrf, auth, authorization, encrypt, secre… |
-| seo-specialist | seo, geo, search ranking, core web vitals, meta tags, structured data, schema markup, sit… |
-| test-engineer | test, tests, spec, coverage, unit test, integration test, e2e, playwright, vitest, jest,… |
+| orchestrator | orchestrate, coordinate, multi-agent, full-stack, end-to-end, delegate, integrate |
+| penetration-tester | exploit, red team, offensive security, vulnerability validation, proof of concept, breach… |
+| performance-optimizer | performance, optimize, slow, bundle size, lighthouse, core web vitals, lcp, inp, cls, mem… |
+| product-manager | requirements, user story, acceptance criteria, prd, backlog, mvp, prioritize, scope |
+| project-planner | plan, planning, roadmap, break down, scope, milestones, task breakdown, new project |
+| security-auditor | security, vulnerability, owasp, xss, injection, csrf, auth, secrets, supply chain, depend… |
+| seo-specialist | seo, geo, search ranking, meta tags, structured data, schema markup, sitemap, robots, e-e… |
+| test-engineer | test, spec, coverage, unit, integration, e2e, playwright, vitest, jest, pytest, cypress,… |
 
-## Slash commands (13)
+## Slash commands (14)
 | Command | Does |
 |---|---|
 | /brainstorm | Explores 2–4 approaches with trade-offs and recommends one before any code is written. Use when the user want… |
@@ -39,6 +39,7 @@ Kit root: `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2`. Agents are files un
 | /debug | Investigates a bug systematically: reproduce, isolate, find the root cause, fix, verify, add a regression tes… |
 | /deploy | Runs pre-flight checks, builds, deploys to preview or production, verifies health, and rolls back on failure.… |
 | /enhance | Adds or changes a feature in an existing application: understand the current state, scope the change, apply i… |
+| /fix-ui | Diagnoses and fixes existing web UI that renders wrong (misplaced, overlapping, clipped, collapsed, or unresp… |
 | /orchestrate | Coordinates specialist subagents for a multi-domain task: parallel research, one plan, parallel build by file… |
 | /plan | Writes an implementation plan to docs/plans/{task-slug}.md without writing code. Use when the user wants a pl… |
 | /remember | Saves a preference, convention, decision, or reference note to the project's memory at .agents/memory/MEMORY.… |
@@ -48,7 +49,7 @@ Kit root: `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2`. Agents are files un
 | /test | Runs the project's tests, generates tests for a file or feature, reports coverage, or fixes failing tests. Us… |
 | /verify | Proves code works by running it: build, tests, checklist gates, a runtime request or render, and an error pat… |
 
-## Skills (31)
+## Skills (33)
 | Skill | Use when |
 |---|---|
 | adversarial-review | Attacks your own diff before you report it done — hunting the likeliest bug, the untested edge, the unhandled error pat… |
@@ -58,10 +59,11 @@ Kit root: `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2`. Agents are files un
 | brainstorming | Clarifies requirements and explores options before building. Covers how to write a question that changes the implementa… |
 | browser-verification | Verifies what actually rendered by opening the running app in the browser: screenshot, real DOM, computed styles agains… |
 | clean-code | Pragmatic coding standards for every code change — naming, function limits (30 lines, 4 parameters, nesting 3), no over… |
+| css-architecture | How styles are organised so a change lands in one place — one token source, cascade layers, co-located component styles… |
 | database-design | Database decisions and schema design - choosing Postgres, SQLite, or a serverless option, Prisma versus Drizzle, normal… |
 | design-spec | Owns the DESIGN.md format - the project-root file that holds machine-readable design tokens (YAML front matter for colo… |
-| frontend-architecture | Organizes frontend code by responsibility (UI, logic, data, types, validation) with the React 19 / Next.js 16 data-laye… |
-| frontend-design | Designs and builds web UI that does not look templated - landing pages, marketing and product sites, portfolios, page-l… |
+| frontend-architecture | Organizes frontend code by responsibility (UI, logic, data, types, validation) for React/Next and Vue - feature folders… |
+| frontend-design | Web UI that does not look templated (landing pages, marketing sites, portfolios, app UI, redesigns). Core - DESIGN.md g… |
 | i18n-localization | Internationalisation and localisation for web and Python apps - translation keys and locale files, next-intl and react-… |
 | lint-and-validate | Static checks after every code change - ESLint 9 flat config, TypeScript type checks, Ruff and mypy or pyright for Pyth… |
 | mcp-builder | Building MCP (Model Context Protocol) servers and clients against the 2026-07-28 spec - stateless request design, serve… |
@@ -79,13 +81,15 @@ Kit root: `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2`. Agents are files un
 | systematic-debugging | Four-phase debugging method — reproduce, isolate, understand the root cause, fix and verify with a regression test. Use… |
 | tailwind-patterns | Tailwind CSS v4 mechanics - CSS-first configuration with @theme tokens, the @custom-variant dark setup, container queri… |
 | testing-patterns | Testing strategy for web and API projects - the test pyramid, AAA structure, the TDD loop, mocking rules, Pest/PHPUnit… |
+| ui-repair | Diagnoses and fixes existing web UI that renders wrong — misplaced, overlapping, clipped, collapsed, or unresponsive la… |
 | verify-changes | Proves a change works by executing it (build, tests, checklist gates, a request or render, an error path) and reporting… |
 | vulnerability-scanner | Security review mapped to the OWASP Top 10:2025 - attack-surface mapping, supply-chain and dependency risk, secret and… |
 | web-design-guidelines | Reviews built web UI code against Vercel's Web Interface Guidelines (accessibility, interaction, forms, performance, co… |
 
-## Scripts (23) — run as `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/<path> <project>`
+## Scripts (24) — run as `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/<path> <project>`
 - `scripts/build_quick_reference.py`
 - `scripts/checklist.py`
+- `scripts/naming_check.py`
 - `scripts/session_manager.py`
 - `scripts/validate_kit.py`
 - `scripts/validation_runner.py`

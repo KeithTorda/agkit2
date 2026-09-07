@@ -57,11 +57,10 @@ TOKEN = 'YOUR_API_KEY'
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / "bad.py").write_text(
-                """api_key = 'sk_live_12345678901234567890'
-eval(user_input)
-""",
+                "api_" + "key = 'sk_live_12345678901234567890'\n"
+                "eval(user_input)\n",
                 "utf-8",
-            )  # agkit: allow-secret
+            )
             report = security_scan.run_full_scan(str(root), "all")
             self.assertGreaterEqual(report["summary"]["critical"], 1)
             self.assertGreaterEqual(report["summary"]["high"], 1)
@@ -186,22 +185,97 @@ eval(user_input)
                 return cand
         self.skipTest("global rules directory not found")
 
-    def test_every_agent_has_imperative_read_now_line_with_resolvable_paths(self):
+    AGENT_HEADINGS = [
+        "## Own",
+        "## Build (new work)",
+        "## Repair (existing work that is wrong)",
+        "## Decide",
+        "## Never",
+        "## Done",
+    ]
+    BANNED_AGENT_PHRASES = ("the agent should", "consider ", "try to", "it is recommended", "you might")
+    BIG_BUILDER_AGENTS = {"frontend-specialist.md", "mobile-developer.md", "backend-specialist.md"}
+
+    @staticmethod
+    def _skill_paths(line: str):
+        # Agents abbreviate after the first path: `.../skills/<name>/...` or full prefix.
+        return re.findall(r"skills/([\w-]+)/", line)
+
+    def test_every_agent_follows_v22_skeleton(self):
+        for agent in (TOOLKIT / "agents").glob("*.md"):
+            body = agent.read_text("utf-8")
+            # strip fenced blocks so template ## lines inside examples do not count as headings
+            outside = re.sub(r"```.*?```", "", body, flags=re.S)
+            headings = [ln.strip() for ln in outside.splitlines() if ln.startswith("## ")]
+            with self.subTest(agent=agent.name):
+                self.assertEqual(headings, self.AGENT_HEADINGS, "six headings, exact text, in order")
+
+    def test_every_agent_read_lines_resolve_and_match_frontmatter(self):
         for agent in (TOOLKIT / "agents").glob("*.md"):
             body = agent.read_text("utf-8")
             with self.subTest(agent=agent.name):
-                self.assertIn("**Read now**", body, "agent must tell the model to read its skills, not rely on YAML")
-                m = re.search(r"^\*\*Read now\*\*.*$", body, re.M)
-                self.assertIsNotNone(m, "Read now line missing")
-                paths = re.findall(r"`" + re.escape(self.KIT_PREFIX) + r"(skills/[^`]+)`", m.group(0))
-                self.assertTrue(paths, "Read now line has no skill paths")
-                for rel in paths:
-                    self.assertTrue((TOOLKIT / rel).exists(), f"Read now path does not resolve: {rel}")
-                # Read now must match the frontmatter skills list exactly (no drift)
-                raw = validate_kit.extract_frontmatter(body)
-                fm = validate_kit.normalize_list(validate_kit.fallback_frontmatter(raw).get("skills"))
-                listed = [Path(r).parts[1] for r in paths]
-                self.assertEqual(listed, fm, "Read now paths drifted from frontmatter skills")
+                now = re.search(r"^\*\*Read now:\*\*(.*)$", body, re.M)
+                self.assertIsNotNone(now, "missing '**Read now:**' line")
+                now_skills = self._skill_paths(now.group(1))
+                self.assertTrue(1 <= len(now_skills) <= 3, "Read now names 1-3 skills")
+                for s in now_skills:
+                    self.assertTrue((TOOLKIT / "skills" / s / "SKILL.md").exists(), f"Read now skill missing: {s}")
+                fm = validate_kit.normalize_list(
+                    validate_kit.fallback_frontmatter(validate_kit.extract_frontmatter(body)).get("skills"))
+                self.assertEqual(now_skills, fm, "Read now must equal frontmatter skills, in order")
+                when = re.search(r"^\*\*Read when:\*\*(.*)$", body, re.M)
+                if when:
+                    for ref in re.findall(r"`([^`]*skills/[^`]+)`", when.group(1)):
+                        rel = ref.split("ag-kit-v2/")[-1] if "ag-kit-v2/" in ref else ref
+                        rel = rel.lstrip(". /")
+                        self.assertTrue((TOOLKIT / rel).exists(), f"Read when path does not resolve: {ref}")
+
+    def test_agents_within_size_cap(self):
+        # 8K for the three big builders, 7K for the orchestrator (holds the canonical
+        # ownership table), 6K for the rest.
+        for agent in (TOOLKIT / "agents").glob("*.md"):
+            if agent.name in self.BIG_BUILDER_AGENTS:
+                cap = 8000
+            elif agent.name == "orchestrator.md":
+                cap = 7000
+            else:
+                cap = 6000
+            with self.subTest(agent=agent.name):
+                self.assertLessEqual(agent.stat().st_size, cap, f"{agent.name} over {cap}B")
+
+    def test_agents_use_imperative_voice(self):
+        for agent in (TOOLKIT / "agents").glob("*.md"):
+            low = agent.read_text("utf-8").lower()
+            for phrase in self.BANNED_AGENT_PHRASES:
+                with self.subTest(agent=agent.name, phrase=phrase):
+                    self.assertNotIn(phrase, low, f"banned phrasing '{phrase.strip()}'")
+
+    def test_no_prose_duplicated_across_skill_files(self):
+        # Catches the React-Compiler-paragraph class of token waste: the same long prose run
+        # copied into more than one SKILL.md. Scoped to skills (agents share the v2.2 skeleton
+        # by design, which the skeleton + size-cap tests already constrain). A 24-word run is
+        # long enough that shared pointers and one-line rules do not trip it, but a copied paragraph does.
+        # Command wrappers (description starts with "/") legitimately mirror the steps and
+        # report format of the skill they wrap; exclude them and compare content skills only.
+        def is_command(path):
+            m = re.search(r"^description:\s*(.+)$", path.read_text("utf-8"), re.M)
+            return bool(m) and m.group(1).lstrip("\"' ").startswith("/")
+
+        seen: dict[str, str] = {}
+        dupes = []
+        for f in sorted((TOOLKIT / "skills").glob("*/SKILL.md")):
+            if is_command(f):
+                continue
+            text = re.sub(r"```.*?```", "", f.read_text("utf-8"), flags=re.S)
+            key = f"{f.parent.name}/SKILL.md"
+            for para in re.split(r"\n\s*\n", text):
+                words = re.findall(r"\w+", para.lower())
+                for i in range(len(words) - 23):
+                    shingle = " ".join(words[i:i + 24])
+                    if shingle in seen and seen[shingle] != key:
+                        dupes.append((seen[shingle], key))
+                    seen[shingle] = key
+        self.assertEqual(dupes, [], f"duplicated prose across skills: {sorted(set(dupes))[:5]}")
 
     def test_gate_policy_is_always_on(self):
         rules = self._rules_dir()

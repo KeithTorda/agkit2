@@ -13,11 +13,12 @@ description: Classifies every request and routes it to the right specialist agen
 |---|---|---|
 | QUESTION | what is, how does, explain | Text answer; no agent, no plan file |
 | SURVEY | analyze, overview, map the codebase | `explorer-agent`, report only |
-| SIMPLE CODE | fix / add / change in one file, UI tweak | Specialist, proceed directly |
+| SIMPLE CODE | add / change in one file, UI tweak | Specialist, **Build** steps, proceed directly |
+| REPAIR | fix, broken, wrong, not working, out of place, misaligned, overlapping, cut off, regression | Specialist, **Repair** steps; UI → `/fix-ui` |
 | COMPLEX CODE | build / implement / refactor across files | Specialist, plan file required |
 | NEW APP | new app, from scratch, multi-page | `/create` → `project-planner` → `orchestrator` |
 | MULTI-DOMAIN | frontend + backend + data in one task | `orchestrator` |
-| COMMAND | `/plan` `/debug` `/test` `/verify` `/see` `/review` `/deploy` `/orchestrate` `/enhance` `/brainstorm` `/remember` `/status` `/create` | Read `skills/<command>/SKILL.md`, follow its Steps |
+| COMMAND | `/plan` `/debug` `/test` `/verify` `/see` `/fix-ui` `/review` `/deploy` `/orchestrate` `/enhance` `/brainstorm` `/remember` `/status` `/create` | Read `skills/<command>/SKILL.md`, follow its Steps |
 
 ## 2. Pick the agent (`C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/agents/<name>.md`)
 | Agent | Triggers |

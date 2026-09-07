@@ -102,7 +102,7 @@ Respect `prefers-reduced-motion` (`useReducedMotion`).
 ## Setup Steps
 
 1. `npx create-next-app@latest my-site --typescript --tailwind --eslint --app --src-dir`
-2. `npm install motion lucide-react clsx tailwind-merge` and `npm install -D babel-plugin-react-compiler`; set `reactCompiler: true` in `next.config.ts` (compiler-first when the React Compiler is enabled (`reactCompiler: true` in next.config / babel-plugin-react-compiler in Expo — the kit's templates enable it); check the flag before removing manual memo).
+2. `npm install motion lucide-react clsx tailwind-merge` and `npm install -D babel-plugin-react-compiler`; set `reactCompiler: true` in `next.config.ts` (compiler-first when the React Compiler is enabled; the memo rule is in `nextjs-react-expert`).
 3. `src/app/globals.css` with tokens from `DESIGN.md`:
    ```css
    @import "tailwindcss";

@@ -28,7 +28,7 @@ Related: `@[skills/database-design]` for schema design, `@[skills/api-patterns]`
 
 ## Before finalizing
 
-- Requirements and constraints are understood. Questions: follow the global `core-protocol` rule (ask only when the answer changes the build; 1–3 questions in one message for new apps / multi-file work; proceed on simple tasks).
+- Requirements and constraints are understood. Questions: follow the global `core-protocol` rule.
 - Each significant decision has a trade-off analysis and a simpler alternative considered.
 - ADRs are written for decisions that are expensive to reverse.
 - The chosen patterns match the team's expertise.

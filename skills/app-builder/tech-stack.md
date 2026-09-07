@@ -9,7 +9,7 @@ Frontend:
   framework: Next.js 16+ (App Router)
   language: TypeScript 5.9+
   styling: Tailwind CSS v4 (CSS-first config)
-  ui: React 19.2 — compiler-first when the React Compiler is enabled (reactCompiler: true in next.config; the kit's templates enable it); check the flag before removing manual memo
+  ui: React 19.2 — compiler-first when the React Compiler is enabled; the memo rule is in nextjs-react-expert
   data: Server Components for reads; Server Actions + useActionState for mutations; TanStack Query only for client-interactive server state
   motion: motion (motion/react)
   bundler: Turbopack (default)

@@ -129,7 +129,7 @@ AG Kit v2 enforces the **Ultra High-Contrast Typography & Badges (Anti-Blur Inva
 
 ## Slash Commands Reference
 
-AG Kit v2 provides 13 primary workflow commands:
+AG Kit v2 provides 14 primary workflow commands:
 
 | Command | Lifecycle Phase | Description | Example Usage |
 | :--- | :--- | :--- | :--- |
@@ -137,6 +137,7 @@ AG Kit v2 provides 13 primary workflow commands:
 | **`/plan`** | Implementation Design | Formulates an architectural blueprint in `docs/plans/{task-slug}.md` before writing code. | `/plan biometric voter authentication flow` |
 | **`/brainstorm`** | Architecture Exploration | Compares 2–4 technical alternatives with trade-offs and recommendations. | `/brainstorm SSE vs WebSockets for real-time counts` |
 | **`/debug`** | Problem Resolution | 4-phase systematic debugging: Reproduce → Isolate → Root Cause → Regression Test & Fix. | `/debug precinct map crashes on mobile tap` |
+| **`/fix-ui`** | Layout Repair | Container-first diagnosis of broken/misaligned web UI without layout overrides. | `/fix-ui sidebar overlaps main content on tablet` |
 | **`/verify`** | Pre-Commit Quality | Runs security scans, TypeScript compiler, linter, tests, and build check to prove code works. | `/verify ensure all changes pass security and lint gates` |
 | **`/see`** | Visual Inspection | Opens running app in a headless browser to inspect DOM, computed styles, and responsive states. | `/see check login form and roster table in dark mode` |
 | **`/review`** | Adversarial Review | Hostile review of current diff hunting for edge cases, error paths, races, and security risks. | `/review check authentication middleware refactor` |
@@ -147,7 +148,7 @@ AG Kit v2 provides 13 primary workflow commands:
 | **`/status`** | Repository Telemetry | Summarizes git diffs, open plan tasks, and required check states without altering code. | `/status summarize all changes made in this session` |
 | **`/remember`** | Persistent Memory | Saves durable preferences, conventions, or decisions to `.agents/memory/MEMORY.md`. | `/remember always run Nginx reverse proxy on port 80` |
 
-For the full catalog of 31 domain skills (including `/frontend-design`, `/database-design`, `/nodejs-best-practices`), see [`AG_KIT_SLASH_COMMANDS.md`](./AG_KIT_SLASH_COMMANDS.md).
+For the full catalog of 33 domain skills (including `/frontend-design`, `/database-design`, `/nodejs-best-practices`, `/ui-repair`), see [`AG_KIT_SLASH_COMMANDS.md`](./AG_KIT_SLASH_COMMANDS.md).
 
 ---
 

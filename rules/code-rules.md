@@ -35,6 +35,23 @@ rhythm, and polish are advisory.
 is non-visual (logic, config, build, docs). Skipping is allowed; skipping silently is not: state
 which reason applied in one line under "Not verified".
 
+## Fix at the source (required)
+A fix changes the thing that is wrong: the container's constraint, the token, the rule that owns the
+behaviour. An **override is not a fix**: `!important`, an inline layout style, a wrapper element added
+to win the cascade, a more specific selector, a margin or `absolute` hack on a child to compensate for
+its parent, a `catch` that hides the error, a platform `if` around a layout cause. Each of these moves
+the bug and breaks the next change. When you replace CSS or code, delete what you replaced. Method for
+UI: `ui-repair` (`/fix-ui`); organisation: `css-architecture`.
+
+## Unique, searchable names (required)
+Files are `<domain>-<role>.<ext>` (`invoice-table.tsx`, `invoice-table.css`), never bare
+`utils.ts`, `helpers.ts`, `styles.css`, `types.ts`, or a second `index.*` outside route conventions;
+no two files in a repo share a basename. Exported symbols are domain-prefixed and intention-revealing
+(`formatInvoiceTotal`, not `format`); CSS classes and custom properties are component-prefixed
+(`.invoice-table__row`, `--invoice-table-gap`); tokens are namespaced (`--color-*`, `--space-*`).
+Check: `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/naming_check.py .` (runs
+inside `checklist.py`). Detail and the banned-generic list: `clean-code`.
+
 ## Auto-fix policy
 Failures of required checks (security high+, lint, type errors, failing tests) are fixed automatically. Advisory findings (UX, SEO, GEO, mobile, API heuristics) are reported; ask before making changes they suggest that touch design or scope — **except an agent's own un-reviewed UI in the same task**, which it critiques and refines without asking (`browser-verification` §2b). Asking permission to improve your own first draft is not caution; it is shipping the draft.
 

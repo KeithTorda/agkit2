@@ -10,7 +10,7 @@ Rules distilled from Vercel Engineering, updated for Next.js 16 (App Router, Tur
 
 ## Baseline assumptions
 
-- Compiler-first when the React Compiler is enabled (`reactCompiler: true` in next.config / babel-plugin-react-compiler in Expo — the kit's templates enable it); check the flag before removing manual memo. With the compiler on, do not add `useMemo`, `useCallback`, or `React.memo` by default; add them only when the compiler bails out on a component or profiling shows a hot path. See `./5-rerender-re-render-optimization.md`.
+- Compiler-first when the React Compiler is enabled: `reactCompiler: true` in `next.config.*` for Next.js, `babel-plugin-react-compiler` in `babel.config.js` for Expo — the kit's templates enable it. Check the flag before removing manual memo (off plus stripped memo is the regression). With the compiler on, most manual `useMemo` / `useCallback` / `React.memo` is redundant or harmful: do not add it by default; reach for it only when the compiler bails out on a component or profiling shows a hot path. Profile the hot path instead of guarding every component. This is the kit's single statement of the rule; other files point here. Bailout detection, the verify command, and when manual memo is still right: `./5-rerender-re-render-optimization.md`.
 - Server Components for reads; Server Actions + `useActionState` for mutations; TanStack Query only for client-interactive server state (polling, infinite lists, optimistic UI). See `./4-client-client-side-data-fetching.md`.
 - `next lint` no longer exists. Run the project's own ESLint script (`npm run lint` if defined, otherwise `npx eslint .`) and `npx tsc --noEmit`.
 - Animations: `motion/react` (not `framer-motion`); scroll-driven effects use CSS scroll-driven animations or `useScroll` from `motion/react`, never a scroll listener that sets React state.
@@ -38,7 +38,7 @@ Read only the section that matches the task.
 | Slow first load / long TTI | 1, then 2 |
 | Bundle over ~200 KB gzipped for the main chunk | 2 |
 | Slow server render or API route | 3, then 9 |
-| UI lag, too many renders | 5 (check the compiler is active before adding memo) |
+| UI lag, too many renders | 5 (baseline compiler rule first) |
 | Scroll jank, layout shift, hydration flash | 6 |
 | Redundant client requests | 4 |
 | Stale or over-fetched cached data | 9 |
@@ -49,7 +49,7 @@ Critical: no sequential `await` for independent work; no barrel imports of large
 
 High: Server Components by default, with the `"use client"` boundary pushed to the interactive leaf, not a page or layout (a high directive drags its whole import subtree into the client bundle); no N+1 queries in route handlers; static or cached rendering where content allows; only needed fields cross the RSC boundary.
 
-Medium: long lists virtualized or `content-visibility: auto`; images through `next/image`; no state derived in effects; with the compiler on, no manual `useMemo` / `useCallback` / `React.memo` added by default — and do not strip existing memo without first confirming the compiler flag is actually on (off plus stripped memo is the regression).
+Medium: long lists virtualized or `content-visibility: auto`; images through `next/image`; no state derived in effects; memoization follows the baseline compiler rule (flag confirmed before adding or stripping memo).
 
 ## Script
 

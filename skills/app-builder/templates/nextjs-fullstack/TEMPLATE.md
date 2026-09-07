@@ -96,7 +96,7 @@ project-name/
 ## Best Practices
 
 - Server Components by default; add `'use client'` only for state, effects, or event handlers.
-- Compiler-first when the React Compiler is enabled (`reactCompiler: true` in next.config / babel-plugin-react-compiler in Expo — the kit's templates enable it); check the flag before removing manual memo. With the compiler on: no manual `useMemo` / `useCallback` / `React.memo` unless the compiler bails out or profiling shows a hot path.
+- Compiler-first when the React Compiler is enabled (this template turns it on); the memo rule is in `nextjs-react-expert`.
 - Validate every action input with Zod before it reaches Prisma; return typed errors to `useActionState`.
 - Keep `lib/dal.ts` server-only (`import 'server-only'`) so database code never reaches the client bundle.
 - IDs: UUIDv7 for sortable primary keys.

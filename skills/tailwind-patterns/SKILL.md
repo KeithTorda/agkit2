@@ -99,7 +99,11 @@ Default behaviour without any setup: `dark:` follows `prefers-color-scheme`. For
 | Avoid | Do instead |
 |---|---|
 | Arbitrary values everywhere (`p-[13px]`) | The `@theme` scale; add a token if one is missing |
-| `!important` / `!` modifiers | Fix the cascade or use `@layer` |
+| `!important` / `!` modifiers | Fix the layer order; the one allowed case (a `!` utility on a third-party widget) is in `css-architecture` |
 | Inline `style=` for static values | Utilities; inline only for runtime values (`style={{ '--index': i }}`) |
 | Two token sources (JS config + `@theme`) | `@theme` only, generated from `DESIGN.md` |
 | `h-screen` heroes | `min-h-dvh` |
+
+## Organisation
+
+Where CSS lives is decided by `css-architecture`, not here: what `globals.css` may contain, co-located component files, custom CSS in the right `@layer` (a `vendor` layer for third-party CSS) instead of `!important`, BEM class and custom-property naming, and deleting the rule you replace. This file covers how Tailwind expresses a style; that one covers where it goes.

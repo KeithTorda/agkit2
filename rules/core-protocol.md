@@ -1,6 +1,6 @@
 ---
 name: core-protocol
-version: 2.1.0
+version: 2.2.0
 priority: P0
 trigger: always_on
 description: The ordered procedure for every request — classify, read the agent file, read its skills, print the plan line, build, run the gates, report evidence. Do these steps in order; do not skip one.
@@ -21,9 +21,10 @@ Pick the agent from the routing table. **Read the file now:**
 what the agent does; read it. If the user wrote `@agent`, use that one.
 
 ## 3. Read the skill files the agent names
-The agent file has a "Read now:" line with absolute paths. Read every file on it before writing
-code. Inside a skill, `SKILL.md` first, then only the sub-files it points to for this task. A
-COMMAND (`/plan`, `/see`, `/review`, ...) is a skill at
+The agent file has two lines. **Read now:** read every file on it before writing code (at most
+three). **Read when:** read a file only when its condition matches this task; skip the rest — that
+is where the tokens go. Inside a skill, `SKILL.md` first, then only the sub-files it points to. A
+COMMAND (`/plan`, `/see`, `/review`, `/fix-ui`, ...) is a skill at
 `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/<command>/SKILL.md`; read it and follow its
 Steps.
 
@@ -46,10 +47,11 @@ This line is mandatory. It proves you routed, loaded, and planned. No other anno
 NEW APP and COMPLEX CODE: write `docs/plans/{task-slug}.md` (kebab-case; format in the
 `plan-writing` skill) before code. SIMPLE CODE: 1-3 plan lines in the response are enough.
 
-## 7. Build
-Follow the agent file and the skills you read. Tests for logic changes. Focused diffs. UI work:
-the design read, screen read, and `DESIGN.md` gate come from `frontend-design` / `design-rules`;
-you already read them in step 3.
+## 7. Build or repair
+New work: the agent file's **Build** steps. Something that exists is wrong (fix, broken, out of
+place, misaligned, not working): the agent file's **Repair** steps — reproduce, locate, name the root
+cause, fix at the source, verify. Never an override (`code-rules`). Tests for logic changes. Focused
+diffs.
 
 ## 8. Run the gates (literal commands, every code task)
 1. `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/checklist.py .` — required
@@ -57,7 +59,8 @@ you already read them in step 3.
 2. **If anything rendered changed:** run `/see` (read
    `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/see/SKILL.md` and follow it). Look at the
    page, critique your own draft, refine it, look again. A UI change you have not seen is not done.
-   Skip only with a stated reason (no dev server / not visual / no browser).
+   Skip only with a stated reason (no dev server / not visual / no browser). A UI **repair** task
+   runs `/fix-ui` instead, which includes `/see` before and after.
 3. Non-trivial diff: `/review` (`skills/review/SKILL.md`) before you call it done.
 Required-vs-advisory detail and the auto-fix policy are in `code-rules` (always on).
 

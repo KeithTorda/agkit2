@@ -1,4 +1,42 @@
-# AG Kit v2 — What changed from the original ag-kit install (2026-09-05)
+# AG Kit v2 — Changelog
+
+## v2.2.0 (2026-09-07) — Rules Update, Fix-at-Source Invariant, UI Repair & Naming Enforcement
+
+### 1. Global Rules Evolution
+- **`core-protocol.md` (v2.2.0)**:
+  - Token conservation: Split agent loading into mandatory **Read now** (max 3 files) and conditional **Read when** paths to drastically reduce context window overhead.
+  - Added **Build vs Repair** distinction to Step 7: new features run Build steps; fixes run systematic Repair steps (reproduce, locate, identify root cause, fix at source, verify).
+  - Added `/fix-ui` command into Step 3 and Step 8 for UI repair tasks.
+- **`code-rules.md`**:
+  - **Fix at the source (Required)**: Strict ban on layout overrides (`!important`, inline hacks, wrapper elements to win cascade, child margin hacks). Prescribes `ui-repair` (`/fix-ui`) and `css-architecture`.
+  - **Unique, searchable names (Required)**: Enforces `<domain>-<role>.<ext>` (`invoice-table.tsx`, `invoice-table.css`), strictly banning bare generic filenames (`utils.ts`, `helpers.ts`, `styles.css`, `types.ts`, duplicate `index.*`). Exported symbols must be domain-prefixed; CSS classes component-prefixed.
+- **`request-routing.md`**:
+  - Added explicit `REPAIR` routing category mapping bugs/alignment/layout issues to specialist Repair workflows and UI defects to `/fix-ui`.
+  - Added `/fix-ui` to COMMAND catalog.
+- **`quick-reference.md`**:
+  - Catalog rebuilt to index 17 agents, 44 skills, 14 slash commands, and updated scripts.
+
+### 2. Specialist Agents (All 17 Agents -> v2.2.0)
+- Upgraded every specialist agent with explicit `Read now` (immediate required skills) and `Read when` (conditional skills) headers.
+- Structured agent bodies into dual execution modes: **Build (new work)** and **Repair (existing work that is wrong)** with explicit root-cause taxonomy and verification gates.
+
+### 3. New Skills & Architectural References
+- **`fix-ui` (`/fix-ui`)**: Systematic UI repair workflow that captures headless browser renders, locates container layout modes, isolates 1 of 8 root causes, and corrects the parent constraint.
+- **`ui-repair`**: Deep dive into layout defect root causes and components constraints (`components.md`).
+- **`css-architecture`**: Single token source of truth, CSS cascade layers (`@layer`), co-located component styling, and plain CSS/SCSS mode for Laravel Blade (`plain-css.md`).
+- **Modular Skill Extensions**:
+  - `design-spec/tokens-reference.md`: Canonical schema and tokens reference.
+  - `frontend-architecture/structure-reference.md`: Feature folder and state-tier structural reference.
+  - `frontend-design/`: Modularized into `app-ui.md`, `design-systems.md`, `marketing-layout.md`, and `motion.md`.
+
+### 4. Verification Scripts & Gates
+- **`scripts/naming_check.py`**: Automated static checker detecting banned generic filenames (`utils.*`, `helpers.*`, `types.*`, `styles.*`) and bare duplicate index files.
+- **`scripts/checklist.py`**: Integrated `naming_check.py` into P1 Code Quality checks.
+- **`scripts/tests/test_toolkit.py`**: Expanded to 19 automated tests covering scanner regex boundaries, path resolution, and repository test configurations.
+
+---
+
+## v2.1.0 / Initial Install (2026-09-05) — Rebuild from original ag-kit
 
 Based on vudovn/ag-kit. Rebuilt for a global Antigravity install on this machine. Full audit: `ag-kit-audit.md`; policies every file follows: `DECISIONS.md` (both next to this file).
 

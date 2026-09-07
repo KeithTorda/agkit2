@@ -32,7 +32,7 @@ After scaffolding, change the expensive-to-reverse things first, before any UI: 
 
 ## Process
 
-1. Questions: follow the global `core-protocol` rule (ask only when the answer changes the build; 1–3 questions in one message for new apps / multi-file work; proceed on simple tasks). Question format: `@[skills/brainstorming]`.
+1. Questions: follow the global `core-protocol` rule. Question format: `@[skills/brainstorming]`.
 2. Detect the project type and template; confirm the stack.
 3. Plan: `project-planner` writes `docs/plans/{task-slug}.md` in the `@[skills/plan-writing]` format.
 4. UI projects: `frontend-specialist` (web) or `mobile-developer` (mobile-only app) creates `DESIGN.md` at the project root per `@[skills/design-spec]` before any UI code.

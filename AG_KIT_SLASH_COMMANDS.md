@@ -4,7 +4,7 @@ A comprehensive guide to all slash commands, specialist skills, and IDE automati
 
 ---
 
-## 1. Primary Workflow Commands (13 Commands)
+## 1. Primary Workflow Commands (14 Commands)
 
 These are your core commands covering the complete software engineering lifecycle:
 
@@ -14,6 +14,7 @@ These are your core commands covering the complete software engineering lifecycl
 | `/plan` | Architecture & Implementation Blueprints | **Before touching code on complex or multi-file features.** Writes a verifiable breakdown to `docs/plans/{task-slug}.md` complete with task checkboxes, file ownership, and risk mitigations.<br>*Example: `"/plan integrate biometric authentication and offline voter caching"`* |
 | `/brainstorm` | Trade-Off & Approach Exploration | **When deciding between competing technical paths.** Explores 2–4 concrete architectures, libraries, or data models with honest trade-offs and recommendations before writing code.<br>*Example: `"/brainstorm WebSockets vs Server-Sent Events (SSE) for live election precinct counts"`* |
 | `/debug` | Systematic 4-Phase Debugging | **Investigating bugs, crashes, regressions, or failing tests.** Strictly follows the scientific method: Reproduce → Isolate → Root Cause → Regression Test & Fix (eliminates guess-and-check edits).<br>*Example: `"/debug map container crashes on mobile when tapping a barangay pin"`* |
+| `/fix-ui` | Container-First UI Layout Repair | **Diagnosing and fixing existing web UI that renders wrong.** Locates parent layout mode and computed box model, names 1 of 8 root causes, fixes container at source without layout overrides (`!important` or hack wrappers).<br>*Example: `"/fix-ui sidebar overlaps main content area on tablet breakpoint"`* |
 | `/verify` | Automated Quality & Pre-Commit Gate | **Proving code works with hard evidence.** Executes the automated gate suite: security scans, linter, TypeScript compiler, automated tests, and production build check.<br>*Example: `"/verify ensure all changes compile and pass security gates"`* |
 | `/see` | Live Browser UI & Visual Render Verification | **Verifying UI before declaring done.** Opens the live application in a headless browser to inspect rendered DOM, computed CSS tokens against `DESIGN.md`, console errors, and interaction responsive states.<br>*Example: `"/see verify the login card and student roster table in dark mode"`* |
 | `/review` | Adversarial Diff & Blast Radius Review | **Hostile code review before PR or deployment.** Attacks the current diff hunting for untested edges, unhandled errors, race conditions, security vulnerabilities, and logic flaws.<br>*Example: `"/review check the authentication middleware refactor for security holes"`* |
@@ -26,12 +27,14 @@ These are your core commands covering the complete software engineering lifecycl
 
 ---
 
-## 2. Specialist Domain Skills (31 Skills)
+## 2. Specialist Domain Skills (33 Skills)
 
 Every skill in the kit can be referenced directly during conversation or invoked via prompt context:
 
 ### Frontend, UI & Ergonomics
 - **`frontend-design`**: Bespoke, non-templated UI. Typographic pairings, curated palettes, visual density dials, and micro-interactions.
+- **`ui-repair`**: Root-cause UI layout diagnosis (8 structural causes, container constraints, never overrides).
+- **`css-architecture`**: Single token source, cascade layers, co-located component styles, override ban as a method.
 - **`browser-verification`**: Headless browser verification engine backing the `/see` command.
 - **`design-spec`**: Generates and synchronizes design tokens in `DESIGN.md` (colors, radius, shadows, spacing) mapped directly to Tailwind v4 `@theme`.
 - **`mobile-design`**: Audits touch target sizes, bottom sheets, thumb-zone layout, and React Native / Flutter apps.
