@@ -99,3 +99,29 @@ Tailwind mechanics and the `@theme` mapping → `tailwind-patterns`; fixing a br
 | File | Read when |
 |---|---|
 | [plain-css.md](./plain-css.md) | The project is not Tailwind (Laravel Blade, legacy CSS/SCSS) |
+
+## Check it before you look at it
+
+The browser shows you that text is the wrong colour. This shows you *why*, with `file:line`,
+before you render anything:
+
+```bash
+python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/css_audit.py .
+```
+
+It reads every `.css`/`.scss` plus `<style>` blocks and `style=""` attributes, and fails on:
+
+- **token-collision** — one custom property defined more than once with different values outside a
+  theme selector. Whichever file loads last silently wins, so the colour changes with import order.
+  This is the single most common cause of "the text colour keeps changing". One token, one definition;
+  a theme (`.dark`, `[data-theme]`, `@media (prefers-color-scheme)`) is the only legitimate redefinition.
+- **undefined-var** — `var(--x)` where nothing defines `--x` and there is no fallback. The
+  declaration is dropped and the element inherits, which is how text becomes invisible.
+- **contrast** — a rule setting both `color` and a background below 4.5:1 (3:1 counts as an error).
+  Values resolve through `var()` when the token has one unambiguous definition.
+- **important** — `!important` on a colour: an override, not a fix.
+- **inline-style** / **cross-file-override** — a colour set in a `style=""` attribute, or the same
+  property on the same selector in more than one file. Both decide the rendered colour by load order
+  rather than by ownership.
+
+Run it before `/see`, not after: a render tells you something is wrong, this tells you which line.

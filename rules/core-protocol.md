@@ -59,9 +59,12 @@ diffs.
 2. **If anything rendered changed:** run `/see` (read
    `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/see/SKILL.md` and follow it). Look at the
    page, critique your own draft, refine it, look again. A UI change you have not seen is not done.
-   Skip only with a stated reason (no dev server / not visual / no browser). A UI **repair** task
+   Then run `scripts/ui_verify.py .agents/verify/<task-slug>` — it must exit 0, or the
+   viewports you reported were not the viewports you rendered. Skip only with a stated reason
+   (no dev server / not visual / no browser). A UI **repair** task
    runs `/fix-ui` instead, which includes `/see` before and after.
-3. Non-trivial diff: `/review` (`skills/review/SKILL.md`) before you call it done.
+3. **If a downloadable file changed** (PDF, spreadsheet, DOCX): run `/see-doc` — render it, check page size, fonts, glyphs and edges, and look at the pages. A generated document you have not opened is not done.
+4. Non-trivial diff: `/review` (`skills/review/SKILL.md`) before you call it done.
 Required-vs-advisory detail and the auto-fix policy are in `code-rules` (always on).
 
 ## 9. Report evidence

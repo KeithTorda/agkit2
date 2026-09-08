@@ -29,3 +29,9 @@ Accessible by default (labels, focus-visible, contrast, `prefers-reduced-motion`
 - **Radiant Status Badges**: Never place dark colored text on dark backgrounds (e.g. dark green on navy). Status pills on dark surfaces must use luminous foregrounds with semi-transparent tinted backgrounds and borders (e.g. Emerald `#34D399` text + border with subtle glow).
 - **CSS Architecture Layering**: Encapsulate reusable card, button, and surface styles within `@layer components { ... }` in CSS to prevent specificity collisions with utility classes.
 
+### Strict Anti-Override & Source-Level Remediation (Design Invariant)
+- **Zero Template Overrides**: Never patch design bugs, theme mismatches, or layout issues by injecting `<style>` blocks with `!important` or ad-hoc inline styles into HTML files or template views.
+- **Fix at the Source**: Locate the root CSS rule in the owning stylesheet (e.g. `theme/*.css`, component CSS, design tokens). Correct the property directly at its definition and remove legacy conflicting selectors.
+- **Clean House**: When migrating or updating styles, delete the old overriding hacks and obsolete style tags completely. Every file must remain clean and maintainable.
+
+

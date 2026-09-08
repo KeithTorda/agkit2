@@ -4,7 +4,7 @@ A comprehensive guide to all slash commands, specialist skills, and IDE automati
 
 ---
 
-## 1. Primary Workflow Commands (14 Commands)
+## 1. Primary Workflow Commands (15 Commands)
 
 These are your core commands covering the complete software engineering lifecycle:
 
@@ -17,6 +17,7 @@ These are your core commands covering the complete software engineering lifecycl
 | `/fix-ui` | Container-First UI Layout Repair | **Diagnosing and fixing existing web UI that renders wrong.** Locates parent layout mode and computed box model, names 1 of 8 root causes, fixes container at source without layout overrides (`!important` or hack wrappers).<br>*Example: `"/fix-ui sidebar overlaps main content area on tablet breakpoint"`* |
 | `/verify` | Automated Quality & Pre-Commit Gate | **Proving code works with hard evidence.** Executes the automated gate suite: security scans, linter, TypeScript compiler, automated tests, and production build check.<br>*Example: `"/verify ensure all changes compile and pass security gates"`* |
 | `/see` | Live Browser UI & Visual Render Verification | **Verifying UI before declaring done.** Opens the live application in a headless browser to inspect rendered DOM, computed CSS tokens against `DESIGN.md`, console errors, and interaction responsive states.<br>*Example: `"/see verify the login card and student roster table in dark mode"`* |
+| `/see-doc` | Visual Document & PDF Inspection | **Verifying generated downloadable documents before declaring done.** Renders PDFs, checks embedded fonts, glyph integrity, form bounds, margin clearances, and visual diffs against official templates.<br>*Example: `"/see-doc verify voter certificate PDF and official ballot margin bounds"`* |
 | `/review` | Adversarial Diff & Blast Radius Review | **Hostile code review before PR or deployment.** Attacks the current diff hunting for untested edges, unhandled errors, race conditions, security vulnerabilities, and logic flaws.<br>*Example: `"/review check the authentication middleware refactor for security holes"`* |
 | `/deploy` | Release & Production Shipping | **Shipping code to staging or production servers.** Runs pre-flight checks, generates optimized bundles, uploads via SFTP/SSH, verifies live HTTP status, and handles rollbacks.<br>*Example: `"/deploy ship the latest build to VPS on port 8095"`* |
 | `/enhance` | Safe Brownfield Feature Expansion | **Adding or improving features in an existing codebase.** Analyzes existing architecture, conventions, and dependencies so the update integrates seamlessly without breaking legacy behavior.<br>*Example: `"/enhance add an export-to-PDF button for the precinct list"`* |
@@ -27,7 +28,7 @@ These are your core commands covering the complete software engineering lifecycl
 
 ---
 
-## 2. Specialist Domain Skills (33 Skills)
+## 2. Specialist Domain Skills (34 Skills)
 
 Every skill in the kit can be referenced directly during conversation or invoked via prompt context:
 
@@ -46,6 +47,7 @@ Every skill in the kit can be referenced directly during conversation or invoked
 ### Backend, Database & Security
 - **`api-patterns`**: REST, tRPC, or GraphQL APIs with proper HTTP status codes, pagination, rate limiting, and idempotency headers.
 - **`database-design`**: PostgreSQL / SQLite schema modeling, indexing strategies, UUIDv7 keys, and zero-downtime migrations (Prisma/Drizzle/Eloquent).
+- **`document-generation`**: Standards for downloadable files: spreadsheet exports (CSV, XLSX), official PDFs (receipts, certificates, invoices, official forms), and editable Word documents (DOCX).
 - **`nodejs-best-practices`**: Node.js 24 LTS layered Hono/Fastify architecture, Zod schema validations, and async error handling.
 - **`python-patterns`**: Python 3.14 async endpoints, type annotations, Pydantic v2 schemas, and background worker queues.
 - **`vulnerability-scanner`**: Scans for leaked secrets, SQL injection, XSS vulnerabilities, and supply-chain dependency risks against OWASP Top 10:2025.

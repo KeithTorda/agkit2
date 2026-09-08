@@ -1,10 +1,10 @@
 # AG Kit v2
 
-[![Version](https://img.shields.io/badge/version-2026.9.6-blue.svg)](./VERSION)
+[![Version](https://img.shields.io/badge/version-2026.9.8-blue.svg)](./VERSION)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Antigravity](https://img.shields.io/badge/Antigravity-v2.0%2B-purple.svg)](https://github.com/KeithTorda/agkit2)
 [![Kit Validation](https://img.shields.io/badge/kit--validation-passing-brightgreen.svg)](./scripts/validate_kit.py)
-[![Test Suite](https://img.shields.io/badge/tests-15%20passed-brightgreen.svg)](./scripts/tests/test_toolkit.py)
+[![Test Suite](https://img.shields.io/badge/tests-22%20passed-brightgreen.svg)](./scripts/tests/test_toolkit.py)
 
 **AG Kit v2** is a high-rigor agentic engineering framework designed specifically for **Google Antigravity (AGY)**. It transforms the AI assistant into an autonomous pair of principal engineers by enforcing deterministic request routing, specialist agent isolation, an ordered four-phase execution protocol, mandatory runtime verification gates, and accessible design invariants.
 
@@ -129,7 +129,7 @@ AG Kit v2 enforces the **Ultra High-Contrast Typography & Badges (Anti-Blur Inva
 
 ## Slash Commands Reference
 
-AG Kit v2 provides 14 primary workflow commands:
+AG Kit v2 provides 15 primary workflow commands:
 
 | Command | Lifecycle Phase | Description | Example Usage |
 | :--- | :--- | :--- | :--- |
@@ -140,6 +140,7 @@ AG Kit v2 provides 14 primary workflow commands:
 | **`/fix-ui`** | Layout Repair | Container-first diagnosis of broken/misaligned web UI without layout overrides. | `/fix-ui sidebar overlaps main content on tablet` |
 | **`/verify`** | Pre-Commit Quality | Runs security scans, TypeScript compiler, linter, tests, and build check to prove code works. | `/verify ensure all changes pass security and lint gates` |
 | **`/see`** | Visual Inspection | Opens running app in a headless browser to inspect DOM, computed styles, and responsive states. | `/see check login form and roster table in dark mode` |
+| **`/see-doc`** | Document Inspection | Renders generated PDF documents to inspect fonts, glyph survival, margins, and template alignment. | `/see-doc verify voter registration certificate layout` |
 | **`/review`** | Adversarial Review | Hostile review of current diff hunting for edge cases, error paths, races, and security risks. | `/review check authentication middleware refactor` |
 | **`/deploy`** | Production Release | Pre-flight validation, artifact build, SSH/SFTP deployment, and live health verification. | `/deploy ship build to production VPS on port 80` |
 | **`/enhance`** | Feature Expansion | Adds or updates features in an existing codebase preserving established patterns. | `/enhance add PDF export to student roster table` |
@@ -148,7 +149,7 @@ AG Kit v2 provides 14 primary workflow commands:
 | **`/status`** | Repository Telemetry | Summarizes git diffs, open plan tasks, and required check states without altering code. | `/status summarize all changes made in this session` |
 | **`/remember`** | Persistent Memory | Saves durable preferences, conventions, or decisions to `.agents/memory/MEMORY.md`. | `/remember always run Nginx reverse proxy on port 80` |
 
-For the full catalog of 33 domain skills (including `/frontend-design`, `/database-design`, `/nodejs-best-practices`, `/ui-repair`), see [`AG_KIT_SLASH_COMMANDS.md`](./AG_KIT_SLASH_COMMANDS.md).
+For the full catalog of 34 domain skills (including `/frontend-design`, `/database-design`, `/nodejs-best-practices`, `/document-generation`), see [`AG_KIT_SLASH_COMMANDS.md`](./AG_KIT_SLASH_COMMANDS.md).
 
 ---
 

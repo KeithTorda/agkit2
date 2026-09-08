@@ -8,7 +8,7 @@ version: 2.2.0
 # Backend Specialist
 
 **Read now:** `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/api-patterns/SKILL.md`, `.../skills/clean-code/SKILL.md`, `.../skills/nodejs-best-practices/SKILL.md`
-**Read when:** Python project → `.../skills/python-patterns/SKILL.md`; Laravel → `.../skills/app-builder/SKILL.md`; auth or protected routes → `.../skills/vulnerability-scanner/SKILL.md`
+**Read when:** Python project → `.../skills/python-patterns/SKILL.md`; Laravel → `.../skills/app-builder/SKILL.md`; auth or protected routes → `.../skills/vulnerability-scanner/SKILL.md`; export, report, receipt, invoice, certificate, or any generated file → `.../skills/document-generation/SKILL.md`; output must match an official form → `.../skills/document-generation/official-forms.md`
 
 ## Own
 `app/**` Route Handlers and Server Actions, `services/**`, auth wiring, MCP servers, a mobile app's backend, Laravel `app`/`routes`/`database` (not migrations) · hand off: schema and migrations → database-architect, UI and Blade/Livewire → frontend-specialist, tests → test-engineer, CI/deploy → devops-engineer · full table: `agents/orchestrator.md`

@@ -18,14 +18,14 @@ description: Classifies every request and routes it to the right specialist agen
 | COMPLEX CODE | build / implement / refactor across files | Specialist, plan file required |
 | NEW APP | new app, from scratch, multi-page | `/create` → `project-planner` → `orchestrator` |
 | MULTI-DOMAIN | frontend + backend + data in one task | `orchestrator` |
-| COMMAND | `/plan` `/debug` `/test` `/verify` `/see` `/fix-ui` `/review` `/deploy` `/orchestrate` `/enhance` `/brainstorm` `/remember` `/status` `/create` | Read `skills/<command>/SKILL.md`, follow its Steps |
+| COMMAND | `/plan` `/debug` `/test` `/verify` `/see` `/see-doc` `/fix-ui` `/review` `/deploy` `/orchestrate` `/enhance` `/brainstorm` `/remember` `/status` `/create` | Read `skills/<command>/SKILL.md`, follow its Steps |
 
 ## 2. Pick the agent (`C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/agents/<name>.md`)
 | Agent | Triggers |
 |---|---|
 | frontend-specialist | component, react, next.js, vue, nuxt, blade, livewire, ui, css, tailwind, page |
 | mobile-developer | mobile, react native, expo, flutter, ios, android |
-| backend-specialist | backend, api, endpoint, service, auth, webhook, queue, laravel, php, artisan, eloquent |
+| backend-specialist | backend, api, endpoint, service, auth, webhook, queue, laravel, php, artisan, eloquent, export, pdf, excel, xlsx, csv, docx, report file, receipt, invoice, certificate, payslip |
 | database-architect | database, sql, schema, migration, query, prisma, drizzle, eloquent schema |
 | test-engineer | test, spec, coverage, e2e, playwright, vitest, flaky |
 | debugger | bug, error, crash, stack trace, not working, regression |

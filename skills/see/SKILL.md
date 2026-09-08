@@ -20,7 +20,8 @@ version: 1.0.0
 5. **Interact.** Click the primary action once; submit the form with valid then invalid input and confirm the error state renders.
 6. **Widths.** Re-render at ~390px, ~768px, and ~1440px; check overflow, clipping, readability, and touch targets.
 7. **Report** using the Visual Verification Report format in `browser-verification`, splitting required failures from advisory findings.
-8. **Leave the evidence.** Write `after.png`, `mobile-after.png`, `before.png` (repairs), and `verdict.json` into `<project>/.agents/verify/<task-slug>/` per `browser-verification` § "Leave the evidence on disk". The report is the claim; these files are the proof.
+8. **Leave the evidence.** Write one screenshot per width actually rendered — `after-390.png`, `after-768.png`, `after-1440.png`, plus `before-<width>.png` on a repair — and `verdict.json`, into `<project>/.agents/verify/<task-slug>/` (`browser-verification` § "Leave the evidence on disk").
+9. **Prove the evidence.** Run `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/ui_verify.py .agents/verify/<task-slug> --widths 390,768,1440`. It must exit 0. A width you did not render, or one capture renamed as another, fails here.
 
 ## Output
 
@@ -35,7 +36,8 @@ The Visual Verification Report, in the format defined once in `browser-verificat
 
 ## Verification
 
-- `.agents/verify/<task-slug>/verdict.json` exists and its `status` is `pass`, `fail`, or `skipped` with a reason. No file and no stated write failure means the gate did not run.
+- `ui_verify.py` on `.agents/verify/<task-slug>` exits 0: every claimed width has a screenshot taken at that width, no two are the same file, and `verdict.json` agrees with itself. No files and no stated write failure means the gate did not run.
+- None of the disqualifiers in `browser-verification` is present: two design languages on one screen, mutually exclusive states together, unreadable text, colour encoding nothing, a mislabelled icon, a raw field rendered as a value, mixed unit scales.
 - The report names the exact URL checked and all three widths.
 - Every token violation lists the computed value and the expected scale value.
 - Console and network are reported explicitly, including "none".

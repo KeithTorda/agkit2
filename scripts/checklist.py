@@ -26,6 +26,7 @@ CORE_CHECKS = (
     CheckSpec("Lint Check", "skills/lint-and-validate/scripts/lint_runner.py", "P1 Code Quality", required=True),
     CheckSpec("Type Coverage", "skills/lint-and-validate/scripts/type_coverage.py", "P1 Code Quality", required=True),
     CheckSpec("Naming Check", "scripts/naming_check.py", "P1 Code Quality"),
+    CheckSpec("CSS Audit", "scripts/css_audit.py", "P1 Code Quality", required=True),
     CheckSpec("Schema Validation", "skills/database-design/scripts/schema_validator.py", "P2 Data Layer"),
     CheckSpec("Test Runner", "skills/testing-patterns/scripts/test_runner.py", "P3 Testing", required=True),
     CheckSpec("UX Audit", "skills/frontend-design/scripts/ux_audit.py", "P4 UX & Accessibility"),

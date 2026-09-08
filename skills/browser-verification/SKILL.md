@@ -62,36 +62,7 @@ Read the **computed** values — color, background, font-size, spacing, radius, 
 elements you touched, and compare them to the `DESIGN.md` token scale (`design-spec` skill owns the
 token format). Flag every value that is not on the scale.
 
-Do not eyeball this. Antigravity's JavaScript execution policy is on, so collect the real values
-with `getComputedStyle` and compare them as data:
-
-```js
-// Dump computed values for the region you changed, then diff against DESIGN.md
-[...document.querySelectorAll('main *')].slice(0, 80).map(el => {
-  const s = getComputedStyle(el);
-  return {
-    el: el.tagName.toLowerCase() + (el.className ? '.' + String(el.className).split(' ')[0] : ''),
-    color: s.color, bg: s.backgroundColor, size: s.fontSize,
-    pad: s.padding, gap: s.gap, radius: s.borderRadius,
-  };
-});
-```
-
-Then reduce to the distinct values per property — a page using nine different font sizes or six
-greys has a token problem regardless of how any single element looks.
-
-```text
-WRONG (what source review concludes)
-  "className='text-slate-600 p-5' — looks consistent with the design."
-
-RIGHT (what the render actually reports)
-  Computed: color rgb(71,85,105) · padding 20px · font-size 15px
-  DESIGN.md scale: text-secondary #5A6472 · spacing 16/24 · type 14/16/20
-  → 3 token violations: color off-scale, 20px not on the spacing scale, 15px not on the type scale.
-```
-
-Off-scale values are how a design drifts into mush one component at a time. Catch them at the
-render or they ship.
+Do not eyeball it — collect the real values with `getComputedStyle` and compare them as data, then reduce to the distinct values per property: a page using nine font sizes or six greys has a token problem however good any single element looks. The dump snippet and a worked wrong-vs-right example are in [computed-styles.md](./computed-styles.md).
 
 ### 5. Read the console and the network
 
@@ -125,6 +96,31 @@ A screenshot teaches nothing if you do not know what you are looking at. Work th
 - **Image aspect** — stretched or squashed media.
 - **Spacing rhythm** — inconsistent gaps between siblings; reads as sloppiness even when nothing is broken.
 
+### These disqualify a pass on their own
+
+Each one is visible in a single screenshot, and each has shipped because nobody looked:
+
+- **Two design languages on one screen.** An existing header, nav, or footer left in the old style
+  beside your new work is an *unfinished redesign*, not a pass. Either restyle the shell to the same
+  tokens, or state in the report that it is out of scope and why. "New dashboard bolted under the old
+  chrome" is the most common version of this.
+- **Mutually exclusive states rendered together** — Login and Logout both visible, an empty state
+  behind real data, a loading skeleton beside loaded content.
+- **Text you cannot read.** Any string at or near the background's own colour. If you cannot read it
+  in the screenshot, neither can the user; check its computed pair rather than assuming a theme
+  variable resolved.
+- **Colour that encodes nothing.** The same quantity in two different colours, or values coloured for
+  variety. Colour carries state — good, fair, poor, destructive — or it is not applied at all. Two
+  readings with the same unit and the same meaning get the same treatment.
+- **An icon that denotes something other than its label** — a currency mark beside a data volume, a
+  filled block where a status glyph belongs, a placeholder that shipped.
+- **A raw or concatenated field rendered as a value** — a model code fused to an identifier, an
+  untranslated key, an ISO timestamp where a date belongs. Read every value on screen and confirm it
+  is the value, formatted.
+- **Two units of different scale side by side** — `0.56Kb/s` next to `488b/s`. Normalise, or state
+  the rule you used.
+- **The same fact twice** in one view, unless the repetition is doing work.
+
 ## Report
 
 ```markdown
@@ -148,9 +144,10 @@ A screenshot teaches nothing if you do not know what you are looking at. Work th
 
 ## Leave the evidence on disk
 
-A report in the reply is a claim; a file is evidence. Also write to
-`<project>/.agents/verify/<task-slug>/`: `after.png` (1440) and `mobile-after.png` (390), plus
-`before.png` on a repair — the only proof the defect existed — and `verdict.json`:
+A report in the reply is a claim; a file is evidence. Write to `<project>/.agents/verify/<task-slug>/`
+one screenshot **per width you claim to have checked**, named `<before|after>-<cssWidth>.png` —
+`after-390.png`, `after-768.png`, `after-1440.png`, plus `before-<width>.png` on a repair, the only
+proof the defect existed. The name is the claim; the pixel width is the evidence. Then `verdict.json`:
 
 ```json
 { "route": "/dashboard", "widths": [390,768,1440], "consoleErrors": 0, "failedRequests": 0,
@@ -160,6 +157,18 @@ A report in the reply is a claim; a file is evidence. Also write to
 `status` is `pass` only when the route rendered, no uncaught console error, no failed data request on
 this route, and the interaction pass succeeded; otherwise `fail`, or `skipped` with a `reason` naming
 the blocked precondition. If the directory cannot be written, say so in one line and report inline.
+
+Then prove the evidence is real:
+
+```bash
+python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/ui_verify.py \
+  .agents/verify/<task-slug> --widths 390,768,1440 [--require-before]
+```
+
+It fails when a width has no screenshot, when a file's real pixel width does not match the width its
+name claims, when two "different" views are byte-identical, or when the verdict says `pass` while
+recording console or network errors. **Re-using one capture as several widths is the failure this
+exists to catch** — a narrow viewport must actually have been rendered, not renamed.
 
 ## Boundaries
 

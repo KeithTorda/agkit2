@@ -16,8 +16,8 @@ version: 1.0.0
 2. **Locate.** Find the misplaced element and its parent in the rendered DOM; dump computed layout values for the element and its ancestors (`ui-repair` §2).
 3. **Name the cause.** Pick one of the eight root causes (`ui-repair` §3) and write it down before editing anything. Shell, sidebar, header, modal, dropdown, table, form, or toast: read `components.md` first.
 4. **Fix at the source.** Change the container's constraint or the token in the file that owns it (`ui-repair` §4).
-5. **Delete dead CSS.** Remove the rule, variant, or wrapper your fix replaced.
-6. **See after.** Re-render at ~390, ~768, and ~1440 (`/see`); confirm the interaction still works. `before.png` and `after.png` land in `.agents/verify/<task-slug>/` alongside `verdict.json` — on a repair the before shot is the only proof the defect existed.
+5. **Delete dead CSS.** Remove the rule, variant, or wrapper your fix replaced, then run `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/css_audit.py .` — a colour defect is usually a token defined twice or a `var()` nothing defines, and it must be clean before you re-render.
+6. **See after.** Re-render at ~390, ~768, and ~1440 (`/see`); confirm the interaction still works. `before-<width>.png` and `after-<width>.png` land in `.agents/verify/<task-slug>/` alongside `verdict.json`; then `ui_verify.py .agents/verify/<task-slug> --require-before` must exit 0 — on a repair the before shot is the only proof the defect existed.
 
 ## Output
 

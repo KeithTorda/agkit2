@@ -41,7 +41,7 @@ behaviour. An **override is not a fix**: `!important`, an inline layout style, a
 to win the cascade, a more specific selector, a margin or `absolute` hack on a child to compensate for
 its parent, a `catch` that hides the error, a platform `if` around a layout cause. Each of these moves
 the bug and breaks the next change. When you replace CSS or code, delete what you replaced. Method for
-UI: `ui-repair` (`/fix-ui`); organisation: `css-architecture`.
+UI: `ui-repair` (`/fix-ui`); organisation: `css-architecture`. For CSS this is checked rather than trusted: `scripts/css_audit.py` (required in `checklist.py`) fails on `!important` and inline colours, on a `var()` nothing defines, and on one token defined twice with different values outside a theme selector — the usual reason a text colour changes on its own.
 
 ## Unique, searchable names (required)
 Files are `<domain>-<role>.<ext>` (`invoice-table.tsx`, `invoice-table.css`), never bare

@@ -56,9 +56,9 @@ TOKEN = 'YOUR_API_KEY'
     def test_security_scanner_detects_executable_eval_and_secret(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
+            fake_key = "sk_live_" + "12345678901234567890"
             (root / "bad.py").write_text(
-                "api_" + "key = 'sk_live_12345678901234567890'\n"
-                "eval(user_input)\n",
+                f"api_key = '{fake_key}'\neval(user_input)\n",
                 "utf-8",
             )
             report = security_scan.run_full_scan(str(root), "all")
@@ -160,10 +160,12 @@ TOKEN = 'YOUR_API_KEY'
             self.assertEqual([], checker.issues)
 
     def test_no_legacy_directories(self):
-        is_repo = (TOOLKIT / "install.ps1").is_file() or (TOOLKIT / ".git").is_dir()
-        legacy_dirs = ("workflows", "agent") if is_repo else ("rules", "workflows", "agent")
-        for legacy in legacy_dirs:
-            self.assertFalse((TOOLKIT / legacy).exists(), f"{legacy}/ must not exist in the plugin")
+        for legacy in ("workflows", "agent"):
+            self.assertFalse((TOOLKIT / legacy).exists(), f"{legacy}/ must not exist in the toolkit")
+        # In the installed plugin directory, rules live in ~/.gemini/config/rules, not inside the plugin.
+        # In the source repository, rules/ holds the source files distributed by install.ps1.
+        if not (TOOLKIT / ".git").exists():
+            self.assertFalse((TOOLKIT / "rules").exists(), "rules/ must not exist in the installed plugin directory")
 
     def test_every_agent_skill_reference_resolves(self):
         skills = {p.name for p in (TOOLKIT / "skills").iterdir() if p.is_dir()}
@@ -286,7 +288,8 @@ TOKEN = 'YOUR_API_KEY'
         # skill: (max bytes, why it is not 8 KB yet)
         "frontend-design": (13300, "judgment is the product here (§0.C read, §0.F screen read, "
                                    "§4.0, §4.7 copy); five sub-files already split out"),
-        "browser-verification": (8300, "gained the verify-artifact contract; troubleshooting.md split out"),
+        "browser-verification": (9900, "carries the anti-fabrication contract (ui_verify) and the "
+                                 "disqualifier list; troubleshooting.md and computed-styles.md split out"),
         "tailwind-patterns": (8200, "owed a split"),
         "api-patterns": (8400, "owed a split"),
         "nodejs-best-practices": (11300, "owed a split"),
@@ -311,6 +314,79 @@ TOKEN = 'YOUR_API_KEY'
                     core.stat().st_size, cap,
                     f"{skill}/SKILL.md is {core.stat().st_size}B, over {cap}B ({why}) — "
                     "move depth into a Read-when sub-file, or lower the pin if you shrank it")
+
+    def test_ui_verify_rejects_one_capture_reported_as_many_widths(self):
+        """The observed failure: three viewports reported PASS from a single desktop capture."""
+        ui_verify = load_module("agkit_ui_verify", SCRIPTS / "ui_verify.py")
+        png = bytes.fromhex(  # 1x1 PNG, patched below to carry the width we want in its IHDR
+            "89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4"
+            "890000000a49444154789c6300010000050001" "0d0a2db4" "0000000049454e44ae426082")
+
+        def fake(path: Path, width: int, salt: bytes = b""):
+            data = bytearray(png)
+            data[16:20] = width.to_bytes(4, "big")
+            path.write_bytes(bytes(data) + salt)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp)
+            # one 1440 capture, copied and renamed as the 390 and 768 "passes"
+            for name in ("after-1440.png", "after-390.png", "after-768.png"):
+                fake(d / name, 1440)
+            (d / "verdict.json").write_text(json.dumps(
+                {"route": "/x", "widths": [390, 768, 1440], "consoleErrors": 0,
+                 "failedRequests": 0, "status": "pass"}), "utf-8")
+            got = ui_verify.verify(d, (390, 768, 1440), False)
+            self.assertEqual("fail", got["status"])
+            joined = " ".join(got["issues"])
+            self.assertIn("identical image", joined, "must catch one capture reused as several")
+            self.assertIn("not taken at the width it reports", joined,
+                          "must catch a screenshot whose pixels contradict its filename")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp)
+            for i, w in enumerate((390, 768, 1440)):
+                fake(d / f"after-{w}.png", w, salt=bytes([i]))  # genuinely different files
+            (d / "verdict.json").write_text(json.dumps(
+                {"route": "/x", "widths": [390, 768, 1440], "consoleErrors": 0,
+                 "failedRequests": 0, "status": "pass"}), "utf-8")
+            self.assertEqual("pass", ui_verify.verify(d, (390, 768, 1440), False)["status"],
+                             "a real three-width verification must not be flagged")
+
+    def test_css_audit_parses_colours_and_separates_theming_from_collision(self):
+        css_audit = load_module("agkit_css_audit", SCRIPTS / "css_audit.py")
+
+        # Regression: str.rstrip("!important") takes a CHARACTER SET, so it ate trailing
+        # a/i/m/n/o/p/r/t and turned "#7a7a7a" into "#7a7a7" — unparseable, so the contrast
+        # check was silently skipped for a whole class of colours.
+        for value, expect in (("#7a7a7a", (0.478, 0.478, 0.478)),
+                              ("#1a2b3a", (0.102, 0.169, 0.227)),
+                              ("#000 !important", (0.0, 0.0, 0.0))):
+            got = css_audit.parse_color(value)
+            self.assertIsNotNone(got, f"{value} must parse")
+            for a, b in zip(got, expect):
+                self.assertAlmostEqual(a, b, places=2, msg=f"{value} parsed wrong")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "tokens.css").write_text(
+                ":root { --text: #1a1d23; --bg: #ffffff; }\n"
+                ".dark { --text: #e8ecf1; --bg: #12151b; }\n"
+                "@media (prefers-color-scheme: dark) { :root { --text: #e8ecf1; } }\n", "utf-8")
+            (root / "ok.css").write_text(".card { color: var(--text); background: var(--bg); }\n", "utf-8")
+            kinds = {f.kind for f in css_audit.audit(root)}
+            self.assertEqual(set(), kinds,
+                             "theme redefinition under .dark / @media is not a collision")
+
+            # the real defect: same token, different value, no theme selector in the chain
+            (root / "later.css").write_text(
+                ":root { --text: #14171d; }\n"
+                ".pill { color: var(--nothing-defines-this); }\n"
+                ".bad { color: #8a929e; background-color: #a7aeb8; }\n", "utf-8")
+            found = css_audit.audit(root)
+            kinds = {f.kind for f in found}
+            for expected in ("token-collision", "undefined-var", "contrast"):
+                self.assertIn(expected, kinds, f"must report {expected}")
+            self.assertTrue(any(f.severity == "error" for f in found))
 
     def test_gate_policy_is_always_on(self):
         rules = self._rules_dir()

@@ -1,5 +1,35 @@
 # AG Kit v2 — Changelog
 
+## v2.2.2 (2026-09-08) — Document Generation Gate, CSS Invariant Audit & Verification Harness
+
+### 1. Document Generation Gate & Verification (`/see-doc`, `document-generation`)
+- **Document Generation Skill (`skills/document-generation`)**:
+  - Comprehensive standards for downloadable artifacts: spreadsheet exports (CSV, XLSX), print & official PDFs (receipts, certificates, invoices, official forms), and editable Office documents (DOCX).
+  - Enforces official form bounds, margin compliance, embedded vector typography, and currency/precision formatting.
+- **Visual Document Inspection (`/see-doc`, `skills/see-doc`)**:
+  - Automated PDF rendering and verification harness (`scripts/doc_verify.py`).
+  - Verifies page size, font embedding, glyph survival, edge clearance, and visual diffing against blank government templates.
+- **Core Protocol & Code Rules Update**:
+  - `code-rules.md` & `core-protocol.md`: Added Step 8.3 document generation verification gate. Downloaded documents must be inspected before calling work done.
+
+### 2. Strict CSS Quality Invariant Audit (`scripts/css_audit.py`)
+- **Automated CSS Invariant Audit**:
+  - Integrated into `checklist.py` P1 Code Quality required checks.
+  - Strictly detects and fails on `!important` declarations, inline hardcoded colors, undefined `var()` tokens, duplicate token collisions outside theme selectors, and conflicting cross-file property overrides.
+
+### 3. UI Verification Engine (`scripts/ui_verify.py`)
+- **Automated Verification Contract Checker**:
+  - Audits `.agents/verify/<task-slug>/` disk artifacts for `verdict.json`, `after.png`, `mobile-after.png`, and `before.png`.
+  - Enforces mandatory breakpoint coverage (`[390, 768, 1440]`), 0 console errors, and pass/skipped status before tasks are signed off.
+
+### 4. Test Suite & Catalog Expansion
+- **Test Toolkit (`scripts/tests/test_toolkit.py`)**:
+  - Expanded test suite to 22 automated tests covering legacy directory checks, secret scanning bounds, and token ratchets.
+- **Catalogs & References (`quick-reference.md`, `AG_KIT_SLASH_COMMANDS.md`)**:
+  - Re-indexed 15 primary workflow commands, 34 domain skills, and 27 verification scripts.
+
+---
+
 ## v2.2.1 (2026-09-07) — Evidence-on-Disk Verification, Audience Design System & Token Ratchets
 
 ### 1. Evidence-on-Disk Verification Gate Contract
