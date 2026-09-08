@@ -12,8 +12,100 @@ Maintained by [@KeithTorda](https://github.com/KeithTorda). Rebuilt on top of `v
 
 ---
 
+## ⚡ Quick Start: 60-Second Installation
+
+> [!TIP]
+> AG Kit v2 requires **zero manual configuration**. You can install it via Git or as a direct 1-click ZIP download.
+
+### Option 1: Git Clone (Recommended)
+
+Open **PowerShell** and run:
+
+```powershell
+git clone https://github.com/KeithTorda/agkit2.git
+cd agkit2
+.\install.ps1
+```
+
+### Option 2: 1-Click ZIP Download (No Git Required)
+
+1. **[Click here to download AG Kit v2 (.zip)](https://github.com/KeithTorda/agkit2/archive/refs/heads/main.zip)**
+2. Extract the downloaded `agkit2-main.zip` folder.
+3. Open PowerShell inside the extracted folder and run:
+   ```powershell
+   .\install.ps1
+   ```
+
+> [!NOTE]
+> **PowerShell Execution Policy**: If Windows blocks running the script with an execution policy error, run this first:
+> ```powershell
+> Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+> .\install.ps1
+> ```
+
+---
+
+## 🎓 Tutorial: Your First 5 Minutes with AG Kit v2
+
+Once `.\install.ps1` completes with `[PASS] Toolkit is structurally valid`, **restart Google Antigravity IDE** and open any project workspace. You are ready to pair-program with 17 specialist agents!
+
+```mermaid
+journey
+    title First 5 Minutes with AG Kit v2
+    section Onboarding
+      Run .\install.ps1: 5: Developer
+      Restart Antigravity: 5: Developer
+    section First Session
+      Type /status: 5: Antigravity
+      Call @frontend-specialist: 5: Antigravity
+      Repair UI with /fix-ui: 5: Antigravity
+      Inspect PDF with /see-doc: 5: Antigravity
+      Pre-Commit Gate /verify: 5: Antigravity
+```
+
+### 1. Check System Telemetry & Gate Health (`/status`)
+Type into the Antigravity chat:
+```text
+/status
+```
+- **What happens**: Antigravity runs the status skill, summarizing your active tech stack, Git diffs, test suite status, open task blueprints, and active specialist subagents without modifying any files.
+
+### 2. Summon a Specialist Persona (`@<agent>`)
+Rather than relying on generic AI, summon an engineer dedicated to a specific domain:
+```text
+@frontend-specialist create a high-contrast dark theme student roster table with glowing emerald status badges
+```
+- **What happens**: The assistant announces its formal plan line:
+  `@frontend-specialist · skills: frontend-design, browser-verification · steps: screen read → build → checklist → /see → report`
+  It adheres strictly to the **Ultra High-Contrast standard** (`#FFFFFF` text on dark surfaces, pure `#000000` on light surfaces, and radiant status badges in `@layer components`).
+
+### 3. Container-First UI Layout Repair (`/fix-ui`)
+When a component looks misaligned, overlaps, or breaks on mobile:
+```text
+/fix-ui student table headers overlap on mobile viewport
+```
+- **What happens**: The `/fix-ui` skill opens the app in a headless browser, captures before-and-after screenshots to `.agents/verify/<task-slug>/`, identifies the parent container layout constraints, and fixes the root cause at the source. It strictly bans `!important` or hacky wrapper elements.
+
+### 4. Inspect Downloadable Documents & Reports (`/see-doc`)
+When building features that output printable forms, PDF receipts, or Excel spreadsheets:
+```text
+/see-doc verify the exported voter certificate PDF layout
+```
+- **What happens**: Runs `scripts/doc_verify.py` to inspect rendered pages, verify embedded vector fonts, check glyph integrity, ensure printable margin clearances, and visual-diff against government or official blank templates.
+
+### 5. Run Automated Pre-Commit Verification Gates (`/verify`)
+Before committing changes or creating a pull request:
+```text
+/verify
+```
+- **What happens**: Automatically executes the fast gate (`checklist.py`), scanning for OWASP Top 10 vulnerabilities, TypeScript compilation errors, linter violations, CSS collisions (`css_audit.py`), and test suite regressions.
+
+---
+
 ## Table of Contents
 
+- [⚡ Quick Start: 60-Second Installation](#-quick-start-60-second-installation)
+- [🎓 Tutorial: Your First 5 Minutes with AG Kit v2](#-tutorial-your-first-5-minutes-with-ag-kit-v2)
 - [Why AG Kit v2?](#why-ag-kit-v2)
 - [Architecture & Life of a Request](#architecture--life-of-a-request)
 - [The 7 Global Invariant Rules](#the-7-global-invariant-rules)
@@ -21,7 +113,7 @@ Maintained by [@KeithTorda](https://github.com/KeithTorda). Rebuilt on top of `v
 - [Slash Commands Reference](#slash-commands-reference)
 - [Specialist Agent Roster](#specialist-agent-roster)
 - [Automated Verification Gates](#automated-verification-gates)
-- [Installation Guide](#installation-guide)
+- [Installation Guide & Deep Dive](#installation-guide--deep-dive)
 - [Project Memory & Customization](#project-memory--customization)
 - [Toolkit Maintenance & Testing](#toolkit-maintenance--testing)
 - [Technology Baseline](#technology-baseline)
@@ -208,41 +300,83 @@ python scripts/checklist.py <project-path>
 
 ---
 
-## Installation Guide
+## Installation Guide & Deep Dive
 
 ### Prerequisites
 - **Operating System**: Windows 11 (PowerShell 7 / `pwsh` recommended) or macOS / Linux
 - **Runtimes**: Python 3.12+ and Node.js 20+ on `PATH`
-- **IDE**: Google Antigravity (AGY)
+- **IDE**: Google Antigravity (AGY) v2.0+
+
+### File Distribution Architecture
+
+When you run `.\install.ps1`, it automatically provisions your Antigravity user environment:
+
+```
+~/.gemini/config/
+├── plugins/
+│   └── ag-kit-v2/                 # Core toolkit engine
+│       ├── agents/                # 17 specialist agent contracts (.md)
+│       ├── skills/                # 34 domain skills & sub-references
+│       └── scripts/               # 27 verification scripts & audit tools
+└── rules/                         # 7 always-on invariant rules
+    ├── core-protocol.md           # 9-step canonical execution order
+    ├── code-rules.md              # Gates, auto-fix policy, fix-at-source
+    ├── design-rules.md            # High-contrast standard, layout heuristics
+    ├── engineering-excellence.md  # Root-cause analysis, adversarial critique
+    ├── request-routing.md         # Request classifier & routing table
+    ├── universal-rules.md         # No filler, host safety, memory loading
+    └── quick-reference.md         # Machine-generated catalog of all tools
+```
 
 ### Automated Installation (PowerShell)
 
-From the root of this cloned repository:
+From the root of this cloned or extracted repository:
 
 ```powershell
 .\install.ps1
 ```
 
 The script automatically:
-1. Copies plugin files to `$env:USERPROFILE\.gemini\config\plugins\ag-kit-v2`
-2. Installs global rules into `$env:USERPROFILE\.gemini\config\rules`
-3. Adapts all hardcoded user paths to match your active Windows user profile
-4. Runs `validate_kit.py` to confirm structural integrity
+1. Provisions directories at `$env:USERPROFILE\.gemini\config\plugins\ag-kit-v2` and `$env:USERPROFILE\.gemini\config\rules`.
+2. Copies all specialist agents, skills, and verification scripts.
+3. Installs the 7 global invariant rules.
+4. Rewrites hardcoded file paths dynamically to match your current Windows user profile (`$env:USERNAME`).
+5. Runs `validate_kit.py` to confirm structural integrity (0 errors, 0 warnings).
 
 ### Manual Installation
 
-If you prefer to configure manually:
+If you prefer to configure manually or are on macOS / Linux:
 
 ```powershell
-# 1. Install plugin directory
+# 1. Copy plugin files
 Copy-Item -Path ".\*" -Destination "$env:USERPROFILE\.gemini\config\plugins\ag-kit-v2" -Recurse -Force -Exclude "rules", ".git", "install.ps1", "README.md"
 
-# 2. Install global rules
+# 2. Copy global rules
 Copy-Item -Path ".\rules\*" -Destination "$env:USERPROFILE\.gemini\config\rules" -Recurse -Force
 
 # 3. Validate installation
 python "$env:USERPROFILE\.gemini\config\plugins\ag-kit-v2\scripts\validate_kit.py"
 ```
+
+### Updating AG Kit v2
+
+To update to the latest version of AG Kit v2:
+
+```powershell
+# In your cloned agkit2 repository:
+git pull origin main
+.\install.ps1
+```
+*If you downloaded via ZIP, simply download the latest ZIP, extract, and run `.\install.ps1` to overwrite existing files with new updates.*
+
+### Troubleshooting
+
+- **PowerShell Script Blocked (`UnauthorizedAccess`)**:
+  Run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` in your PowerShell window, then re-run `.\install.ps1`.
+- **Python / Node Not Found**:
+  Ensure Python (3.12+) and Node.js are added to your system `PATH`. Verify by typing `python --version` and `node --version` in terminal.
+- **Antigravity Doesn't Pick Up Commands**:
+  Restart Google Antigravity IDE after running `install.ps1`. The IDE loads customizations at startup.
 
 ---
 
