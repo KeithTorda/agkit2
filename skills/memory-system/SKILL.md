@@ -1,20 +1,20 @@
 ---
 name: memory-system
 description: Per-project persistent memory in <project>/.agents/memory/MEMORY.md — what belongs there (decisions, conventions, gotchas, and failed approaches), the index format, optional topic files, and how to recall without reciting. Use when the user says remember, save this, or don't forget, for /remember, when an approach fails and the cause is durable, and at session start when the file exists.
-version: 2.0.0
+version: 2.5.0
 ---
 
 # Memory System
 
-> Persist the decisions, conventions, and gotchas of a project so they are never re-discovered.
+Persist the decisions, conventions, gotchas and dead ends of a project so they are never re-discovered.
 
 ## Location and lifecycle
 
-Memory is per project, at the Antigravity workspace root: `<project>/.agents/memory/MEMORY.md`. This is the one place the kit uses an `.agents/` path — by design.
+Memory is per project, at the workspace root: `<project>/.agents/memory/MEMORY.md`. The path is fixed; every kit file and agent reads it from there.
 
-The directory does not exist until first use. `/remember` (or the first save) creates `.agents/memory/` and `MEMORY.md`; nothing else does. This needs a **writable project root** — on a read-only checkout or where the root is not writable, say so and skip the save; never fail the task over it.
+The directory does not exist until first use. `/remember` (or the first save) creates `.agents/memory/` and `MEMORY.md`; nothing else does. This needs a **writable project root**. On a read-only checkout or where the root is not writable, say so and skip the save; never fail the task over it.
 
-Session start: if the file exists, read it once and apply what you learn silently (use bun in commands, keep answers short); if not, do nothing (the `core-protocol` rule). Recite entries only when the user asks what you remember.
+Session start: if the file exists, read it once and apply it silently (use bun in commands, keep answers short); if not, do nothing (`universal-rules`). Subagents get the relevant entries in their brief rather than re-reading the whole file. Recite entries only when the user asks what you remember.
 
 ## Layout
 
@@ -57,7 +57,7 @@ Small projects keep everything in `MEMORY.md`. Create a topic file only when a n
 
 Topic files start with frontmatter (`type`, `created`, `updated`) followed by short headed sections.
 
-## What belongs — and what does not
+## What belongs and what does not
 
 | Type | Save | Example |
 |---|---|---|
@@ -107,10 +107,11 @@ exists. Transient trouble is not a lesson.
 **On recall**, check failures before proposing an approach in the same area — proposing something
 memory already says does not work is the exact waste this exists to prevent.
 
-## Memory vs. plan vs. task
+## Memory vs plan vs task
 
 | Artifact | Holds | Lives |
 |---|---|---|
 | Memory | What you know across sessions | `.agents/memory/` |
-| Plan | What you will do for this task | `docs/plans/{task-slug}.md` |
+| Plan | What you will do for this task | `docs/plans/<slug>.md` |
+| Proplan | Goals, design and roadmap for a whole system | `docs/proplan/<slug>/` |
 | Task | What you are doing now | Antigravity task list and Artifacts |

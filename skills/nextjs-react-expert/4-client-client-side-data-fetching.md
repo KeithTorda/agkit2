@@ -7,7 +7,7 @@
 
 ## Overview
 
-Four rules. The data-layer default for this kit: Server Components for reads, Server Actions + `useActionState` for mutations, and TanStack Query only for client-interactive server state such as polling, infinite lists, and optimistic UI (decision tree in `@[skills/frontend-architecture]`). Do not introduce SWR; replace it with TanStack Query when you meet it.
+Four rules. The data-layer default for this kit: Server Components for reads, Server Actions + `useActionState` for mutations, and TanStack Query only for client-interactive server state such as polling, infinite lists, and optimistic UI (decision tree in `frontend-architecture`). New code uses TanStack Query; a project that already uses SWR keeps it unless the user asks to migrate.
 
 ---
 

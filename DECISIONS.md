@@ -1,3 +1,5 @@
+> Historical (v2.2). Superseded by `PLAN-v2.5.md` and the v2.5 rules. Kept for context; when it disagrees with the rules, the rules win.
+
 # AG Kit v2 — Decisions (single source of truth for every edit)
 
 Every editor (human or sub-agent) follows this file. When a file you edit disagrees with this

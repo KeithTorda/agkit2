@@ -1,7 +1,7 @@
 ---
 name: performance-profiling
-description: Measuring and fixing web performance - Core Web Vitals targets, the baseline-identify-fix-validate loop, Lighthouse 12 audits, bundle size analysis, and DevTools runtime and memory profiling. Use when a page or app is slow, before a release, when Core Web Vitals or Lighthouse scores drop, or when deciding what to optimise first.
-version: 2.0.0
+description: Measuring and fixing web performance - Core Web Vitals targets (LCP, INP, CLS), the baseline-identify-fix-validate loop, Lighthouse audits, bundle size analysis, and DevTools runtime and memory profiling. Use when a page or app is slow, before a release, when Core Web Vitals or Lighthouse scores drop, or when deciding what to optimise first.
+version: 2.5.0
 ---
 
 # Performance Profiling
@@ -53,16 +53,16 @@ Look for one oversized dependency at the top of the chunk list, duplicated packa
 
 ## 5. Scripts
 
-`./scripts/lighthouse_audit.py <url>` runs the Lighthouse CLI in headless Chrome against the URL, then applies thresholds: `--min-performance 50 --min-accessibility 80 --min-best-practices 80 --min-seo 80` by default; below a threshold returns exit code 1. It reports the four category scores and LCP, CLS, INP, and TBT values as JSON. Chrome runs with its sandbox on; do not add `--no-sandbox`. The script needs the Lighthouse CLI resolvable on PATH: install it pinned to a major (`npm install -g lighthouse@12`), since a bare `npm install -g lighthouse` freezes at whatever was current the day you ran it and never updates. For a one-off audit outside the script, run the latest without installing anything: `npx lighthouse@latest <url>`.
+`./scripts/lighthouse_audit.py <url>` runs Lighthouse against a running URL (mobile emulation by default; `--desktop` for the desktop preset) and compares the four category scores with thresholds: `--min-performance 50 --min-accessibility 80 --min-best-practices 80 --min-seo 80` by default. The summary shows each score against its minimum, the lab metrics (FCP, LCP, CLS, TBT, Speed Index; INP needs real interaction, so TBT is the lab proxy) and up to ten failing audits by title; `--json` prints the same as JSON. Exit 1 when a threshold is missed or the page could not be audited. It uses `node_modules/.bin/lighthouse` or one on `PATH` and never downloads it; when Lighthouse or Chrome is missing the result is `SKIPPED ... NOT VERIFIED` with the fix, and it exits 0 - a skip is not a pass, so list it under `Not verified:`. Install pinned to a major (`npm install -g lighthouse@12`); for a one-off audit outside the script, `npx lighthouse@latest <url>`. `--chrome-flags` defaults to `--headless=new`; add `--no-sandbox` only inside a container that cannot run the sandbox. `--timeout` defaults to 180 seconds.
 
-`./scripts/bundle_analyzer.py <project>` inspects built output (`.next/static`, `dist`, `build/static`, `build/assets`, `out/_next/static`) without extra dependencies, listing JS and CSS assets with raw and gzip sizes. Defaults: warn above 250 KiB per file, fail above 750 KiB per file or 2 MiB total JS (`--file-warn-kib`, `--file-fail-kib`, `--total-js-fail-kib`, `--fail-on`). Build first; with no build output it prints a skip notice.
+`./scripts/bundle_analyzer.py <project>` inspects client build output without extra dependencies: Next.js `.next/static` and `out/_next/static`, Vite/Astro `dist`, Laravel Vite `public/build`, CRA `build/static`, React Router `build/client`, Nuxt `.output/public`, SvelteKit `.svelte-kit/output/client`. Server bundles and source maps are ignored. It lists JS and CSS assets with raw and gzip sizes and totals. High: a single asset over `--file-fail-kib` (default 750 KiB raw). Medium: an asset over `--file-warn-kib` (default 250 KiB), or total client JS over `--total-js-fail-kib` (default 2048 KiB; large apps may exceed it). Exit 1 only at or above `--fail-on` (default `high`). `--json` (or `--output json`) for JSON. Build first; with no build output it prints `SKIP ... NOT VERIFIED` and exits 0.
 
 ```powershell
-python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/performance-profiling/scripts/lighthouse_audit.py http://localhost:3000
-python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/performance-profiling/scripts/bundle_analyzer.py .
+python "KIT/skills/performance-profiling/scripts/lighthouse_audit.py" http://localhost:3000
+python "KIT/skills/performance-profiling/scripts/bundle_analyzer.py" .
 ```
 
-Both are advisory in the checklist: report findings, fix the ones that fall under the project's stated performance budget, and ask before changes that alter design or scope.
+Both are advisory: report findings, fix the ones that fall under the project's stated performance budget, and ask before changes that alter design or scope.
 
 ## 6. Anti-patterns
 

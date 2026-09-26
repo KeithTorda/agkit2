@@ -1,6 +1,7 @@
 ---
 name: node-api
 description: Standalone Node.js API template. Hono by default (edge-capable), Fastify when Node-heavy, Express only for existing code. TypeScript, Prisma or Drizzle, Zod.
+version: 2.5.0
 ---
 
 # Node API Template (Hono)
@@ -62,9 +63,9 @@ project-name/
 ## Setup Steps
 
 1. `npm init -y`; set `"type": "module"`.
-2. `npm install hono @hono/node-server @hono/zod-validator zod @prisma/client`
+2. `npm install hono @hono/node-server @hono/zod-validator zod @prisma/client @prisma/adapter-pg`
 3. `npm install -D typescript @types/node prisma vitest eslint @eslint/js typescript-eslint`
-4. `npx prisma init` (or `npm install drizzle-orm && npm install -D drizzle-kit`)
+4. `npx prisma init` (Prisma 7: `prisma-client` generator with an `output` path, client created with the pg driver adapter), or `npm install drizzle-orm pg && npm install -D drizzle-kit`
 5. Scripts: `"dev": "node --watch src/server.ts"`, `"test": "vitest run"`, `"lint": "eslint ."`
 6. `npx prisma migrate dev`, then `npm run dev`
 

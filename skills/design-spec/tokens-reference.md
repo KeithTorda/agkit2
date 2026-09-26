@@ -47,7 +47,7 @@ components:
 | 5 | Elevation & Depth | Elevation | Shadow scale, or for flat designs the alternative (borders, tonal layers). |
 | 6 | Shapes | | Radius scale and where each level applies. |
 | 7 | Components | | Buttons, inputs, cards, chips, lists: per-atom guidance beyond the tokens. |
-| 8 | Do's and Don'ts | | Guardrails during generation (anti-defaults the brand accepts or rejects, motion limits, imagery rules). |
+| 8 | Do's and Don'ts | | Guardrails during generation: effects the direction uses on purpose, defaults it rejects, motion limits, imagery rules. |
 
 ## 3. Consumers
 
@@ -55,7 +55,7 @@ components:
 - `mobile-design` reads the same tokens for React Native / Flutter theme objects.
 - Unknown section headings, token names, and component properties are accepted (properties with a warning); an invalid value is rejected; a duplicate section heading rejects the file.
 
-## 4. Template
+## 4. Template (example values; replace every one)
 
 ```markdown
 ---

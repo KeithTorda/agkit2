@@ -1,78 +1,36 @@
 ---
 name: core-protocol
-version: 2.2.0
+version: 2.5.0
 priority: P0
 trigger: always_on
-description: The ordered procedure for every request — classify, read the agent file, read its skills, print the plan line, build, run the gates, report evidence. Do these steps in order; do not skip one.
+description: How to work on every request - understand, right-size the process, build, verify in proportion to risk, report. Defines the KIT path. No ceremony.
 ---
 
-# Core Protocol — do this, in this order, on every request
+# Core Protocol
 
-`engineering-excellence` is how to think. `code-rules` holds the gate policy. This file is what you
-do, step by step. A text-only QUESTION stops after step 1.
+`KIT` = `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2`. Agents live in `KIT/agents/`, skills in `KIT/skills/<name>/SKILL.md`, scripts in `KIT/scripts/`. Quote the path in shell commands: `python "KIT/scripts/checklist.py" .` with `KIT` expanded.
 
-## 1. Classify
-Use the table in `request-routing`. Output one of: QUESTION, SURVEY, SIMPLE CODE, COMPLEX CODE,
-NEW APP, MULTI-DOMAIN, COMMAND. A QUESTION gets a text answer and ends here.
+## The loop
+1. **Understand.** Read the files the request touches before changing them. Read `.agents/memory/MEMORY.md` once per session and `DESIGN.md` before UI work, if they exist. Run independent reads and searches in parallel. Solve the problem behind the words; when you infer intent, state it in one line.
+2. **Right-size the process.**
+   | Task | Process |
+   |---|---|
+   | Question | Answer it. No agent, no plan. |
+   | Trivial (one file, obvious change) | Do it. Report in 1-3 lines. |
+   | Normal (a few files, clear goal) | Pick the agent (`request-routing`), read its file and the skills it names for this task, 3-6 line plan in the reply, build. |
+   | Big (new app, cross-domain feature, refactor) | `/plan` for a task list, or `/proplan` for a full professional plan with documentation. Then build milestone by milestone. |
+3. **Ask only when blocked.** A question is worth asking when the answer changes what you build (scope, data model, auth, money, a design direction you cannot infer). One message, at most 3 questions (5 for `/proplan` intake), each with your recommended default. Everything else: state the assumption and proceed.
+4. **Build.** Follow the project's conventions over the kit's defaults. Smallest change that fully solves the problem. Fix causes, not symptoms. Delete what you replace.
+5. **Verify in proportion to risk.** The tier table is in `code-rules`. Run what the tier asks; skip the rest and say so.
+6. **Report.** Result first. Then: files changed, commands run with their outcome, assumptions, and a `Not verified:` line for anything you did not run. No recap of the conversation, no plan line, no sign-off.
 
-## 2. Read the agent file
-Pick the agent from the routing table. **Read the file now:**
-`C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/agents/<agent>.md`. Do not build from memory of
-what the agent does; read it. If the user wrote `@agent`, use that one.
+## Agents and subagents
+- An agent file (`KIT/agents/<name>.md`) is a role: read it and work as that role. `@agent` in the request forces one.
+- Antigravity 2.0 can run the same files as native subagents with `invoke_subagent`. Use subagents when work is independent: parallel read-only research, or builds on disjoint files after shared decisions are settled. Brief them fully (`parallel-agents` skill); never "based on your findings, fix it". Do the work yourself when it is small or tightly coupled.
+- If `invoke_subagent` is not available in this surface, play each role in turn in the same order.
 
-## 3. Read the skill files the agent names
-The agent file has two lines. **Read now:** read every file on it before writing code (at most
-three). **Read when:** read a file only when its condition matches this task; skip the rest — that
-is where the tokens go. Inside a skill, `SKILL.md` first, then only the sub-files it points to. A
-COMMAND (`/plan`, `/see`, `/review`, `/fix-ui`, ...) is a skill at
-`C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/<command>/SKILL.md`; read it and follow its
-Steps.
+## Commands
+A slash command is `KIT/skills/<command>/SKILL.md`. Read it and follow it. The list is in `request-routing`.
 
-## 4. Ask only if the answer changes the build
-Scope, data model, security, architecture, or a design direction you cannot infer. NEW APP or
-multi-file feature: at most 1-3 questions, one message, before planning. Bug fix, single file, UI
-tweak: do not ask; proceed and state assumptions. Never a second round; on "proceed", proceed with
-stated defaults.
-
-## 5. Print the plan line
-First line of every code or design response, exactly this shape, then nothing else on that line:
-
-`@<agent> · skills: <a>, <b> · steps: <the ordered steps you will run for this task>`
-
-Example: `@frontend-specialist · skills: frontend-design, browser-verification · steps: screen read → build → checklist → /see → report`
-
-This line is mandatory. It proves you routed, loaded, and planned. No other announcement format.
-
-## 6. Plan file when required
-NEW APP and COMPLEX CODE: write `docs/plans/{task-slug}.md` (kebab-case; format in the
-`plan-writing` skill) before code. SIMPLE CODE: 1-3 plan lines in the response are enough.
-
-## 7. Build or repair
-New work: the agent file's **Build** steps. Something that exists is wrong (fix, broken, out of
-place, misaligned, not working): the agent file's **Repair** steps — reproduce, locate, name the root
-cause, fix at the source, verify. Never an override (`code-rules`). Tests for logic changes. Focused
-diffs.
-
-## 8. Run the gates (literal commands, every code task)
-1. `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/checklist.py .` — required
-   checks (security high+, lint, types, tests) must pass. Fix failures; do not report around them.
-2. **If anything rendered changed:** run `/see` (read
-   `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/see/SKILL.md` and follow it). Look at the
-   page, critique your own draft, refine it, look again. A UI change you have not seen is not done.
-   Then run `scripts/ui_verify.py .agents/verify/<task-slug>` — it must exit 0, or the
-   viewports you reported were not the viewports you rendered. Skip only with a stated reason
-   (no dev server / not visual / no browser). A UI **repair** task
-   runs `/fix-ui` instead, which includes `/see` before and after.
-3. **If a downloadable file changed** (PDF, spreadsheet, DOCX): run `/see-doc` — render it, check page size, fonts, glyphs and edges, and look at the pages. A generated document you have not opened is not done.
-4. Non-trivial diff: `/review` (`skills/review/SKILL.md`) before you call it done.
-Required-vs-advisory detail and the auto-fix policy are in `code-rules` (always on).
-
-## 9. Report evidence
-What changed, the exact commands run and what they printed, what you assumed, and a "Not verified"
-line for anything you did not run. "Passing", "fixed", "works" without the output you saw is a
-claim, not a report. Record a durable dead end as a `[failure]` entry (`memory-system`).
-
-## Multi-agent work
-Fewest agents that fit; one specialist is a valid answer. File ownership: `agents/orchestrator.md`.
-Delegation method: `parallel-agents` skill. Precedence when files disagree: global rules → agent
-file → skill; a project `DESIGN.md` overrides any skill's design guidance.
+## Precedence
+User's explicit request > project `DESIGN.md` / conventions / memory > rules > agent file > skill. When two kit files disagree, the higher one wins; mention the conflict in one line.

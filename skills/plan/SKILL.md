@@ -1,36 +1,28 @@
 ---
 name: plan
-description: "/plan — Writes an implementation plan to docs/plans/{task-slug}.md without writing code. Use when the user wants a plan, task breakdown, or estimate before building, and before any new app or multi-file change."
-version: 2.0.0
+description: "/plan - Writes a task-list plan to docs/plans/<slug>.md without writing code: goal, assumptions, scope, tasks with owner and verify line. Use when the user wants a plan, breakdown or estimate before building a feature or a multi-file change. For a whole system with full documentation, use /proplan."
+version: 2.5.0
 ---
 
 # /plan
 
 **Input:** the text after `/plan` is the request.
-**Agent:** read `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/agents/project-planner.md`.
-**Skills:** `@[skills/plan-writing]` (the plan format: file, slug, sections); `@[skills/brainstorming]` (question format); `@[skills/architecture]` only for structural decisions.
+**Agent:** `KIT/agents/project-planner.md`.
+**Read now:** `KIT/skills/plan-writing/SKILL.md` (the format). Read `KIT/skills/brainstorming/SKILL.md` only if you need to ask questions.
+
+For a new system, a client project, or anything that needs requirements, architecture, data model and a milestone roadmap as documents, use `/proplan` (`KIT/skills/proplan/SKILL.md`); `/plan` is the lightweight task list.
 
 ## Steps
 
-1. Read existing context: `docs/plans/*.md`, `DESIGN.md`, project memory if loaded, and the code the request touches. This is the ANALYZE phase; phases are defined in `C:/Users/Keith/.gemini/config/rules/code-rules.md`.
-2. Questions per the global `core-protocol` rule; whatever you do not ask, write into the plan's Assumptions section instead of guessing silently.
-3. Write `docs/plans/{task-slug}.md` in the `plan-writing` format: Goal, Assumptions, Scope, Tasks as `- [ ]` checkboxes with an owner and a `verify:` line, Done-when. Phase names may be headings when the task spans phases.
-4. Do not write code files. This command ends with the plan.
-5. Report the exact path and the next command.
-
-## Naming
-
-Plan-file rule: the global `core-protocol` rule. Slug and path (2–4 key words, kebab-case, at most 30 characters, `docs/plans/{task-slug}.md`): `plan-writing`.
+1. Read existing context: `docs/plans/*.md`, `DESIGN.md`, `.agents/memory/MEMORY.md`, and the code the request touches.
+2. Ask only if blocked (max 3 questions, each with a default). Everything you did not ask goes under Assumptions.
+3. Write `docs/plans/<slug>.md` in the `plan-writing` format.
+4. No code files. The command ends with the plan.
 
 ## Output
 
 ```
-Plan created: docs/plans/<slug>.md
-Tasks: <n> · Agents: <list> · Assumptions: <n>
-Next: /create <slug> for a new app, /enhance <slug> for an existing app, or edit the plan first.
+Plan: docs/plans/<slug>.md
+Tasks: <n> · Owners: <list> · Assumptions: <n>
+Next: /enhance <slug> or /orchestrate docs/plans/<slug>.md, or edit the plan first.
 ```
-
-## Verification
-
-- The file exists at `docs/plans/<slug>.md` and no code files changed.
-- Every task has an owner and a concrete `verify:` line; Done-when includes the checklist command.

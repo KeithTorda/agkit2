@@ -1,6 +1,7 @@
 ---
 name: monorepo-turborepo
 description: Turborepo monorepo template principles. pnpm workspaces, shared packages.
+version: 2.5.0
 ---
 
 # Turborepo Monorepo Template

@@ -1,7 +1,7 @@
 ---
 name: mcp-builder
 description: Building MCP (Model Context Protocol) servers and clients against the 2026-07-28 spec - stateless request design, server/discover, JSON Schema tool contracts, transports and auth, extensions (Tasks, Skills, Apps), security, and migration from 2025-era implementations. Use when writing or reviewing an MCP server or client, designing tools, resources, or prompts, or upgrading a protocol version.
-version: 2.0.0
+version: 2.5.0
 ---
 
 # MCP Builder

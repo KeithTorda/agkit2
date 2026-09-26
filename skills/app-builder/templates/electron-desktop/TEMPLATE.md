@@ -1,6 +1,7 @@
 ---
 name: electron-desktop
 description: Electron desktop app template principles. Cross-platform, React, TypeScript.
+version: 2.5.0
 ---
 
 # Electron Desktop App Template
@@ -11,7 +12,7 @@ description: Electron desktop app template principles. Cross-platform, React, Ty
 
 | Component | Technology |
 |-----------|------------|
-| Framework | Electron 42+ |
+| Framework | Electron, current stable major (a new major ships every 8 weeks; stay within the 3 supported) |
 | UI | React 19 |
 | Language | TypeScript |
 | Styling | Tailwind CSS v4 |

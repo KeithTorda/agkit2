@@ -1,6 +1,7 @@
 ---
 name: nuxt-app
 description: Nuxt 4 full-stack template. Vue 3, Nuxt UI v4, Pinia, Tailwind v4, Prisma.
+version: 2.5.0
 ---
 
 # Nuxt 4 Full-Stack Template
@@ -48,7 +49,7 @@ project-name/
 ├── prisma/
 │   └── schema.prisma
 ├── public/
-├── DESIGN.md             # Visual source of truth (required before UI)
+├── DESIGN.md             # Visual source of truth (written before UI code)
 ├── nuxt.config.ts
 └── package.json
 ```
@@ -82,12 +83,12 @@ project-name/
 
 1. Initialize project:
    ```bash
-   npx nuxi@latest init my-app
+   npm create nuxt@latest my-app
    ```
 
 2. Install core deps:
    ```bash
-   npm install @nuxt/ui @pinia/nuxt @prisma/client zod
+   npm install @nuxt/ui @pinia/nuxt @prisma/client @prisma/adapter-pg zod
    npm install -D prisma
    ```
 

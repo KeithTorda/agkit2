@@ -1,227 +1,284 @@
 #!/usr/bin/env python3
-"""Shared process runner for AG Kit validation entry points."""
+"""Shared step runner for checklist.py and verify_all.py (not an entry point).
+
+A Step is one check: a command (or a few commands run in sequence), whether it is required,
+and why it might be skipped. Required checks gate the exit code; advisory checks are reported
+and never fail a run unless the caller passes strict=True.
+
+Result statuses:
+  passed    the command exited 0
+  failed    required: a blocking failure; advisory: findings to report
+  skipped   not applicable here (no changed files of that kind, no URL, --quick)
+  missing   the tool is not installed or not configured - a note, never a failure
+  error     the check itself broke (crash, unexpected exit code, advisory timeout)
+
+Python 3.10+, standard library only, Windows-safe (no shell, UTF-8 decoding, .cmd shims
+resolved by shutil.which).
+"""
 from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
+import time
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterable, Literal
+from typing import Iterable, TextIO
 
-Target = Literal["project", "url", "none"]
+KIT_ROOT = Path(__file__).resolve().parents[1]
+STATUSES = ("passed", "failed", "skipped", "missing", "error")
+OUTPUT_KEEP = 4000
 
 
-@dataclass(frozen=True)
-class CheckSpec:
+def utf8_stdio() -> None:
+    """Windows consoles default to cp1252; never crash on a non-ASCII character."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
+        except (AttributeError, ValueError):
+            pass
+
+
+@dataclass
+class Step:
     name: str
-    script: str
-    category: str
-    target: Target = "project"
+    category: str                      # security | types | tests | lint | build | audit | runtime
+    commands: list[list[str]] = field(default_factory=list)
     required: bool = False
-    args: tuple[str, ...] = ()
+    cwd: Path | None = None
     timeout: int = 300
+    kit_script: bool = False           # kit scripts: exit 1 = findings, >1 = the script broke
+    skip_reason: str = ""              # set -> status "skipped"
+    missing_reason: str = ""           # set -> status "missing"
+    detail_regex: str = ""             # matches joined into the summary detail (else: last output line)
 
 
 @dataclass
 class CheckResult:
     name: str
     category: str
-    status: Literal["passed", "failed", "skipped", "error"]
+    status: str
     required: bool
     duration_seconds: float = 0.0
-    command: list[str] = field(default_factory=list)
+    commands: list[list[str]] = field(default_factory=list)
+    exit_code: int | None = None
+    detail: str = ""
     stdout: str = ""
     stderr: str = ""
-    reason: str = ""
 
     @property
-    def passed(self) -> bool:
-        return self.status in {"passed", "skipped"}
+    def blocking(self) -> bool:
+        return self.required and self.status == "failed"
+
+    @property
+    def kind(self) -> str:
+        return "required" if self.required else "advisory"
 
 
 class Console:
-    def __init__(self) -> None:
-        enabled = sys.stdout.isatty() and "NO_COLOR" not in os.environ
-        self.bold = "\033[1m" if enabled else ""
-        self.cyan = "\033[96m" if enabled else ""
-        self.green = "\033[92m" if enabled else ""
-        self.yellow = "\033[93m" if enabled else ""
-        self.red = "\033[91m" if enabled else ""
-        self.end = "\033[0m" if enabled else ""
+    """Progress output. In JSON mode progress goes to stderr so stdout stays parseable."""
 
-    def header(self, text: str) -> None:
-        line = "=" * 70
-        print(f"\n{self.bold}{self.cyan}{line}\n{text.center(70)}\n{line}{self.end}\n")
+    def __init__(self, stream: TextIO | None = None, quiet: bool = False) -> None:
+        self.stream = stream or sys.stdout
+        self.quiet = quiet
+        colour = hasattr(self.stream, "isatty") and self.stream.isatty() and "NO_COLOR" not in os.environ
+        self.red = "\033[91m" if colour else ""
+        self.green = "\033[92m" if colour else ""
+        self.yellow = "\033[93m" if colour else ""
+        self.dim = "\033[2m" if colour else ""
+        self.end = "\033[0m" if colour else ""
 
-    def passed(self, text: str) -> None:
-        print(f"{self.green}[PASS] {text}{self.end}")
-
-    def skipped(self, text: str) -> None:
-        print(f"{self.yellow}[SKIP] {text}{self.end}")
-
-    def failed(self, text: str) -> None:
-        print(f"{self.red}[FAIL] {text}{self.end}")
-
-    def info(self, text: str) -> None:
-        print(text)
+    def line(self, text: str = "") -> None:
+        if not self.quiet:
+            print(text, file=self.stream, flush=True)
 
 
-CONSOLE = Console()
+def _tail(text: str, limit: int = OUTPUT_KEEP) -> str:
+    text = text.strip()
+    return text if len(text) <= limit else "..." + text[-limit:]
 
 
-def locate_toolkit_root(project: Path, caller_file: str) -> Path:
-    """Find the toolkit independently from the project being audited."""
-    for candidate in (project / ".agents", project / ".agent"):
-        if (candidate / "skills").is_dir() and (candidate / "scripts").is_dir():
-            return candidate
-    embedded = Path(caller_file).resolve().parents[1]
-    if (embedded / "skills").is_dir() and (embedded / "scripts").is_dir():
-        return embedded
-    raise FileNotFoundError(
-        "AG Kit root was not found. Expected <project>/.agents, <project>/.agent, "
-        "or a runner located inside the toolkit."
-    )
+def _detail_from(output: str) -> str:
+    """The last meaningful line of a tool's output: usually its summary."""
+    for raw in reversed(output.strip().splitlines()):
+        line = " ".join(raw.split())
+        if line and not set(line) <= set("=-_*~ "):
+            return line[:90]
+    return ""
 
 
-def _command_for(spec: CheckSpec, script: Path, project: Path, url: str | None) -> list[str] | None:
-    command = [sys.executable, str(script)]
-    if spec.target == "project":
-        command.append(str(project))
-    elif spec.target == "url":
-        if not url:
-            return None
-        command.append(url)
-    command.extend(spec.args)
-    return command
-
-
-def run_check(spec: CheckSpec, toolkit_root: Path, project: Path, url: str | None) -> CheckResult:
-    script = toolkit_root / spec.script
-    if not script.is_file():
-        status = "failed" if spec.required else "skipped"
-        reason = f"Script not found: {script}"
-        result = CheckResult(spec.name, spec.category, status, spec.required, reason=reason)
-        (CONSOLE.failed if status == "failed" else CONSOLE.skipped)(f"{spec.name}: {reason}")
-        return result
-
-    command = _command_for(spec, script, project, url)
-    if command is None:
-        reason = "URL not provided"
-        CONSOLE.skipped(f"{spec.name}: {reason}")
-        return CheckResult(spec.name, spec.category, "skipped", spec.required, reason=reason)
-
-    started = datetime.now(timezone.utc)
-    try:
-        proc = subprocess.run(
-            command,
-            cwd=project,
-            capture_output=True,
-            text=True,
-            timeout=spec.timeout,
-            check=False,
-        )
-        duration = (datetime.now(timezone.utc) - started).total_seconds()
-        status = "passed" if proc.returncode == 0 else "failed"
-        result = CheckResult(
-            spec.name, spec.category, status, spec.required, duration,
-            command, proc.stdout, proc.stderr,
-            reason="" if status == "passed" else f"Exit code {proc.returncode}",
-        )
-        if status == "passed":
-            CONSOLE.passed(f"{spec.name} ({duration:.1f}s)")
-        else:
-            CONSOLE.failed(f"{spec.name} ({duration:.1f}s, exit {proc.returncode})")
-            _print_failure_output(result)
-        return result
-    except subprocess.TimeoutExpired as exc:
-        duration = (datetime.now(timezone.utc) - started).total_seconds()
-        result = CheckResult(
-            spec.name, spec.category, "error", spec.required, duration, command,
-            _decode_timeout(exc.stdout), _decode_timeout(exc.stderr),
-            f"Timed out after {spec.timeout}s",
-        )
-        CONSOLE.failed(f"{spec.name}: {result.reason}")
-        return result
-    except OSError as exc:
-        duration = (datetime.now(timezone.utc) - started).total_seconds()
-        result = CheckResult(spec.name, spec.category, "error", spec.required, duration, command, reason=str(exc))
-        CONSOLE.failed(f"{spec.name}: {exc}")
-        return result
-
-
-def _decode_timeout(value: str | bytes | None) -> str:
+def _decode(value: str | bytes | None) -> str:
     if value is None:
         return ""
-    return value.decode(errors="replace") if isinstance(value, bytes) else value
+    return value.decode("utf-8", errors="replace") if isinstance(value, bytes) else value
 
 
-def _print_failure_output(result: CheckResult, limit: int = 1600) -> None:
-    combined = "\n".join(part.strip() for part in (result.stdout, result.stderr) if part.strip())
-    if combined:
-        print(combined[-limit:])
+def run_step(step: Step, console: Console | None = None) -> CheckResult:
+    console = console or Console(quiet=True)
+    result = CheckResult(step.name, step.category, "skipped", step.required, commands=step.commands)
+    if step.skip_reason:
+        result.detail = step.skip_reason
+        console.line(f"{console.dim}[skip] {step.name}: {step.skip_reason}{console.end}")
+        return result
+    if step.missing_reason or not step.commands:
+        result.status = "missing"
+        result.detail = step.missing_reason or "nothing to run"
+        console.line(f"{console.dim}[note] {step.name}: {result.detail}{console.end}")
+        return result
+
+    console.line(f"[run ] {step.name} ...")
+    env = dict(os.environ)
+    env.setdefault("CI", "1")              # keeps vitest/jest/npm test out of watch mode
+    env.setdefault("FORCE_COLOR", "0")
+    env.setdefault("NO_COLOR", "1")
+    env.setdefault("PYTHONIOENCODING", "utf-8")
+    started = time.perf_counter()
+    outs, errs = [], []
+    first_failure = ""
+    status, exit_code = "passed", 0
+    for command in step.commands:
+        try:
+            proc = subprocess.run(
+                command, cwd=step.cwd, capture_output=True, text=True, encoding="utf-8",
+                errors="replace", timeout=step.timeout, check=False, env=env,
+            )
+        except subprocess.TimeoutExpired as exc:
+            outs.append(_decode(exc.stdout))
+            errs.append(_decode(exc.stderr))
+            # A hung test suite is a real failure; a slow advisory audit is not.
+            status = "failed" if step.required else "error"
+            exit_code = None
+            result.detail = f"timed out after {step.timeout}s"
+            break
+        except OSError as exc:
+            status, exit_code = "missing", None
+            result.detail = f"could not start {Path(command[0]).name}: {exc.strerror or exc}"
+            break
+        outs.append(proc.stdout)
+        errs.append(proc.stderr)
+        if proc.returncode != 0:
+            if exit_code == 0 and len(step.commands) > 1:
+                first_failure = _detail_from(proc.stdout) or _detail_from(proc.stderr)
+            exit_code = proc.returncode
+            if step.kit_script and proc.returncode not in (0, 1):
+                status = "error"
+                result.detail = f"script exited {proc.returncode}"
+            elif status == "passed":
+                status = "failed"
+    result.duration_seconds = round(time.perf_counter() - started, 2)
+    result.status, result.exit_code = status, exit_code
+    result.stdout, result.stderr = _tail("\n".join(outs)), _tail("\n".join(errs))
+    if not result.detail and first_failure:
+        result.detail = first_failure
+    if not result.detail and step.detail_regex:
+        found = re.findall(step.detail_regex, "\n".join(outs))
+        result.detail = ", ".join(" ".join(f.split()) for f in found if isinstance(f, str))[:90]
+    if not result.detail:
+        result.detail = _detail_from(result.stdout) or _detail_from(result.stderr)
+        if status == "failed" and not result.detail:
+            result.detail = f"exit {exit_code}"
+
+    mark = {"passed": "pass", "failed": "FAIL" if step.required else "warn",
+            "error": "err ", "missing": "note"}[status]
+    colour = {"pass": console.green, "FAIL": console.red, "warn": console.yellow}.get(mark, console.dim)
+    console.line(f"{colour}[{mark}] {step.name} ({result.duration_seconds:.1f}s){console.end}")
+    if status == "failed" and step.required:
+        tail = "\n".join(p for p in (result.stdout, result.stderr) if p)
+        if tail:
+            console.line("\n".join("       " + ln for ln in tail[-1600:].splitlines()))
+    return result
 
 
-def execute_suite(
-    specs: Iterable[CheckSpec],
-    toolkit_root: Path,
-    project: Path,
-    url: str | None,
-    stop_on_fail: bool = False,
-) -> list[CheckResult]:
+def execute(steps: Iterable[Step], console: Console | None = None, stop_on_fail: bool = False) -> list[CheckResult]:
     results: list[CheckResult] = []
-    current_category = ""
-    for spec in specs:
-        if spec.category != current_category:
-            current_category = spec.category
-            CONSOLE.header(current_category)
-        result = run_check(spec, toolkit_root, project, url)
+    for step in steps:
+        result = run_step(step, console)
         results.append(result)
-        if stop_on_fail and result.status in {"failed", "error"}:
+        if stop_on_fail and result.blocking:
             break
     return results
 
 
-def suite_success(results: Iterable[CheckResult]) -> bool:
-    """Only *required* checks gate success; advisory checks are reported but never block."""
-    return all(result.status not in {"failed", "error"} for result in results if result.required)
+def suite_success(results: Iterable[CheckResult], strict: bool = False) -> bool:
+    """Required failures block. With strict, advisory findings and errors block too."""
+    for r in results:
+        if r.blocking:
+            return False
+        if strict and r.status in {"failed", "error"}:
+            return False
+    return True
 
 
-def advisory_failures(results: Iterable[CheckResult]) -> list[CheckResult]:
+def advisory_findings(results: Iterable[CheckResult]) -> list[CheckResult]:
     return [r for r in results if not r.required and r.status in {"failed", "error"}]
 
 
-def print_summary(title: str, results: list[CheckResult], started: datetime) -> bool:
-    CONSOLE.header(title)
-    counts = {status: sum(r.status == status for r in results) for status in ("passed", "failed", "error", "skipped")}
-    duration = (datetime.now(timezone.utc) - started).total_seconds()
-    print(f"Duration: {duration:.1f}s")
-    print(f"Checks: {len(results)} | Passed: {counts['passed']} | Failed: {counts['failed']} | Errors: {counts['error']} | Skipped: {counts['skipped']}")
-    for result in results:
-        marker = {"passed": "PASS", "failed": "FAIL", "error": "ERROR", "skipped": "SKIP"}[result.status]
-        kind = "required" if result.required else "advisory"
-        detail = f" - {result.reason}" if result.reason else ""
-        print(f"[{marker}] ({kind}) {result.category} / {result.name}{detail}")
-    ok = suite_success(results)
-    advisory = advisory_failures(results)
+def not_run(results: Iterable[CheckResult]) -> list[CheckResult]:
+    """Required checks that could not run (tool missing, check broke) - a 'Not verified' line.
+
+    Skips are deliberate (nothing of that kind changed, not applicable) and are not listed.
+    """
+    return [r for r in results if r.required and r.status in {"missing", "error"}]
+
+
+def summary_table(results: list[CheckResult]) -> str:
+    label = {"passed": "PASS", "skipped": "skip", "missing": "note", "error": "ERROR"}
+    rows = [("Check", "Kind", "Result", "Time", "Detail")]
+    for r in results:
+        res = ("FAIL" if r.required else "WARN") if r.status == "failed" else label[r.status]
+        time_s = f"{r.duration_seconds:.1f}s" if r.status not in {"skipped", "missing"} else ""
+        rows.append((r.name, r.kind, res, time_s, r.detail[:70]))
+    widths = [max(len(row[i]) for row in rows) for i in range(4)]
+    lines = []
+    for i, row in enumerate(rows):
+        lines.append("  ".join(cell.ljust(widths[j]) for j, cell in enumerate(row[:4])) + "  " + row[4])
+        if i == 0:
+            lines.append("  ".join("-" * w for w in widths) + "  " + "-" * 6)
+    return "\n".join(line.rstrip() for line in lines)
+
+
+def verdict_line(results: list[CheckResult], strict: bool = False) -> str:
+    blocking = [r.name for r in results if r.blocking]
+    advisory = advisory_findings(results)
+    missed = not_run(results)
+    parts = []
+    if blocking:
+        parts.append(f"FAIL - required: {', '.join(blocking)}")
+    elif strict and advisory:
+        parts.append(f"FAIL (--strict) - advisory: {', '.join(r.name for r in advisory)}")
+    else:
+        parts.append("PASS - no required check failed")
     if advisory:
-        print(f"Advisory findings ({len(advisory)}): report them; ask before design/scope changes. They do not block.")
-    (CONSOLE.passed if ok else CONSOLE.failed)(
-        "Required checks passed" if ok else "Required checks failed - fix these before calling the task done"
-    )
-    return ok
+        parts.append(f"{len(advisory)} advisory finding(s)" + ("" if strict else ", not blocking"))
+    if missed:
+        parts.append(f"not verified: {', '.join(r.name for r in missed)}")
+    return "Result: " + "; ".join(parts)
 
 
-def write_report(path: Path, project: Path, toolkit_root: Path, results: list[CheckResult], started: datetime) -> None:
+def report_payload(title: str, project: Path, mode: str, results: list[CheckResult],
+                   started: datetime, strict: bool = False, extra: dict | None = None) -> dict:
     payload = {
+        "tool": title,
         "project": str(project),
-        "toolkit_root": str(toolkit_root),
+        "kit": str(KIT_ROOT),
+        "mode": mode,
+        "strict": strict,
         "started_at": started.isoformat(),
         "finished_at": datetime.now(timezone.utc).isoformat(),
-        "success": suite_success(results),
-        "results": [asdict(result) for result in results],
+        "success": suite_success(results, strict),
+        "required_failures": [r.name for r in results if r.blocking],
+        "advisory_findings": [r.name for r in advisory_findings(results)],
+        "not_verified": [r.name for r in not_run(results)],
+        "results": [asdict(r) for r in results],
     }
+    if extra:
+        payload.update(extra)
+    return payload
+
+
+def write_report(path: Path, payload: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

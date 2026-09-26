@@ -1,6 +1,7 @@
 ---
 name: react-native-app
 description: React Native mobile app template. Expo SDK 54+, Expo Router, New Architecture, NativeWind 4, Reanimated 4, FlashList v2.
+version: 2.5.0
 ---
 
 # React Native App Template
@@ -13,7 +14,7 @@ description: React Native mobile app template. Expo SDK 54+, Expo Router, New Ar
 |---|---|---|
 | Core | React Native + Expo | SDK 54+, New Architecture enabled (default) |
 | Language | TypeScript | Strict mode |
-| UI logic | React 19 | React Compiler enabled by this template (`babel-plugin-react-compiler`); compiler-first; the memo rule is in `nextjs-react-expert` |
+| UI logic | React 19 | React Compiler on (`experiments.reactCompiler` in `app.json`); compiler-first; the memo rule is in `nextjs-react-expert` |
 | Navigation | Expo Router | File-based, typed routes, universal links |
 | Styling | NativeWind 4+ (stable) | Tailwind classes in RN; use the Tailwind version NativeWind's install guide specifies |
 | Animation | Reanimated 4 | UI-thread animations; requires the New Architecture |
@@ -43,7 +44,7 @@ project-name/
 ├── global.css               # NativeWind entry
 ├── babel.config.js          # nativewind/babel preset
 ├── metro.config.js          # withNativeWind wrapper
-├── DESIGN.md                # Visual source of truth (required before UI)
+├── DESIGN.md                # Visual source of truth (written before UI code)
 └── app.json                 # Expo config: scheme, newArchEnabled, typed routes
 ```
 
@@ -69,9 +70,8 @@ project-name/
    npx expo install expo-router expo-linking expo-constants expo-status-bar react-native-safe-area-context react-native-screens
    npx expo install react-native-reanimated react-native-worklets @shopify/flash-list expo-image expo-secure-store
    npm install nativewind zustand @tanstack/react-query
-   npm install -D babel-plugin-react-compiler
    ```
-3. NativeWind 4, per its current install guide: add `nativewind/babel` and `jsxImportSource: "nativewind"` to `babel.config.js`, and `plugins: ['babel-plugin-react-compiler']` in the same file (the New Architecture alone does not enable the compiler); wrap Metro with `withNativeWind(config, { input: './global.css' })`; create `global.css` with the Tailwind directives; import it in `src/app/_layout.tsx`; set `content` paths in `tailwind.config.js`.
+3. React Compiler: on in the recent Expo default template; otherwise `npx expo install babel-plugin-react-compiler` and set `experiments.reactCompiler: true` in `app.json`. NativeWind, per its current install guide: add `nativewind/babel` and `jsxImportSource: "nativewind"` to `babel.config.js`; wrap Metro with `withNativeWind(config, { input: './global.css' })`; create `global.css` with the Tailwind directives; import it in `src/app/_layout.tsx`; set `content` paths in `tailwind.config.js`.
 4. Enable typed routes in `app.json` (`experiments.typedRoutes: true`) and set the URL `scheme`.
 5. Run: `npx expo start -c` (`i` for the iOS simulator, `a` for the Android emulator).
 
@@ -81,4 +81,4 @@ project-name/
 - Use `expo-image` instead of `<Image />`; FlashList v2 for long lists, FlatList acceptable for short fixed lists.
 - Server data goes through TanStack Query; no fetches inside `useEffect`.
 - Theme values (colors, spacing, type scale) come from `DESIGN.md`; mirror them in the Tailwind theme and `constants/`.
-- Respect safe areas and platform conventions (iOS 26 and Android 16 baselines; see `@[skills/mobile-design]`).
+- Respect safe areas and platform conventions (iOS 26 and Android 16 baselines; see `mobile-design`).

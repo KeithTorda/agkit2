@@ -1,7 +1,7 @@
 ---
 name: mobile-design
 description: Mobile-first design and engineering for iOS and Android apps built with React Native (Expo) or Flutter - touch targets and thumb zones, list and animation performance, navigation, platform conventions, offline, and mobile testing. Use when building or reviewing a mobile app's UI, native layer, or mobile-specific backend; not for web apps.
-version: 2.0.0
+version: 2.5.0
 ---
 
 # Mobile Design
@@ -80,8 +80,8 @@ Before release: no `console.log` / `print` in release builds; secrets in secure 
 
 ## Script (advisory)
 
-`./scripts/mobile_audit.py <project>` scans React Native and Flutter code for the non-negotiables above (touch sizes, `ScrollView` for lists, index keys, secrets in `AsyncStorage`, missing cleanup, `console.log`). It is heuristic; confirm each finding in context before changing code.
+`mobile_audit.py <project-or-file>` scans files that import `react-native`, `expo-*`, `@react-navigation` or `package:flutter`. Error: auth tokens or passwords written to `AsyncStorage` / `SharedPreferences`. Warnings: index `keyExtractor`, touchables with no accessible name, touch targets under 44pt with no `hitSlop`, font scaling disabled, text under 11pt, listeners without cleanup, Animated without `useNativeDriver`, Flutter `setState` after `await` without a `mounted` check, `IconButton` without tooltip. Info (never fails): `.map()` inside `ScrollView`, index keys, no safe-area handling, error boundary or dark mode, `console.log`. Flags: `--json`, `--verbose`, `--fail-on error|warning|never` (default `error`). It is heuristic; confirm each finding in context before changing code.
 
 ```powershell
-python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/mobile-design/scripts/mobile_audit.py .
+python "KIT/skills/mobile-design/scripts/mobile_audit.py" .
 ```

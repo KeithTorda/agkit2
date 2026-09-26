@@ -1,7 +1,7 @@
 ---
 name: document-generation
 description: "Generating files people download or receive: spreadsheet exports (CSV, XLSX), PDFs (reports, receipts, invoices, certificates, official forms), and editable Word documents. Covers which format to produce, where generation runs, streaming large exports, and the correctness rules money and official documents require. Use for: export, download, generate report, invoice, receipt, certificate, payslip, printable, print view."
-version: 2.3.0
+version: 2.5.0
 ---
 
 # Document Generation
@@ -103,6 +103,10 @@ One line each; the libraries, their traps, and the code live in the sub-files.
 
 ## 5. Done
 
+Documents carrying money or authority (receipts, invoices, payslips, certificates, official forms)
+are `code-rules` tier 2: verify them fully. A throwaway internal CSV is tier 0-1: open it once and
+report. Match the effort to what the file does.
+
 1. The export re-applies the caller's permissions server-side; it cannot be widened by input.
 2. Generation streams or chunks; the row count it was tested at is stated, and a large run was tried.
 3. Anything slow runs as a job with a download link, not in the request.
@@ -110,6 +114,7 @@ One line each; the libraries, their traps, and the code live in the sub-files.
 5. `ñ`, `₱`, and long identifiers with leading zeros survive a round trip through Excel and a PDF
    viewer — opened and checked, not assumed.
 6. Official or financial documents are reproducible: the file or its complete inputs are stored.
-7. `/see-doc` run: the file was rendered, `doc-verdict.json` says `pass`, and the page images were
-   **looked at** — not just produced. A document nobody opened is not verified.
-8. The file was opened in the software the recipient actually uses before the task was called done.
+7. For a tier-2 document, verify it (`/see-doc`, or `python "KIT/scripts/doc_verify.py" <file>`):
+   render it, confirm `doc-verdict.json` says `pass`, and look at the page images. A verdict is not
+   a substitute for opening the file.
+8. Open it in the software the recipient actually uses before reporting it done.

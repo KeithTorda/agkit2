@@ -1,6 +1,7 @@
 ---
 name: nextjs-fullstack
 description: Next.js full-stack template. App Router, Server Components, Server Actions, Prisma, Tailwind v4.
+version: 2.5.0
 ---
 
 # Next.js Full-Stack Template
@@ -15,7 +16,7 @@ description: Next.js full-stack template. App Router, Server Components, Server 
 | Runtime | Node.js 24 LTS | |
 | Language | TypeScript 5.9+ | Strict mode |
 | UI | React 19.2 | React Compiler enabled by this template (`reactCompiler: true`); Server Actions, `useActionState` |
-| Database | PostgreSQL + Prisma 7 | Rust-free client, edge-capable; Drizzle is an accepted alternative |
+| Database | PostgreSQL + Prisma 7 | Rust-free TypeScript client with a driver adapter; `prisma.config.ts`; Drizzle is an accepted alternative |
 | Styling | Tailwind CSS v4 | CSS-first config in `globals.css` |
 | Auth | Better Auth or Clerk; Auth.js for existing projects | Protected routes via `proxy.ts` |
 | Validation | Zod | Shared between actions and forms |
@@ -26,6 +27,7 @@ description: Next.js full-stack template. App Router, Server Components, Server 
 ```
 project-name/
 ├── prisma/schema.prisma
+├── prisma.config.ts
 ├── src/
 │   ├── app/
 │   │   ├── (auth)/            # Login, register
@@ -36,14 +38,14 @@ project-name/
 │   │   └── globals.css        # @import "tailwindcss"; @theme from DESIGN.md
 │   ├── components/ui/         # Primitives (Button, Input)
 │   ├── components/forms/      # Client forms using useActionState
-│   ├── lib/db.ts              # Prisma singleton
+│   ├── lib/db.ts              # Prisma singleton with the pg driver adapter
 │   ├── lib/dal.ts             # Data Access Layer (server-only, returns DTOs)
 │   ├── lib/utils.ts
 │   ├── actions/               # Server Actions (mutations; backend-specialist)
 │   └── types/
 ├── public/
 ├── proxy.ts                   # Network boundary: auth checks, redirects
-├── DESIGN.md                  # Visual source of truth (required before UI)
+├── DESIGN.md                  # Visual source of truth (written before UI code)
 ├── next.config.ts
 ├── eslint.config.js
 └── package.json
@@ -75,10 +77,11 @@ project-name/
    ```
 2. Database and validation:
    ```bash
-   npm install @prisma/client zod
+   npm install @prisma/client @prisma/adapter-pg zod
    npm install -D prisma tsx   # tsx runs prisma/seed.ts
-   npx prisma init
+   npx prisma init             # writes prisma/schema.prisma and prisma.config.ts
    ```
+   Prisma 7: the generator is `prisma-client` with an explicit `output` (for example `../src/generated/prisma`); `lib/db.ts` creates the client with `new PrismaPg({ connectionString: process.env.DATABASE_URL })` as its adapter; run `npx prisma generate` after schema changes.
 3. Tailwind v4 theme in `src/app/globals.css` (values from `DESIGN.md`, never invented):
    ```css
    @import "tailwindcss";
@@ -89,7 +92,7 @@ project-name/
      --font-sans: var(--font-brand), system-ui, sans-serif;
    }
    ```
-4. Enable the React Compiler in `next.config.ts` (`reactCompiler: true`) and install it: `npm install -D babel-plugin-react-compiler`.
+4. React Compiler: `create-next-app` offers it; otherwise set `reactCompiler: true` in `next.config.ts` and `npm install -D babel-plugin-react-compiler`.
 5. Schema and database: edit `prisma/schema.prisma`, then `npx prisma migrate dev`.
 6. Run: `npm run dev` (Turbopack by default).
 

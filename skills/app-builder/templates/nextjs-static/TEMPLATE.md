@@ -1,6 +1,7 @@
 ---
 name: nextjs-static
 description: Next.js static-export template for landing pages and portfolios. App Router, React 19, Tailwind v4, motion.
+version: 2.5.0
 ---
 
 # Next.js Static Site Template
@@ -16,7 +17,7 @@ description: Next.js static-export template for landing pages and portfolios. Ap
 | Language | TypeScript 5.9+ | Strict mode |
 | Styling | Tailwind CSS v4 | CSS-first config, no JS config file |
 | Animation | motion (`motion/react`) | Successor of framer-motion; layout animations and gestures |
-| Icons | Lucide (or one other family from `frontend-design` §3.C: Phosphor, Radix Icons, Tabler; Heroicons for Tailwind-UI-style projects) | One family per project |
+| Icons | Lucide (or one other family: Phosphor, Radix Icons, Tabler; Heroicons for Tailwind-UI-style projects) | One family per project |
 | SEO | Metadata API | Native; `sitemap.ts`, `robots.ts`, `opengraph-image.tsx` |
 | Lint | ESLint 9 flat config | `eslint .`; `next lint` no longer exists |
 
@@ -40,7 +41,7 @@ project-name/
 │   └── lib/utils.ts              # cn, formatters
 ├── content/                      # Markdown / MDX
 ├── public/
-├── DESIGN.md                     # Visual source of truth (required before UI)
+├── DESIGN.md                     # Visual source of truth (written before UI code)
 ├── next.config.ts
 └── package.json
 ```
@@ -128,4 +129,4 @@ Respect `prefers-reduced-motion` (`useReducedMotion`).
 - Server Components by default; `'use client'` only for state, event handlers, and motion components.
 - `next/font` for self-hosted fonts and zero layout shift; the family comes from `DESIGN.md`.
 - Mobile-first with `sm:` / `md:` / `lg:`; images via `<Image />` with an external loader or `unoptimized`.
-- Lighthouse is advisory; run it when a URL is available (`@[skills/performance-profiling]`), plus the SEO check (`@[skills/seo-fundamentals]`).
+- Lighthouse is advisory; run it when a URL is available (`performance-profiling`), plus the SEO check (`seo-fundamentals`).

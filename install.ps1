@@ -1,55 +1,61 @@
-# AG Kit v2 Windows Installer for Antigravity
+# AG Kit v2.5 installer for Google Antigravity (Windows, PowerShell 7 or 5.1)
 # Maintained by Keith Torda
-
 $ErrorActionPreference = "Stop"
 
-Write-Host "====================================================" -ForegroundColor Cyan
-Write-Host "        AG Kit v2 Installer for Antigravity          " -ForegroundColor Cyan
-Write-Host "====================================================" -ForegroundColor Cyan
+$Src       = $PSScriptRoot
+$Config    = Join-Path $env:USERPROFILE ".gemini\config"
+$PluginDir = Join-Path $Config "plugins\ag-kit-v2"
+$RulesDir  = Join-Path $Config "rules"
+$UserPath  = ($env:USERPROFILE -replace '\\', '/')
 
-$UserProfileForward = ($env:USERPROFILE -replace '\\', '/')
-$AntigravityConfig = "$env:USERPROFILE\.gemini\config"
-$PluginsDir = Join-Path $AntigravityConfig "plugins\ag-kit-v2"
-$RulesDir = Join-Path $AntigravityConfig "rules"
+$Rules = @(
+    "core-protocol.md", "engineering-excellence.md", "code-rules.md", "design-rules.md",
+    "request-routing.md", "universal-rules.md", "quick-reference.md"
+)
+# Kit rule files from older versions that must not stay installed
+$StaleRules = @("copy.md", "design.md")
 
-Write-Host "[1/4] Setting up directories..." -ForegroundColor Yellow
-if (-not (Test-Path $PluginsDir)) {
-    New-Item -ItemType Directory -Path $PluginsDir -Force | Out-Null
+Write-Host "AG Kit v2.5 -> $PluginDir"
+
+# 1. Clean plugin install so removed files never linger
+if (Test-Path $PluginDir) { Remove-Item $PluginDir -Recurse -Force }
+New-Item -ItemType Directory -Path $PluginDir -Force | Out-Null
+New-Item -ItemType Directory -Path $RulesDir  -Force | Out-Null
+
+foreach ($d in @("agents", "skills", "scripts")) {
+    Copy-Item -Path (Join-Path $Src $d) -Destination $PluginDir -Recurse -Force
 }
-if (-not (Test-Path $RulesDir)) {
-    New-Item -ItemType Directory -Path $RulesDir -Force | Out-Null
+foreach ($f in @("plugin.json", "VERSION", "LICENSE")) {
+    $p = Join-Path $Src $f
+    if (Test-Path $p) { Copy-Item -Path $p -Destination $PluginDir -Force }
+}
+Get-ChildItem $PluginDir -Recurse -Directory -Filter "__pycache__" | Remove-Item -Recurse -Force
+
+# 2. Rules: remove stale kit rules, then copy the current set
+foreach ($r in $StaleRules) {
+    $p = Join-Path $RulesDir $r
+    if ((Test-Path $p) -and ((Get-Content $p -Raw) -match "(?m)^name:\s*(copy|design)\s*$")) {
+        Remove-Item $p -Force
+        Write-Host "  removed stale rule $r"
+    }
+}
+foreach ($r in $Rules) {
+    Copy-Item -Path (Join-Path $Src "rules\$r") -Destination $RulesDir -Force
 }
 
-Write-Host "[2/4] Installing AG Kit v2 plugin and rules..." -ForegroundColor Yellow
-$CurrentDir = $PSScriptRoot
-Get-ChildItem -Path $CurrentDir -Exclude "rules", ".git", "install.ps1", "README.md" | ForEach-Object {
-    Copy-Item -Path $_.FullName -Destination $PluginsDir -Recurse -Force
-}
-
-if (Test-Path (Join-Path $CurrentDir "rules")) {
-    Copy-Item -Path (Join-Path $CurrentDir "rules\*") -Destination $RulesDir -Recurse -Force
-}
-
-Write-Host "[3/4] Adapting user paths for current machine ($env:USERNAME)..." -ForegroundColor Yellow
-$DefaultUserPath = "C:/Users/Keith"
-if ($UserProfileForward -ne $DefaultUserPath) {
-    Write-Host "Updating user directory paths from '$DefaultUserPath' to '$UserProfileForward'..." -ForegroundColor Cyan
-    $FilesToPatch = Get-ChildItem -Path $PluginsDir, $RulesDir -Include *.md, *.py, *.json -Recurse
-    foreach ($file in $FilesToPatch) {
-        $content = [System.IO.File]::ReadAllText($file.FullName)
-        if ($content -match "C:/Users/Keith") {
-            $updated = $content.Replace("C:/Users/Keith", $UserProfileForward)
-            [System.IO.File]::WriteAllText($file.FullName, $updated)
+# 3. Point KIT at this user's profile (paths are quoted in the kit, so spaces are safe)
+if ($UserPath -ne "C:/Users/Keith") {
+    $targets = @(Get-ChildItem -Path $PluginDir -Recurse -File -Include *.md, *.json) +
+               @($Rules | ForEach-Object { Get-Item (Join-Path $RulesDir $_) })
+    foreach ($f in $targets) {
+        $c = [System.IO.File]::ReadAllText($f.FullName)
+        if ($c.Contains("C:/Users/Keith")) {
+            [System.IO.File]::WriteAllText($f.FullName, $c.Replace("C:/Users/Keith", $UserPath))
         }
     }
 }
 
-Write-Host "[4/4] Validating installation..." -ForegroundColor Yellow
-$ValidateScript = Join-Path $PluginsDir "scripts\validate_kit.py"
-if (Test-Path $ValidateScript) {
-    python $ValidateScript
-}
-
-Write-Host "`n[SUCCESS] AG Kit v2 successfully installed to Antigravity!" -ForegroundColor Green
-Write-Host "Plugin Path: $PluginsDir" -ForegroundColor Gray
-Write-Host "Rules Path:  $RulesDir`n" -ForegroundColor Gray
+# 4. Validate
+python (Join-Path $PluginDir "scripts\validate_kit.py") "$PluginDir" --rules "$RulesDir" --quiet
+$n = (Get-ChildItem $PluginDir -Recurse -File).Count
+Write-Host "Installed $n files and $($Rules.Count) rules. Restart Antigravity, then try /status in a project."

@@ -1,68 +1,59 @@
-# Pattern Selection Guidelines
+# Pattern Selection
 
-> Decision trees for choosing architectural patterns.
+Decision trees for the common architecture questions. They give the default; the project's real constraints can override them, and the override goes in an ADR.
 
-## Main Decision Tree
+## Decision tree
 
 ```
-START: What's your MAIN concern?
+What is the main concern?
 
-┌─ Data Access Complexity?
-│  ├─ HIGH (complex queries, testing needed)
-│  │  → Repository Pattern + Unit of Work
-│  │  VALIDATE: Will data source change frequently?
-│  │     ├─ YES → Repository worth the indirection
-│  │     └─ NO  → Consider simpler ORM direct access
-│  └─ LOW (simple CRUD, single database)
-│     → ORM directly (Prisma, Drizzle)
-│     Simpler = Better, Faster
-│
-├─ Business Rules Complexity?
-│  ├─ HIGH (domain logic, rules vary by context)
-│  │  → Domain-Driven Design
-│  │  VALIDATE: Do you have domain experts on team?
-│  │     ├─ YES → Full DDD (Aggregates, Value Objects)
-│  │     └─ NO  → Partial DDD (rich entities, clear boundaries)
-│  └─ LOW (mostly CRUD, simple validation)
-│     → Transaction Script pattern
-│     Simpler = Better, Faster
-│
-├─ Independent Scaling Needed?
-│  ├─ YES (different components scale differently)
-│  │  → Microservices WORTH the complexity
-│  │  REQUIREMENTS (ALL must be true):
-│  │    - Clear domain boundaries
-│  │    - Team > 10 developers
-│  │    - Different scaling needs per service
-│  │  IF NOT ALL MET → Modular Monolith instead
-│  └─ NO (everything scales together)
-│     → Modular Monolith
-│     Can extract services later when proven needed
-│
-└─ Real-time Requirements?
-   ├─ HIGH (immediate updates, multi-user sync)
-   │  → Event-Driven Architecture
-   │  → Message Queue (RabbitMQ, Redis, Kafka)
-   │  VALIDATE: Can you handle eventual consistency?
-   │     ├─ YES → Event-driven valid
-   │     └─ NO  → Synchronous with polling
-   └─ LOW (eventual consistency acceptable)
-      → Synchronous (REST/GraphQL)
-      Simpler = Better, Faster
+Data access complexity
+  LOW (CRUD, one database)        -> use the ORM directly (Eloquent, Prisma, Drizzle, SQLAlchemy)
+  HIGH (complex queries, several sources, heavy testing needs)
+                                  -> repository or query objects around the hard parts only
+     Check: will the data source really change, or do tests need the seam? If not, stay direct.
+
+Business rule complexity
+  LOW (validation, simple CRUD)   -> transaction script: one action or service function per use case
+  HIGH (rules vary by context, many invariants)
+                                  -> rich domain model around the core (pricing, stock, grading, ballots)
+     Check: are the rules stable and understood? Partial DDD (entities with behaviour,
+     clear module boundaries) is usually enough; full DDD needs domain experts in the loop.
+
+Independent scaling or deployment
+  NO                              -> modular monolith (extract later if proven)
+  YES                             -> separate services are worth it when most of these hold:
+                                     clear domain boundaries, separate teams, different scaling
+                                     or release needs, and the ops capacity to run them
+
+Real-time or async needs
+  Updates must reach users instantly (dashboards, queues, chat)
+                                  -> push: WebSocket / SSE / Laravel Reverb / a provider (Pusher, Ably, Supabase Realtime)
+  Work can finish later (e-mail, SMS, reports, imports)
+                                  -> background jobs (Laravel queues, BullMQ, Celery/ARQ)
+  Several systems react to one event
+                                  -> event-driven, only if eventual consistency is acceptable;
+                                     otherwise synchronous calls
+  Otherwise                       -> synchronous request/response
+
+Unreliable connectivity at the point of use (POS, field data collection)
+                                  -> local-first client (IndexedDB / SQLite) with a sync queue and
+                                     server-side idempotency keys; decide conflict rules up front
 ```
 
-## The 3 Questions (Before ANY Pattern)
+## The three questions (before any pattern)
 
-1. **Problem Solved**: What SPECIFIC problem does this pattern solve?
-2. **Simpler Alternative**: Is there a simpler solution?
-3. **Deferred Complexity**: Can we add this LATER when needed?
+1. **Problem solved:** what specific problem does this pattern solve here?
+2. **Simpler alternative:** what is the simplest thing that would work, and why is it not enough?
+3. **Deferred complexity:** can this be added later, when the need is proven?
 
-## Red Flags (Anti-patterns)
+## Over-engineering signs
 
-| Pattern | Anti-pattern | Simpler Alternative |
-|---------|-------------|-------------------|
-| Microservices | Premature splitting | Start monolith, extract later |
-| Clean/Hexagonal | Over-abstraction | Concrete first, interfaces later |
-| Event Sourcing | Over-engineering | Append-only audit log |
-| CQRS | Unnecessary complexity | Single model |
-| Repository | YAGNI for simple CRUD | ORM direct access |
+| Pattern | Sign it is premature | Simpler alternative |
+|---|---|---|
+| Microservices | One team, one deploy cadence, shared database | Modular monolith |
+| Clean / hexagonal layers | Interfaces with one implementation, mapping code everywhere | Concrete code first, extract a seam when a second implementation or a test needs it |
+| Event sourcing | Only needed an audit trail | Append-only audit log table |
+| CQRS | Reads and writes use the same shape | One model; a read-optimised query or view where needed |
+| Repository | Wraps simple ORM calls one-to-one | Use the ORM directly |
+| Message broker | Work fits in the request or a DB-backed queue | Laravel database queue, a jobs table, or `after()` |

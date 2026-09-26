@@ -1,332 +1,65 @@
 # Mobile Testing Patterns
 
-> **Mobile testing is NOT web testing. Different constraints, different strategies.**
-> This file teaches WHEN to use each testing approach and WHY.
-> **Code examples are minimal - focus on decision-making.**
+Mobile testing is not web testing: the native layer, platform differences, wildly varying networks, app lifecycle (backgrounded, killed, restored), permission dialogs, and touch instead of clicks all matter. Test the right things, not everything — a flaky E2E test is worse than none.
 
----
+## Web habits that fail on mobile
 
-## Testing mindset
+- Jest alone misses the native layer — pair it with device E2E.
+- Cypress and other browser E2E cannot reach native features — use Detox or Maestro.
+- Mocking everything hides integration bugs — test on a real device.
+- Happy-path only ignores mobile's real edge cases — offline, permissions, interrupts.
+- 100% unit coverage is false security — balance the pyramid.
 
-```
-Mobile testing differs from web:
-├── Real devices matter (emulators hide bugs)
-├── Platform differences (iOS vs Android behavior)
-├── Network conditions vary wildly
-├── Battery/performance under test
-├── App lifecycle (background, killed, restored)
-├── Permissions and system dialogs
-└── Touch interactions vs clicks
-```
+## 1. Which tool
 
----
+| Testing | React Native | Flutter |
+|---------|--------------|---------|
+| Pure functions, reducers, transformers | Jest | `test` package |
+| Isolated components / widgets | React Native Testing Library | `flutter_test` (widget tests) |
+| Components with hooks, context, navigation | RNTL + mocked providers | `integration_test` |
+| Full user flows (login, checkout) | Detox (fast, reliable) or Maestro | Maestro |
+| Performance / memory | Flashlight, device profiling | Flutter DevTools, `--profile` |
 
-## Anti-patterns
+Maestro (mobile.dev) is cross-platform and YAML-based. Appium is a slow last resort. Prefer Detox for RN critical flows.
 
-| ❌ AI Default | Why It's Wrong | ✅ Mobile-Correct |
-|---------------|----------------|-------------------|
-| Jest-only testing | Misses native layer | Jest + E2E on device |
-| Enzyme patterns | Deprecated, web-focused | React Native Testing Library |
-| Browser-based E2E (Cypress) | Can't test native features | Detox or Maestro (mobile.dev) |
-| Mock everything | Misses integration bugs | Real device testing |
-| Ignore platform tests | iOS/Android differ | Platform-specific cases |
-| Skip performance tests | Mobile perf is critical | Profile on low-end device |
-| Test only happy path | Mobile has more edge cases | Offline, permissions, interrupts |
-| 100% unit test coverage | False security | Pyramid balance |
-| Copy web testing patterns | Different environment | Mobile-specific tools |
+## 2. The pyramid
 
----
+Roughly 40% unit, 30% component, 20% integration, 10% E2E. Unit tests are fastest and most stable; E2E is slow and flaky but the only thing that catches real integration bugs. 90% unit and 0% E2E means you are testing the wrong things.
 
-## 1. Testing Tool Selection
+## 3. What to test at each level
 
-### Decision Tree
+- **Unit (Jest / Dart test):** utility functions, state reducers and stores, API response transformers, validation, business rules. Not rendering, navigation, or third-party libraries.
+- **Component (RNTL / flutter_test):** renders correctly, user interactions (tap, type, swipe), loading/error/empty states, accessibility labels present, behaviour when props change. Not implementation details or brittle styling snapshots.
+- **Integration:** form submission, navigation between screens, state persisted across screens, API integration against a mocked server. Not every path, and not the real backend.
+- **E2E (real devices):** critical journeys (login, purchase, signup), offline-to-online transitions, deep links, push-notification navigation, permission flows, payments. Not every edge case (too slow) or backend-only logic.
 
-```
-WHAT ARE YOU TESTING?
-        │
-        ├── Pure functions, utilities, helpers
-        │   └── Jest (unit tests)
-        │       └── No special mobile setup needed
-        │
-        ├── Individual components (isolated)
-        │   ├── React Native → React Native Testing Library
-        │   └── Flutter → flutter_test (widget tests)
-        │
-        ├── Components with hooks, context, navigation
-        │   ├── React Native → RNTL + mocked providers
-        │   └── Flutter → integration_test package
-        │
-        ├── Full user flows (login, checkout, etc.)
-        │   ├── Detox (React Native, fast, reliable)
-        │   ├── Maestro (mobile.dev; cross-platform, YAML-based)
-        │   └── Appium (Legacy, slow, last resort)
-        │
-        └── Performance, memory, battery
-            ├── Flashlight (RN performance)
-            ├── Flutter DevTools
-            └── Real device profiling (Xcode/Android Studio)
-```
+## 4. Platform differences worth testing on both
 
-### Tool Comparison
+Back navigation (iOS edge-swipe vs Android system/predictive back), permissions (iOS asks once; Android asks with rationale and supports revoking), keyboard behaviour, push payload shape (APNs vs FCM), and deep links (Universal Links vs App Links). Date pickers and custom gestures only if you built custom UI around them. Run unit and component tests once (same on both); run E2E and platform-specific cases per platform.
 
-| Tool | Platform | Speed | Reliability | Use When |
-|------|----------|-------|-------------|----------|
-| **Jest** | RN | ⚡⚡⚡ | ⚡⚡⚡ | Unit tests, logic |
-| **RNTL** | RN | ⚡⚡⚡ | ⚡⚡ | Component tests |
-| **flutter_test** | Flutter | ⚡⚡⚡ | ⚡⚡⚡ | Widget tests |
-| **Detox** | RN | ⚡⚡ | ⚡⚡⚡ | E2E, critical flows |
-| **Maestro (mobile.dev)** | Both | Medium | Medium | E2E, cross-platform |
-| **Appium** | Both | ⚡ | ⚡ | Legacy, last resort |
+## 5. Offline and network
 
----
+Test: starting the app offline (cached data or a clear offline state), going offline mid-action (queued, not lost), coming back online (queue syncs, no duplicates), slow 2G (loading states and timeouts fire), and flaky connections (retry and recovery work). Drive it with mocked `NetInfo` in unit tests, mocked responses in integration, `device.setURLBlacklist()` in Detox, and Charles Proxy / Network Link Conditioner manually.
 
-## 2. Testing Pyramid for Mobile
+## 6. Performance
 
-```
-                    ┌───────────────┐
-                    │    E2E Tests  │  10%
-                    │  (Real device) │  Slow, expensive, essential
-                    ├───────────────┤
-                    │  Integration  │  20%
-                    │    Tests      │  Component + context
-                    ├───────────────┤
-                    │  Component    │  30%
-                    │    Tests      │  Isolated UI
-                    ├───────────────┤
-                    │   Unit Tests  │  40%
-                    │    (Jest)     │  Pure logic
-                    └───────────────┘
-```
+Measure app startup (under 2 s), screen transitions (under 300 ms), list scroll (60 fps), memory (stable, no leaks), and bundle size. Profile before release, after heavy features, after dependency upgrades, and when users report slowness. Test on a real low-end device (a Galaxy A-series or an old iPhone) on a release/profile build with production-like data — emulators and simulators hide performance problems; say so in the report when you only had one.
 
-### Why This Distribution?
+## 7. Accessibility
 
-| Level | Why This % |
-|-------|------------|
-| **E2E 10%** | Slow, flaky, but catches integration bugs |
-| **Integration 20%** | Tests real user flows without full app |
-| **Component 30%** | Fast feedback on UI changes |
-| **Unit 40%** | Fastest, most stable, logic coverage |
+Verify interactive elements have labels, images have alt text or a decorative flag, form labels are linked, buttons expose a button role, touch targets meet 44pt/48dp, and contrast meets WCAG AA. Automate with jest-axe (RN) or the Flutter accessibility checker plus lint rules for missing labels; then manually navigate the whole app with VoiceOver / TalkBack, at increased text size, and with reduced motion.
 
-> If you have 90% unit tests and 0% E2E, you are testing the wrong things.
-
----
-
-## 3. What to Test at Each Level
-
-### Unit Tests (Jest)
-
-```
-✅ TEST:
-├── Utility functions (formatDate, calculatePrice)
-├── State reducers (Redux, Zustand stores)
-├── API response transformers
-├── Validation logic
-└── Business rules
-
-❌ DON'T TEST:
-├── Component rendering (use component tests)
-├── Navigation (use integration tests)
-├── Native modules (mock them)
-└── Third-party libraries
-```
-
-### Component Tests (RNTL / flutter_test)
-
-```
-✅ TEST:
-├── Component renders correctly
-├── User interactions (tap, type, swipe)
-├── Loading/error/empty states
-├── Accessibility labels exist
-└── Props change behavior
-
-❌ DON'T TEST:
-├── Internal implementation details
-├── Snapshot everything (only key components)
-├── Styling specifics (brittle)
-└── Third-party component internals
-```
-
-### Integration Tests
-
-```
-✅ TEST:
-├── Form submission flows
-├── Navigation between screens
-├── State persistence across screens
-├── API integration (with mocked server)
-└── Context/provider interactions
-
-❌ DON'T TEST:
-├── Every possible path (use unit tests)
-├── Third-party services (mock them)
-└── Backend logic (backend tests)
-```
-
-### E2E Tests
-
-```
-✅ TEST:
-├── Critical user journeys (login, purchase, signup)
-├── Offline → online transitions
-├── Deep link handling
-├── Push notification navigation
-├── Permission flows
-└── Payment flows
-
-❌ DON'T TEST:
-├── Every edge case (too slow)
-├── Visual regression (use snapshot tests)
-├── Non-critical features
-└── Backend-only logic
-```
-
----
-
-## 4. Platform-Specific Testing
-
-### What Differs Between iOS and Android?
-
-| Area | iOS Behavior | Android Behavior | Test Both? |
-|------|--------------|------------------|------------|
-| **Back navigation** | Edge swipe | System back button | ✅ YES |
-| **Permissions** | Ask once, settings | Ask each time, rationale | ✅ YES |
-| **Keyboard** | Different appearance | Different behavior | ✅ YES |
-| **Date picker** | Wheel/modal | Material dialog | ⚠️ If custom UI |
-| **Push format** | APNs payload | FCM payload | ✅ YES |
-| **Deep links** | Universal Links | App Links | ✅ YES |
-| **Gestures** | Some unique | Material gestures | ⚠️ If custom |
-
-### Platform Testing Strategy
-
-```
-FOR EACH PLATFORM:
-├── Run unit tests (same on both)
-├── Run component tests (same on both)
-├── Run E2E on real devices when available, simulators/emulators otherwise
-│   ├── iOS: an iPhone when you have one; the simulator is the fallback
-│   └── Android: a mid-range device (not a flagship) when you have one; the emulator is the fallback
-└── Test platform-specific features separately
-```
-
----
-
-## 5. Offline & Network Testing
-
-### Offline Scenarios to Test
-
-| Scenario | What to Verify |
-|----------|----------------|
-| Start app offline | Shows cached data or offline message |
-| Go offline mid-action | Action queued, not lost |
-| Come back online | Queue synced, no duplicates |
-| Slow network (2G) | Loading states, timeouts work |
-| Flaky network | Retry logic, error recovery |
-
-### How to Test Network Conditions
-
-```
-APPROACH:
-├── Unit tests: Mock NetInfo, test logic
-├── Integration: Mock API responses, test UI
-├── E2E (Detox): Use device.setURLBlacklist()
-├── E2E (Maestro, mobile.dev): Use network conditions
-└── Manual: Use Charles Proxy / Network Link Conditioner
-```
-
----
-
-## 6. Performance Testing
-
-### What to Measure
-
-| Metric | Target | How to Measure |
-|--------|--------|----------------|
-| **App startup** | < 2 seconds | Profiler, Flashlight |
-| **Screen transition** | < 300ms | React DevTools |
-| **List scroll** | 60 FPS | Profiler, feel |
-| **Memory** | Stable, no leaks | Instruments / Android Profiler |
-| **Bundle size** | Minimize | Metro bundler analysis |
-
-### When to Performance Test
-
-```
-PERFORMANCE TEST:
-├── Before release (required)
-├── After adding heavy features
-├── After upgrading dependencies
-├── When users report slowness
-└── On CI (optional, automated benchmarks)
-
-WHERE TO TEST:
-├── Real device when available (emulators and simulators hide performance problems)
-├── Low-end device (Galaxy A series, old iPhone) when you have one
-├── Emulator/simulator otherwise; say so in the report
-└── With production-like data (not 3 items)
-```
-
----
-
-## 7. Accessibility Testing
-
-### What to Verify
-
-| Element | Check |
-|---------|-------|
-| Interactive elements | Have accessibilityLabel |
-| Images | Have alt text or decorative flag |
-| Forms | Labels linked to inputs |
-| Buttons | Role = button |
-| Touch targets | ≥ 44x44 (iOS) / 48x48 (Android) |
-| Color contrast | WCAG AA minimum |
-
-### How to Test
-
-```
-AUTOMATED:
-├── React Native: jest-axe
-├── Flutter: Accessibility checker in tests
-└── Lint rules for missing labels
-
-MANUAL:
-├── Enable VoiceOver (iOS) / TalkBack (Android)
-├── Navigate entire app with screen reader
-├── Test with increased text size
-└── Test with reduced motion
-```
-
----
-
-## 8. CI/CD Integration
-
-### What to Run Where
+## 8. CI/CD
 
 | Stage | Tests | Devices |
 |-------|-------|---------|
-| **PR** | Unit + Component | None (fast) |
-| **Merge to main** | + Integration | Simulator/Emulator |
-| **Pre-release** | + E2E | Real devices (farm) |
-| **Nightly** | Full suite | Device farm |
+| PR | Unit + component | None (fast) |
+| Merge to main | + integration | Simulator / emulator |
+| Pre-release | + E2E | Real devices (farm) |
+| Nightly | Full suite | Device farm |
 
-### Device Farm Options
+Device farms: Firebase Test Lab (free tier, Android-leaning), AWS Device Farm and BrowserStack (wide but paid), local devices (free, reliable, limited variety).
 
-| Service | Pros | Cons |
-|---------|------|------|
-| **Firebase Test Lab** | Free tier, Google devices | Android focus |
-| **AWS Device Farm** | Wide selection | Expensive |
-| **BrowserStack** | Good UX | Expensive |
-| **Local devices** | Free, reliable | Limited variety |
+## Before writing tests, ask
 
----
-
-## 🎯 Testing Questions to Ask
-
-Before writing tests, answer:
-
-1. **What could break?** → Test that
-2. **What's critical for users?** → E2E test that
-3. **What's complex logic?** → Unit test that
-4. **What's platform-specific?** → Test on both platforms
-5. **What happens offline?** → Test that scenario
-
-> **Remember:** Good mobile testing is about testing the RIGHT things, not EVERYTHING. A flaky E2E test is worse than no test. A failing unit test that catches a bug is worth 100 passing trivial tests.
+What could break — test that. What is critical for users — E2E that. What is complex logic — unit test that. What is platform-specific — test on both. What happens offline — test that scenario. Good coverage catches real regressions; a static-component snapshot rarely does.

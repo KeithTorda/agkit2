@@ -1,734 +1,571 @@
 #!/usr/bin/env python3
+"""UX audit for web UI source (HTML, CSS/SCSS, JSX/TSX, Vue, Svelte, Astro, PHP/Blade).
+
+Static heuristics, grouped by how much they should matter:
+
+  warning  real usability / accessibility / correctness problems that can be read
+           from source: text contrast below 4.5:1 in a CSS rule, removed focus
+           outline with no :focus-visible replacement, controls under 24px, text
+           under 12px, heading levels skipped, missing viewport meta, motion with
+           no prefers-reduced-motion handling anywhere in the project, layout
+           properties in will-change, GSAP without cleanup, "click here" links.
+  info     design guidance, never a failure: gradients, glass, glow, purple
+           defaults, pure black/white, many font families, hard-coded colours
+           instead of tokens, transitions on layout properties, hype words in copy.
+           Style info is suppressed when DESIGN.md asks for that style.
+
+Accessibility markup checks (alt text, labels, button names, lang) live in
+accessibility_checker.py; this script does not repeat them.
+
+Usage:
+    python ux_audit.py <project-or-file> [--json] [--fail-on error|warning|never] [--verbose]
+
+Exit codes: 0 ok, 1 findings at/above --fail-on (default: error; this audit
+emits no errors, so it fails only with --fail-on warning), 2 usage error.
 """
-UX Audit Script - Full Frontend Design Coverage
+from __future__ import annotations
 
-Analyzes code for compliance with:
-
-1. CORE PSYCHOLOGY LAWS:
-   - Hick's Law (nav items, form complexity)
-   - Fitts' Law (target sizes, touch targets)
-   - Miller's Law (chunking, memory limits)
-   - Von Restorff Effect (primary CTA visibility)
-   - Serial Position Effect (important items at start/end)
-
-2. EMOTIONAL DESIGN (Don Norman):
-   - Visceral (first impressions, gradients, animations)
-   - Behavioral (feedback, usability, performance)
-   - Reflective (brand story, values, identity)
-
-3. TRUST BUILDING:
-   - Security signals (SSL, encryption on forms)
-   - Social proof (testimonials, reviews, logos)
-   - Authority indicators (certifications, awards, media)
-
-4. COGNITIVE LOAD MANAGEMENT:
-   - Progressive disclosure (accordion, tabs, "Advanced")
-   - Visual noise (too many colors/borders)
-   - Familiar patterns (labels, standard conventions)
-
-5. PERSUASIVE DESIGN (Ethical):
-   - Smart defaults (pre-selected options)
-   - Anchoring (original vs discount price)
-   - Social proof (live indicators, numbers)
-   - Progress indicators (progress bars, steps)
-
-6. TYPOGRAPHY SYSTEM (9 sections):
-   - Font Pairing (max 3 families)
-   - Line Length (45-75ch)
-   - Line Height (proper ratios)
-   - Letter Spacing (uppercase, display text)
-   - Weight and Emphasis (contrast levels)
-   - Responsive Typography (clamp())
-   - Hierarchy (sequential headings)
-   - Modular Scale (consistent ratios)
-   - Readability (chunking, subheadings)
-
-7. VISUAL EFFECTS (10 sections):
-   - Glassmorphism (blur + transparency)
-   - Neomorphism (dual shadows, inset)
-   - Shadow Hierarchy (elevation levels)
-   - Gradients (usage, overuse)
-   - Border Effects (complexity check)
-   - Glow Effects (text-shadow, box-shadow)
-   - Overlay Techniques (image text readability)
-   - GPU Acceleration (transform/opacity vs layout)
-   - Performance (will-change usage)
-   - Effect Selection (purpose over decoration)
-
-8. COLOR SYSTEM (7 sections):
-   - Purple-as-default heuristic (advisory; DESIGN.md override)
-   - 60-30-10 Rule (dominant, secondary, accent)
-   - Color Scheme Patterns (monochromatic, analogous)
-   - Dark Mode Compliance (no pure black/white)
-   - WCAG Contrast (low-contrast detection)
-   - Color Psychology Context (food + blue = bad)
-   - HSL-Based Palettes (recommended approach)
-
-9. ANIMATION GUIDE (6 sections):
-   - Duration Appropriateness (50ms minimum, 1s max transitions)
-   - Easing Functions (ease-out for entry, ease-in for exit)
-   - Micro-interactions (hover/focus feedback)
-   - Loading States (skeleton, spinner, progress)
-   - Page Transitions (fade/slide for routing)
-   - Scroll Animation Performance (no layout properties)
-
-10. MOTION GRAPHICS (7 sections):
-   - Lottie Animations (reduced motion fallbacks)
-   - GSAP Memory Leaks (kill/revert on unmount)
-   - SVG Animation Performance (stroke-dashoffset sparingly)
-   - 3D Transforms (perspective parent, mobile warning)
-   - Particle Effects (mobile fallback)
-   - Scroll-Driven Animations (throttle with rAF)
-   - Motion Decision Tree (functional vs decorative)
-
-11. ACCESSIBILITY:
-   - Alt text for images
-   - Reduced motion checks
-   - Form labels
-
-Total: 80+ checks across all design principles
-"""
-
-import sys
+import argparse
+import bisect
+import json
 import os
 import re
-import json
+import sys
 from pathlib import Path
+from typing import Any, Iterable, Iterator
+
+# ---------------------------------------------------------------------------
+# Shared helpers (same block in every AG Kit skill script; stdlib only)
+# ---------------------------------------------------------------------------
+SKIP_DIRS = frozenset({
+    "node_modules", "vendor", "dist", "build", ".next", ".nuxt", ".svelte-kit",
+    ".output", "out", ".git", ".hg", ".svn", "__pycache__", ".venv", "venv",
+    ".tox", ".mypy_cache", ".pytest_cache", ".ruff_cache", "coverage", ".turbo",
+    ".cache", ".vercel", ".expo", ".agents", ".agent", ".idea", ".vscode",
+})
+SEVERITY_ORDER = {"error": 0, "warning": 1, "info": 2}
+
+
+def utf8_console() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
+
+
+def read_text(path: Path) -> str:
+    """Read a text file as UTF-8 (BOM and UTF-16 aware). Never raises."""
+    try:
+        data = path.read_bytes()
+    except OSError:
+        return ""
+    if data[:2] in (b"\xff\xfe", b"\xfe\xff"):
+        return data.decode("utf-16", errors="replace")
+    return data.decode("utf-8-sig", errors="replace")
+
+
+def iter_files(root: Path, suffixes: Iterable[str], skip_dirs: frozenset[str] = SKIP_DIRS) -> Iterator[Path]:
+    """Yield files under root (or root itself) whose name ends with one of suffixes."""
+    ends = tuple(s.lower() for s in suffixes)
+    if root.is_file():
+        if root.name.lower().endswith(ends):
+            yield root
+        return
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = sorted(d for d in dirnames if d not in skip_dirs)
+        for name in sorted(filenames):
+            if name.lower().endswith(ends):
+                yield Path(dirpath) / name
+
+
+def rel(path: Path, root: Path) -> str:
+    base = root if root.is_dir() else root.parent
+    try:
+        return path.relative_to(base).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
+def line_finder(text: str):
+    starts = [0] + [m.end() for m in re.finditer("\n", text)]
+    return lambda index: bisect.bisect_right(starts, index)
+
+
+def make_finding(severity: str, file: str, line: int | None, rule: str, message: str) -> dict[str, Any]:
+    return {"severity": severity, "file": file, "line": line, "rule": rule, "message": message}
+
+
+def summarize(findings: list[dict[str, Any]]) -> dict[str, int]:
+    counts = {level: 0 for level in SEVERITY_ORDER}
+    for item in findings:
+        counts[item["severity"]] += 1
+    counts["total"] = len(findings)
+    return counts
+
+
+def should_fail(findings: list[dict[str, Any]], fail_on: str) -> bool:
+    if fail_on == "never":
+        return False
+    limit = SEVERITY_ORDER[fail_on]
+    return any(SEVERITY_ORDER[item["severity"]] <= limit for item in findings)
+
+
+def print_report(title: str, target: Path, findings: list[dict[str, Any]], files_checked: int,
+                 verbose: bool = False, notes: Iterable[str] = (), per_file: int = 12) -> None:
+    counts = summarize(findings)
+    print(f"{title}: {target}")
+    print(f"Checked {files_checked} file(s): {counts['error']} error(s), "
+          f"{counts['warning']} warning(s), {counts['info']} info")
+    for note in notes:
+        print(f"  note: {note}")
+    shown = [f for f in findings if verbose or f["severity"] != "info"]
+    by_file: dict[str, list[dict[str, Any]]] = {}
+    for item in sorted(shown, key=lambda f: (f["file"], f["line"] or 0, SEVERITY_ORDER[f["severity"]])):
+        by_file.setdefault(item["file"], []).append(item)
+    for file, items in by_file.items():
+        print(f"\n{file}")
+        for item in items[:per_file]:
+            where = f"L{item['line']}" if item["line"] else "-"
+            print(f"  {where:>6}  {item['severity']:<7}  {item['message']}  [{item['rule']}]")
+        if len(items) > per_file:
+            print(f"  ... {len(items) - per_file} more in this file")
+    infos = [f for f in findings if f["severity"] == "info"]
+    if infos and not verbose:
+        print("\nAdvisory (info - guidance, never a failure; --verbose lists each):")
+        groups: dict[str, list[dict[str, Any]]] = {}
+        for item in infos:
+            groups.setdefault(item["rule"], []).append(item)
+        for rule, items in sorted(groups.items(), key=lambda kv: (-len(kv[1]), kv[0])):
+            first = items[0]
+            where = f"{first['file']}:{first['line']}" if first["line"] else first["file"]
+            print(f"  {len(items):>3}x [{rule}] {first['message']} (e.g. {where})")
+
+
+def emit(args: argparse.Namespace, script: str, title: str, target: Path, findings: list[dict[str, Any]],
+         files_checked: int, notes: Iterable[str] = (), extra: dict[str, Any] | None = None) -> int:
+    notes = list(notes)
+    failed = should_fail(findings, args.fail_on)
+    if args.json:
+        payload = {"script": script, "project": str(target), "files_checked": files_checked,
+                   "summary": summarize(findings), "passed": not failed, "fail_on": args.fail_on,
+                   "notes": notes, "findings": findings}
+        payload.update(extra or {})
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+    else:
+        print_report(title, target, findings, files_checked, args.verbose, notes)
+        counts = summarize(findings)
+        print(f"\nResult: {'FAIL' if failed else 'PASS'} - {counts['error']} error(s), {counts['warning']} warning(s), "
+              f"{counts['info']} info (fail-on: {args.fail_on})")
+    return 1 if failed else 0
+
+
+def base_parser(description: str) -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument("project", nargs="?", default=".", help="project directory or single file (default: .)")
+    parser.add_argument("--json", action="store_true", help="print machine-readable JSON")
+    parser.add_argument("--fail-on", choices=("error", "warning", "never"), default="error",
+                        help="exit 1 when a finding at or above this level exists (default: error)")
+    parser.add_argument("--verbose", "-v", action="store_true", help="list every info finding")
+    return parser
+
+
+def resolve_target(parser: argparse.ArgumentParser, value: str) -> Path:
+    path = Path(value).expanduser().resolve()
+    if not path.exists():
+        parser.error(f"path not found: {path}")
+    return path
+
+# ---------------------------------------------------------------------------
+# UX audit
+# ---------------------------------------------------------------------------
+MARKUP_SUFFIXES = (".html", ".htm", ".jsx", ".tsx", ".vue", ".svelte", ".astro", ".php")
+STYLE_SUFFIXES = (".css", ".scss", ".sass", ".less")
+UX_SKIP_DIRS = SKIP_DIRS | {"ui"}  # generated component libraries (shadcn components/ui)
+
+# DESIGN.md keywords that make a style a deliberate choice (info is then suppressed).
+DESIGN_STYLES = {
+    "gradient": ("gradient", "mesh", "aurora"),
+    "glass": ("glass", "frosted", "backdrop", "blur"),
+    "glow": ("glow", "neon"),
+    "purple": ("purple", "violet", "lavender"),
+    "pure-black-white": ("pure black", "pure white", "#000", "#fff", "true black", "oled", "high contrast", "monochrome"),
+    "motion": ("animation", "animated", "motion", "parallax"),
+    "fonts": ("font", "typeface"),
+}
+NAMED_COLORS = {"white": (255, 255, 255), "black": (0, 0, 0)}
+LAYOUT_PROPS = ("width", "height", "top", "left", "right", "bottom", "margin", "padding")
+HYPE_WORDS = re.compile(
+    r"\b(seamless(?:ly)?|revolutioni[sz]e|unlock(?:s|ing)?|elevate|supercharge|cutting[- ]edge|"
+    r"game[- ]chang(?:er|ing)|next[- ]level|world[- ]class|effortless(?:ly)?|leverage|delve|"
+    r"best[- ]in[- ]class|blazing(?:ly)?[- ]fast)\b", re.IGNORECASE)
+NEUTRALS = "gray|slate|zinc|neutral|stone"
+
+
+def parse_color(value: str) -> tuple[int, int, int] | None:
+    value = re.sub(r"\s*!important\s*$", "", value.strip().lower())
+    if value in NAMED_COLORS:
+        return NAMED_COLORS[value]
+    match = re.fullmatch(r"#([0-9a-f]{3,8})", value)
+    if not match:
+        return None
+    digits = match.group(1)
+    if len(digits) in (3, 4):
+        if len(digits) == 4 and digits[3] != "f":
+            return None
+        digits = "".join(ch * 2 for ch in digits[:3])
+    elif len(digits) == 8:
+        if digits[6:] != "ff":
+            return None
+        digits = digits[:6]
+    elif len(digits) != 6:
+        return None
+    return int(digits[0:2], 16), int(digits[2:4], 16), int(digits[4:6], 16)
+
+
+def contrast_ratio(a: tuple[int, int, int], b: tuple[int, int, int]) -> float:
+    def lum(rgb: tuple[int, int, int]) -> float:
+        channels = []
+        for c in rgb:
+            c = c / 255
+            channels.append(c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4)
+        return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+    hi, lo = sorted((lum(a), lum(b)), reverse=True)
+    return (hi + 0.05) / (lo + 0.05)
+
+
+def to_px(value: str) -> float | None:
+    match = re.match(r"\s*(-?\d*\.?\d+)\s*(px|rem|em)?\b", value)
+    if not match:
+        return None
+    number = float(match.group(1))
+    unit = match.group(2) or ("px" if number == 0 else None)
+    if unit == "px":
+        return number
+    if unit in ("rem", "em"):
+        return number * 16
+    return None
+
+
+def to_ms(value: str) -> float | None:
+    match = re.match(r"\s*(\d*\.?\d+)(ms|s)\b", value)
+    if not match:
+        return None
+    return float(match.group(1)) * (1 if match.group(2) == "ms" else 1000)
+
 
 class UXAuditor:
-    def __init__(self, project_root: str = "."):
-        self.issues = []
-        self.warnings = []
-        self.passed_count = 0
+    def __init__(self, target: Path) -> None:
+        self.target = target
+        self.root = target if target.is_dir() else target.parent
+        self.findings: list[dict[str, Any]] = []
         self.files_checked = 0
-        self.design_allows_purple = self._design_md_allows_purple(project_root)
+        self.design_text = self._read_design_md()
+        self.motion_uses: list[tuple[str, int]] = []
+        self.reduced_motion_found = False
+        self.font_families: dict[str, str] = {}
+        self.has_tokens = False
+        self._pending_hex: list[tuple[str, int]] = []
 
-    @staticmethod
-    def _design_md_allows_purple(project_root: str) -> bool:
-        """DESIGN.md is the source of truth: if it declares purple/violet, the audit stays quiet about it."""
-        for candidate in (Path(project_root) / "DESIGN.md", Path(project_root).resolve() / "DESIGN.md"):
-            try:
-                text = candidate.read_text(encoding="utf-8", errors="replace").lower()
-            except OSError:
+    # -- setup ---------------------------------------------------------------
+    def _read_design_md(self) -> str:
+        for candidate in (self.root / "DESIGN.md", self.root / "docs" / "DESIGN.md", self.root / "design.md"):
+            if candidate.is_file():
+                return read_text(candidate).lower()
+        return ""
+
+    def style_is_chosen(self, style: str) -> bool:
+        return bool(self.design_text) and any(word in self.design_text for word in DESIGN_STYLES[style])
+
+    def add(self, severity: str, file: str, line: int | None, rule: str, message: str) -> None:
+        self.findings.append(make_finding(severity, file, line, rule, message))
+
+    def style_info(self, style: str, file: str, line: int | None, rule: str, message: str) -> None:
+        if self.style_is_chosen(style):
+            return
+        suffix = " Fine when DESIGN.md or the brief asks for it." if not self.design_text else " Not mentioned in DESIGN.md."
+        self.add("info", file, line, rule, message + suffix)
+
+    # -- CSS -----------------------------------------------------------------
+    def audit_css(self, css: str, file: str, base_line: int, find_line, offset: int) -> None:
+        """Audit a CSS text. offset is the index of css inside the original file text."""
+        css_clean = re.sub(r"/\*.*?\*/", lambda m: " " * len(m.group(0)), css, flags=re.S)
+        if re.search(r"prefers-reduced-motion", css_clean):
+            self.reduced_motion_found = True
+        has_focus_visible = ":focus-visible" in css_clean or "focus-visible" in css_clean
+        for kf in re.finditer(r"@keyframes\s+([\w-]+)", css_clean):
+            self.motion_uses.append((file, find_line(offset + kf.start())))
+        if re.search(r"--[\w-]+\s*:", css_clean) or "@theme" in css_clean:
+            self.has_tokens = True
+        for rule in re.finditer(r"([^{}]+)\{([^{}]*)\}", css_clean):
+            selector = rule.group(1).strip().split("\n")[-1].strip()
+            if selector.startswith("@") or not selector:
                 continue
-            if re.search(r'purple|violet|#(8b5cf6|a855f7|9333ea|7c3aed|6d28d9)', text):
-                return True
-        return False
-    
-    def audit_file(self, filepath: str) -> None:
-        try:
-            with open(filepath, 'r', encoding='utf-8', errors='replace') as f:
-                content = f.read()
-        except: return
-        
-        self.files_checked += 1
-        filename = os.path.basename(filepath)
+            line = find_line(offset + rule.start(1) + len(rule.group(1)) - len(rule.group(1).lstrip()))
+            self.audit_declarations(selector, rule.group(2), file, line, has_focus_visible)
+
+    def audit_declarations(self, selector: str, body: str, file: str, line: int,
+                           has_focus_visible: bool) -> None:
+        decls: dict[str, str] = {}
+        for part in body.split(";"):
+            if ":" in part:
+                prop, _, value = part.partition(":")
+                decls[prop.strip().lower()] = value.strip()
+        sel = selector.lower()
+
+        # Contrast: only when both colours are declared in the same rule.
+        fg = parse_color(decls.get("color", ""))
+        bg_value = decls.get("background-color") or decls.get("background", "")
+        bg = parse_color(bg_value) if bg_value and " " not in bg_value.strip() else None
+        if fg and bg:
+            ratio = contrast_ratio(fg, bg)
+            if ratio < 4.5:
+                extra = " (fails even for large text)" if ratio < 3 else " (passes only for large text)"
+                self.add("warning", file, line, "contrast",
+                         f"'{selector[:40]}' text contrast {ratio:.2f}:1, needs 4.5:1{extra}")
+
+        # Focus visibility.
+        outline = decls.get("outline", decls.get("outline-style", ""))
+        if ":focus" in sel and ":focus-visible" not in sel and "\\:" not in sel and re.fullmatch(r"(none|0|0px)(\s*!important)?", outline.strip()):
+            if not has_focus_visible:
+                self.add("warning", file, line, "focus-visible",
+                         f"'{selector[:40]}' removes the focus outline and the file has no :focus-visible style")
+
+        # Text size.
+        size = to_px(decls.get("font-size", ""))
+        if size is not None and 0 < size < 12:
+            self.add("warning", file, line, "small-text", f"font-size {decls['font-size']} is below 12px")
+
+        # Target size on interactive selectors.
+        if re.search(r"(^|[\s,>+~])(button|a|input|select)\b|\.btn|button|\[role=.?button|icon-?button", sel):
+            heights = [to_px(decls[k]) for k in ("height", "min-height") if k in decls]
+            heights = [h for h in heights if h is not None]
+            if heights:
+                height = max(heights)
+                if 0 < height < 24:
+                    self.add("warning", file, line, "target-size",
+                             f"'{selector[:40]}' height {height:g}px is below the 24px minimum target (WCAG 2.5.8)")
+                elif 24 <= height < 44:
+                    self.add("info", file, line, "target-size-touch",
+                             f"'{selector[:40]}' height {height:g}px; 44px is more comfortable on touch screens")
+
+        # Performance.
+        will_change = decls.get("will-change", "").lower()
+        bad = [p for p in LAYOUT_PROPS if re.search(rf"\b{p}\b", will_change)]
+        if bad:
+            self.add("warning", file, line, "will-change-layout",
+                     f"will-change on layout property ({', '.join(bad)}); use transform/opacity")
+        for key in ("transition", "transition-property"):
+            value = decls.get(key, "").lower()
+            if not value:
+                continue
+            props = [p for p in LAYOUT_PROPS if re.search(rf"(^|[\s,]){p}\b", value)]
+            if props:
+                self.add("info", file, line, "transition-layout",
+                         f"transition on {', '.join(props)} triggers layout each frame; transform/opacity is cheaper")
+            elif re.search(r"(^|[\s,])all\b", value):
+                self.add("info", file, line, "transition-all", "transition: all animates every property; list the ones you mean")
+        duration = to_ms(decls.get("transition-duration", ""))
+        if duration is None:
+            timed = re.search(r"\d*\.?\d+m?s\b", decls.get("transition", ""))
+            duration = to_ms(timed.group(0)) if timed else None
+        if duration and duration > 1000:
+            self.add("info", file, line, "slow-transition", f"transition of {duration:g}ms; UI feedback reads best at 150-400ms")
+        if "animation" in decls or "animation-name" in decls:
+            name = decls.get("animation-name", decls.get("animation", ""))
+            if name and not re.match(r"\s*none\b", name):
+                self.motion_uses.append((file, line))
+
+        # Fonts.
+        family = decls.get("font-family")
+        if family:
+            first = family.split(",")[0].strip().strip("\"'").lower()
+            if first and not first.startswith("var(") and first not in {
+                    "inherit", "initial", "system-ui", "sans-serif", "serif", "monospace", "-apple-system",
+                    "ui-sans-serif", "ui-serif", "ui-monospace"}:
+                self.font_families.setdefault(first, file)
+
+        # Style guidance (info only).
+        joined = " ".join(f"{k}:{v}" for k, v in decls.items()).lower()
+        if "gradient(" in joined:
+            self.style_info("gradient", file, line, "style-gradient",
+                            "Gradient in use; check it frames one focal point rather than decorating everything.")
+        if "backdrop-filter" in decls or "-webkit-backdrop-filter" in decls:
+            self.style_info("glass", file, line, "style-glass",
+                            "Glass effect (backdrop-filter); check text contrast over busy backgrounds.")
+        shadow = decls.get("box-shadow", "") + " " + decls.get("text-shadow", "")
+        if re.search(r"(^|,)\s*0(px)?\s+0(px)?\s+\d+px\s+(\d+px\s+)?(#|rgb|hsl)", shadow) and shadow.count(",") >= 1:
+            self.style_info("glow", file, line, "style-glow", "Layered glow shadow; reads as decoration unless the brand calls for it.")
+        if re.search(r"#(8b5cf6|a855f7|9333ea|7c3aed|6d28d9|a78bfa|c084fc)\b", joined):
+            self.style_info("purple", file, line, "style-purple-default",
+                            "Tailwind-default purple; pick the primary on purpose.")
+        if bg and bg == (0, 0, 0):
+            self.style_info("pure-black-white", file, line, "style-pure-black",
+                            "Pure black background; a near-black is often softer.")
+
+    # -- markup --------------------------------------------------------------
+    def audit_markup(self, text: str, file: str, find_line, is_jsx: bool) -> None:
+        lowered = text.lower()
+        # Embedded CSS: <style> blocks and inline style attributes.
+        for block in re.finditer(r"<style\b[^>]*>(.*?)</style\s*>", text, re.S | re.I):
+            self.audit_css(block.group(1), file, 0, find_line, block.start(1))
+        for attr in re.finditer(r"\bstyle\s*=\s*\"([^\"]*)\"", text):
+            self.audit_declarations("[style]", attr.group(1), file, find_line(attr.start()), True)
+
+        is_document = bool(re.search(r"<html\b", lowered))
+        # Next.js / React frameworks inject the viewport meta; only raw documents need it.
+        if is_document and not is_jsx and not re.search(r"<meta[^>]+name\s*=\s*[\"']viewport", lowered):
+            self.add("warning", file, find_line(lowered.find("<html")), "viewport-meta",
+                     "Document has no <meta name=\"viewport\">; the page will render zoomed out on phones")
+
+        # Headings.
+        headings = [(int(m.group(1)), m.start()) for m in re.finditer(r"<h([1-6])\b", text, re.I)]
+        for (prev, _), (curr, pos) in zip(headings, headings[1:]):
+            if curr > prev + 1:
+                self.add("warning", file, find_line(pos), "heading-skip",
+                         f"Heading level jumps from h{prev} to h{curr}; screen-reader outline has a gap")
+        h1s = [pos for level, pos in headings if level == 1]
+        if len(h1s) > 1 and is_document:
+            self.add("info", file, find_line(h1s[1]), "multiple-h1", f"{len(h1s)} <h1> elements; one per page is clearer")
+
+        # Navigation size.
+        for nav in re.finditer(r"<nav\b.*?</nav\s*>", text, re.S | re.I):
+            links = len(re.findall(r"<(a|Link|NavLink|router-link)\b", nav.group(0)))
+            if links > 9:
+                self.add("info", file, find_line(nav.start()), "nav-size",
+                         f"{links} links in one <nav>; consider grouping")
+
+        # Link purpose.
+        for link in re.finditer(r"<(a|Link)\b[^>]*>\s*([^<{]{1,30}?)\s*</\1\s*>", text, re.I):
+            label = link.group(2).strip().lower().rstrip(".")
+            if label in {"click here", "here", "click"}:
+                self.add("warning", file, find_line(link.start()), "link-purpose",
+                         f"Link text '{link.group(2).strip()}' does not say where it goes")
+            elif label in {"read more", "learn more", "more", "details"}:
+                self.add("info", file, find_line(link.start()), "link-purpose-generic",
+                         f"Generic link text '{link.group(2).strip()}'; add context (visually hidden text or aria-label)")
+
+        # Class-based (Tailwind) checks.
+        for tag in re.finditer(r"<([A-Za-z][\w.:-]*)\b((?:[^>\"'{}]|\"[^\"]*\"|'[^']*'|\{[^{}]*\})*)>", text):
+            name, attrs = tag.group(1), tag.group(2)
+            cls_match = re.search(r"\bclass(?:Name)?\s*=\s*(?:\"([^\"]*)\"|'([^']*)'|\{`([^`]*)`\})", attrs)
+            if not cls_match:
+                continue
+            classes = next(g for g in cls_match.groups() if g is not None)
+            self.audit_classes(name, classes, file, find_line(tag.start()))
+
+        # Motion libraries.
+        if re.search(r"from\s+[\"'](framer-motion|motion/react|motion)[\"']", text) or "@keyframes" in lowered:
+            self.motion_uses.append((file, find_line(max(lowered.find("motion"), 0))))
+        if re.search(r"useReducedMotion|reducedMotion|prefers-reduced-motion|motion-reduce:|motion-safe:", text):
+            self.reduced_motion_found = True
+        if re.search(r"\bgsap\b", text) and re.search(r"\buse(Layout)?Effect\b", text):
+            if not re.search(r"\.revert\(|\.kill\(|useGSAP|gsap\.context", text):
+                self.add("warning", file, find_line(text.find("gsap")), "gsap-cleanup",
+                         "GSAP used in a React effect without revert()/kill()/useGSAP; animations leak on unmount")
+            self.motion_uses.append((file, find_line(text.find("gsap"))))
+
+        # Visible copy.
+        for node in re.finditer(r">([^<>{}]{3,300})<", text):
+            words = HYPE_WORDS.findall(node.group(1))
+            if words:
+                self.add("info", file, find_line(node.start()), "copy-hype",
+                         f"Hype word in UI copy ('{words[0]}'); say what the product does (design-rules: honest copy)")
+
+        # Forms.
+        for form in re.finditer(r"<form\b.*?</form\s*>", text, re.S | re.I):
+            fields = len(re.findall(r"<(input|select|textarea)\b(?![^>]*type\s*=\s*[\"']?(hidden|submit|button))", form.group(0), re.I))
+            if fields > 8 and not re.search(r"<fieldset|step|wizard", form.group(0), re.I):
+                self.add("info", file, find_line(form.start()), "form-length",
+                         f"Form with {fields} fields and no grouping; fieldsets or steps reduce load")
+
+        # Hard-coded colours in components when tokens exist (checked after the walk).
+        if is_jsx or file.endswith((".vue", ".svelte")):
+            hexes = re.findall(r"#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b(?![0-9a-fA-F])", re.sub(r"&#\w+;", "", text))
+            if len(hexes) >= 4:
+                self._pending_hex.append((file, len(hexes)))
+
+    def audit_classes(self, tag: str, classes: str, file: str, line: int) -> None:
+        tokens = set(classes.split())
+        joined = " " + " ".join(tokens) + " "
+        light_text = re.search(rf"\btext-({NEUTRALS})-(100|200|300|400)\b", joined)
+        light_bg = re.search(rf"\bbg-(white|({NEUTRALS})-(50|100))\b", joined)
+        if light_text and light_bg:
+            self.add("warning", file, line, "contrast",
+                     f"{light_text.group(0)} on {light_bg.group(0)} is below 4.5:1 contrast")
+        if re.search(r"(^|\s)text-white(\s|$)", joined) and re.search(r"\bbg-(?!black|white|transparent)[a-z]+-(50|100|200|300)\b", joined):
+            self.add("warning", file, line, "contrast", "text-white on a light (50-300) background is below 4.5:1 contrast")
+        small = re.search(r"\btext-\[(\d+(?:\.\d+)?)px\]", joined)
+        if small and float(small.group(1)) < 12:
+            self.add("warning", file, line, "small-text", f"{small.group(0)} is below 12px")
+        if re.search(r"(^|\s)(focus:)?outline-none(\s|$)", joined) and not re.search(r"focus(-visible)?:(ring|outline|border|shadow)", joined):
+            self.add("warning", file, line, "focus-visible",
+                     "outline-none without a focus-visible:ring/outline replacement; keyboard focus becomes invisible")
+        if tag.lower() in {"button", "a"}:
+            size = re.search(r"(?:^|\s)(?:h|size)-(\d+(?:\.5)?)(?=\s)", joined)
+            if size and float(size.group(1)) * 4 < 24 and not re.search(r"\b(min-h|p|py)-(\d+)", joined):
+                self.add("warning", file, line, "target-size",
+                         f"<{tag}> with {size.group(0).strip()} ({float(size.group(1)) * 4:g}px) is below the 24px minimum target")
+        if re.search(r"\banimate-(bounce|ping|pulse|\[)", joined):
+            self.motion_uses.append((file, line))
+        if re.search(r"\b(motion-reduce|motion-safe):", joined):
+            self.reduced_motion_found = True
+        if re.search(r"\bbg-(gradient|linear|radial|conic)-", joined):
+            self.style_info("gradient", file, line, "style-gradient",
+                            "Gradient in use; check it frames one focal point rather than decorating everything.")
+        if re.search(r"\bbackdrop-blur", joined):
+            self.style_info("glass", file, line, "style-glass",
+                            "Glass effect (backdrop-blur); check text contrast over busy backgrounds.")
+        if re.search(r"\b(bg|text|from|to|via|border|ring)-(purple|violet)-\d{2,3}\b", joined):
+            self.style_info("purple", file, line, "style-purple-default",
+                            "Tailwind-default purple/violet; pick the primary on purpose.")
+
+    # -- driver --------------------------------------------------------------
+    def run(self) -> None:
+        for path in iter_files(self.target, MARKUP_SUFFIXES + STYLE_SUFFIXES, UX_SKIP_DIRS):
+            if path.name.endswith((".min.css", ".min.js")):
+                continue
+            text = read_text(path)
+            if not text:
+                continue
+            self.files_checked += 1
+            file = rel(path, self.target)
+            find_line = line_finder(text)
+            if path.suffix.lower() in STYLE_SUFFIXES:
+                self.audit_css(text, file, 0, find_line, 0)
+            else:
+                self.audit_markup(text, file, find_line, path.suffix.lower() in {".jsx", ".tsx"})
+        self._project_checks()
+
+    def _project_checks(self) -> None:
+        if self.motion_uses and not self.reduced_motion_found:
+            file, line = self.motion_uses[0]
+            self.add("warning", file, line, "reduced-motion",
+                     f"Animation used ({len(self.motion_uses)} place(s)) but no prefers-reduced-motion / "
+                     "motion-reduce / useReducedMotion handling anywhere in the project")
+        if len(self.font_families) > 2 and not self.style_is_chosen("fonts"):
+            names = ", ".join(sorted(self.font_families)[:5])
+            self.add("info", "(project)", None, "font-families",
+                     f"{len(self.font_families)} font families ({names}); design-rules suggests at most two unless DESIGN.md says otherwise")
+        if self.has_tokens:
+            for file, count in self._pending_hex:
+                self.add("info", file, None, "hard-coded-colors",
+                         f"{count} hard-coded hex colours in a component while the project defines tokens; use the tokens")
+
+
+def main() -> int:
+    utf8_console()
+    parser = base_parser("UX audit for web UI source. Real usability issues are warnings; style guidance is info.")
+    args = parser.parse_args()
+    target = resolve_target(parser, args.project)
+    auditor = UXAuditor(target)
+    auditor.run()
+    notes = []
+    if auditor.design_text:
+        notes.append("DESIGN.md found: style guidance it covers is not reported")
+    notes.append("markup accessibility (alt, labels, names, lang) is covered by accessibility_checker.py")
+    return emit(args, "ux_audit", "UX audit", target, auditor.findings, auditor.files_checked, notes)
 
-        # Pre-calculate common flags
-        has_long_text = bool(re.search(r'<p|<div.*class=.*text|article|<span.*text', content, re.IGNORECASE))
-        has_form = bool(re.search(r'<form|<input|password|credit|card|payment', content, re.IGNORECASE))
-        complex_elements = len(re.findall(r'<input|<select|<textarea|<option', content, re.IGNORECASE))
-
-        # --- 1. PSYCHOLOGY LAWS ---
-        # Hick's Law
-        nav_items = len(re.findall(r'<NavLink|<Link|<a\s+href|nav-item', content, re.IGNORECASE))
-        if nav_items > 7:
-            self.warnings.append(f"[Hick's Law] {filename}: {nav_items} nav items (Max 7). Consider grouping into categorized submenus.")
-        
-        # Fitts' Law
-        if re.search(r'height:\s*([0-3]\d)px', content) or re.search(r'h-[1-9]\b|h-10\b', content):
-            self.warnings.append(f"[Fitts' Law] {filename}: Small targets (< 44px)")
-        
-        # Miller's Law
-        form_fields = len(re.findall(r'<input|<select|<textarea', content, re.IGNORECASE))
-        if form_fields > 7 and not re.search(r'step|wizard|stage', content, re.IGNORECASE):
-            self.warnings.append(f"[Miller's Law] {filename}: Complex form ({form_fields} fields)")
-            
-        # Von Restorff
-        if 'button' in content.lower() and not re.search(r'primary|bg-primary|Button.*primary|variant=["\']primary', content, re.IGNORECASE):
-            self.warnings.append(f"[Von Restorff] {filename}: No primary CTA")
-
-        # Serial Position Effect - Important items at beginning/end
-        if nav_items > 3:
-            # Check if last nav item is important (contact, login, etc.)
-            nav_content = re.findall(r'<NavLink|<Link|<a\s+href[^>]*>([^<]+)</a>', content, re.IGNORECASE)
-            if nav_content and len(nav_content) > 2:
-                last_item = nav_content[-1].lower() if nav_content else ''
-                if not any(x in last_item for x in ['contact', 'login', 'sign', 'get started', 'cta', 'button']):
-                    self.warnings.append(f"[Serial Position] {filename}: Last nav item may not be important. Place key actions at start/end.")
-
-        # --- 1.5 EMOTIONAL DESIGN (Don Norman) ---
-
-        # Visceral: First impressions (aesthetics, gradients, animations)
-        has_hero = bool(re.search(r'hero|<h1|banner', content, re.IGNORECASE))
-        if has_hero:
-            # Check for visual appeal elements
-            has_gradient = bool(re.search(r'gradient|linear-gradient|radial-gradient', content))
-            has_animation = bool(re.search(r'@keyframes|transition:|animate-', content))
-            has_visual_interest = has_gradient or has_animation
-
-            if not has_visual_interest and not re.search(r'background:|bg-', content):
-                self.warnings.append(f"[Visceral] {filename}: Hero section lacks visual appeal. Consider gradients or subtle animations.")
-
-        # Behavioral: Instant feedback and usability
-        if 'onClick' in content or '@click' in content or 'onclick' in content:
-            has_feedback = re.search(r'transition|animate|hover:|focus:|disabled|loading|spinner', content, re.IGNORECASE)
-            has_state_change = re.search(r'setState|useState|disabled|loading', content)
-
-            if not has_feedback and not has_state_change:
-                self.warnings.append(f"[Behavioral] {filename}: Interactive elements lack immediate feedback. Add hover/focus/disabled states.")
-
-        # Reflective: Brand story, values, identity
-        has_reflective = bool(re.search(r'about|story|mission|values|why we|our journey|testimonials', content, re.IGNORECASE))
-        if has_long_text and not has_reflective:
-            self.warnings.append(f"[Reflective] {filename}: Long-form content without brand story/values. Add 'About' or 'Why We Exist' section.")
-
-        # --- 1.6 TRUST BUILDING (Enhanced) ---
-
-        # Security signals
-        if has_form:
-            security_signals = re.findall(r'ssl|secure|encrypt|lock|padlock|https', content, re.IGNORECASE)
-            if len(security_signals) == 0 and not re.search(r'checkout|payment', content, re.IGNORECASE):
-                self.warnings.append(f"[Trust] {filename}: Form without security indicators. Add 'SSL Secure' or lock icon.")
-
-        # Social proof elements
-        social_proof = re.findall(r'review|testimonial|rating|star|trust|trusted by|customer|logo', content, re.IGNORECASE)
-        if len(social_proof) > 0:
-            self.passed_count += 1
-        else:
-            if has_long_text:
-                self.warnings.append(f"[Trust] {filename}: No social proof detected. Consider adding testimonials, ratings, or 'Trusted by' logos.")
-
-        # Authority indicators
-        has_footer = bool(re.search(r'footer|<footer', content, re.IGNORECASE))
-        if has_footer:
-            authority = re.findall(r'certif|award|media|press|featured|as seen in', content, re.IGNORECASE)
-            if len(authority) == 0:
-                self.warnings.append(f"[Trust] {filename}: Footer lacks authority signals. Add certifications, awards, or media mentions.")
-
-        # --- 1.7 COGNITIVE LOAD MANAGEMENT ---
-
-        # Progressive disclosure
-        if complex_elements > 5:
-            has_progressive = re.search(r'step|wizard|stage|accordion|collapsible|tab|more\.\.\.|advanced|show more', content, re.IGNORECASE)
-            if not has_progressive:
-                self.warnings.append(f"[Cognitive Load] {filename}: Many form elements without progressive disclosure. Consider accordion, tabs, or 'Advanced' toggle.")
-
-        # Visual noise check
-        has_many_colors = len(re.findall(r'#[0-9a-fA-F]{3,6}|rgb|hsl', content)) > 15
-        has_many_borders = len(re.findall(r'border:|border-', content)) > 10
-        if has_many_colors and has_many_borders:
-            self.warnings.append(f"[Cognitive Load] {filename}: High visual noise detected. Many colors and borders increase cognitive load.")
-
-        # Familiar patterns
-        if re.search(r'<input|<select|<textarea', content, re.IGNORECASE):
-            has_standard_labels = bool(re.search(r'<label|placeholder|aria-label|htmlFor', content, re.IGNORECASE))
-            if not has_standard_labels:
-                self.issues.append(f"[Cognitive Load] {filename}: Form inputs without labels. Use <label> for accessibility and clarity.")
-
-        # --- 1.8 PERSUASIVE DESIGN (Ethical) ---
-
-        # Smart defaults
-        if has_form:
-            has_defaults = bool(re.search(r'checked|selected|default|value=["\'].*["\']', content))
-            radio_inputs = len(re.findall(r'type=["\']radio', content, re.IGNORECASE))
-            if radio_inputs > 0 and not has_defaults:
-                self.warnings.append(f"[Persuasion] {filename}: Radio buttons without default selection. Pre-select recommended option.")
-
-        # Anchoring (showing original price)
-        if re.search(r'price|pricing|cost|\$\d+', content, re.IGNORECASE):
-            has_anchor = bool(re.search(r'original|was|strike|del|save \d+%', content, re.IGNORECASE))
-            if not has_anchor:
-                self.warnings.append(f"[Persuasion] {filename}: Prices without anchoring. Show original price to frame discount value.")
-
-        # Social proof live indicators
-        has_social = bool(re.search(r'join|subscriber|member|user', content, re.IGNORECASE))
-        if has_social:
-            has_count = bool(re.findall(r'\d+[+kmb]|\d+,\d+', content))
-            if not has_count:
-                self.warnings.append(f"[Persuasion] {filename}: Social proof without specific numbers. Use 'Join 10,000+' format.")
-
-        # Progress indicators
-        if has_form:
-            has_progress = bool(re.search(r'progress|step \d+|complete|%|bar', content, re.IGNORECASE))
-            if complex_elements > 5 and not has_progress:
-                self.warnings.append(f"[Persuasion] {filename}: Long form without progress indicator. Add progress bar or 'Step X of Y'.")
-
-        # --- 2. TYPOGRAPHY SYSTEM (Complete Coverage) ---
-
-        # 2.1 Font Pairing - Too many font families
-        font_families = set()
-        # Check for @font-face, Google Fonts, font-family declarations
-        font_faces = re.findall(r'@font-face\s*\{[^}]*family:\s*["\']?([^;"\'\s}]+)', content, re.IGNORECASE)
-        google_fonts = re.findall(r'fonts\.googleapis\.com[^"\']*family=([^"&]+)', content, re.IGNORECASE)
-        font_family_css = re.findall(r'font-family:\s*([^;]+)', content, re.IGNORECASE)
-
-        for font in font_faces: font_families.add(font.strip().lower())
-        for font in google_fonts:
-            for f in font.replace('+', ' ').split('|'):
-                font_families.add(f.split(':')[0].strip().lower())
-        for family in font_family_css:
-            # Extract first font from stack
-            first_font = family.split(',')[0].strip().strip('"\'')
-
-            if first_font.lower() not in {'sans-serif', 'serif', 'monospace', 'cursive', 'fantasy', 'system-ui', 'inherit', 'arial', 'georgia', 'times new roman', 'courier new', 'verdana', 'helvetica', 'tahoma'}:
-                font_families.add(first_font.lower())
-
-        if len(font_families) > 3:
-            self.issues.append(f"[Typography] {filename}: {len(font_families)} font families detected. Limit to 2-3 for cohesion.")
-
-        # 2.2 Line Length - Character-based width
-        if has_long_text and not re.search(r'max-w-(?:prose|[\[\\]?\d+ch[\]\\]?)|max-width:\s*\d+ch', content):
-            self.warnings.append(f"[Typography] {filename}: No line length constraint (45-75ch). Use max-w-prose or max-w-[65ch].")
-
-        # 2.3 Line Height - Proper leading ratios
-        # Check for text without proper line-height
-        text_elements = len(re.findall(r'<p|<span|<div.*text|<h[1-6]', content, re.IGNORECASE))
-        if text_elements > 0 and not re.search(r'leading-|line-height:', content):
-            self.warnings.append(f"[Typography] {filename}: Text elements found without line-height. Body: 1.4-1.6, Headings: 1.1-1.3")
-
-        # Check for heading-specific line height issues
-        if re.search(r'<h[1-6]|text-(?:xl|2xl|3xl|4xl|5xl|6xl)', content, re.IGNORECASE):
-            # Extract line-height values
-            line_heights = re.findall(r'(?:leading-|line-height:\s*)([\d.]+)', content)
-            for lh in line_heights:
-                if float(lh) > 1.5:
-                    self.warnings.append(f"[Typography] {filename}: Heading has line-height {lh} (>1.3). Headings should be tighter (1.1-1.3).")
-
-        # 2.4 Letter Spacing (Tracking)
-        # Uppercase without tracking
-        if re.search(r'uppercase|text-transform:\s*uppercase', content, re.IGNORECASE):
-            if not re.search(r'tracking-|letter-spacing:', content):
-                self.warnings.append(f"[Typography] {filename}: Uppercase text without tracking. ALL CAPS needs +5-10% spacing.")
-
-        # Large text (display/hero) should have negative tracking
-        if re.search(r'text-(?:4xl|5xl|6xl|7xl|8xl|9xl)|font-size:\s*[3-9]\dpx', content):
-            if not re.search(r'tracking-tight|letter-spacing:\s*-[0-9]', content):
-                self.warnings.append(f"[Typography] {filename}: Large display text without tracking-tight. Big text needs -1% to -4% spacing.")
-
-        # 2.5 Weight and Emphasis - Contrast levels
-        # Check for adjacent weight levels (poor contrast)
-        weights = re.findall(r'font-weight:\s*(\d+)|font-(?:thin|extralight|light|normal|medium|semibold|bold|extrabold|black)|fw-(\d+)', content, re.IGNORECASE)
-        weight_values = []
-        for w in weights:
-            val = w[0] or w[1]
-            if val:
-                # Map named weights to numbers
-                weight_map = {'thin': '100', 'extralight': '200', 'light': '300', 'normal': '400', 'medium': '500', 'semibold': '600', 'bold': '700', 'extrabold': '800', 'black': '900'}
-                val = weight_map.get(val.lower(), val)
-                try:
-                    weight_values.append(int(val))
-                except: pass
-
-        # Check for adjacent weights (400/500, 500/600, etc.)
-        for i in range(len(weight_values) - 1):
-            diff = abs(weight_values[i] - weight_values[i+1])
-            if diff == 100:
-                self.warnings.append(f"[Typography] {filename}: Adjacent font weights ({weight_values[i]}/{weight_values[i+1]}). Skip at least 2 levels for contrast.")
-
-        # Too many weight levels
-        unique_weights = set(weight_values)
-        if len(unique_weights) > 4:
-            self.warnings.append(f"[Typography] {filename}: {len(unique_weights)} font weights. Limit to 3-4 per page.")
-
-        # 2.6 Responsive Typography - Fluid sizing with clamp()
-        has_font_sizes = bool(re.search(r'font-size:|text-(?:xs|sm|base|lg|xl|2xl)', content))
-        if has_font_sizes and not re.search(r'clamp\(|responsive:', content):
-            self.warnings.append(f"[Typography] {filename}: Fixed font sizes without clamp(). Consider fluid typography: clamp(MIN, PREFERRED, MAX)")
-
-        # 2.7 Hierarchy - Heading structure
-        headings = re.findall(r'<(h[1-6])', content, re.IGNORECASE)
-        if headings:
-            # Check for skipped levels (h1 -> h3)
-            for i in range(len(headings) - 1):
-                curr = int(headings[i][1])
-                next_h = int(headings[i+1][1])
-                if next_h > curr + 1:
-                    self.warnings.append(f"[Typography] {filename}: Skipped heading level (h{curr} -> h{next_h}). Maintain sequential hierarchy.")
-
-            # Check if h1 exists for main content
-            if 'h1' not in [h.lower() for h in headings] and has_long_text:
-                self.warnings.append(f"[Typography] {filename}: No h1 found. Each page should have one primary heading.")
-
-        # 2.8 Modular Scale - Consistent sizing
-        # Extract font-size values
-        font_sizes = re.findall(r'font-size:\s*(\d+(?:\.\d+)?)(px|rem|em)', content)
-        size_values = []
-        for size, unit in font_sizes:
-            if unit == 'rem' or unit == 'em':
-                size_values.append(float(size))
-            elif unit == 'px':
-                size_values.append(float(size) / 16)  # Normalize to rem
-
-        if len(size_values) > 2:
-            # Check if sizes follow a modular scale roughly
-            sorted_sizes = sorted(set(size_values))
-            ratios = []
-            for i in range(1, len(sorted_sizes)):
-                if sorted_sizes[i-1] > 0:
-                    ratios.append(sorted_sizes[i] / sorted_sizes[i-1])
-
-            # Common scale ratios: 1.067, 1.125, 1.2, 1.25, 1.333, 1.5, 1.618
-            common_ratios = {1.067, 1.125, 1.2, 1.25, 1.333, 1.5, 1.618}
-            for ratio in ratios[:3]:  # Check first 3 ratios
-                if not any(abs(ratio - cr) < 0.05 for cr in common_ratios):
-                    self.warnings.append(f"[Typography] {filename}: Font sizes may not follow modular scale (ratio: {ratio:.2f}). Consider consistent ratio like 1.25 (Major Third).")
-                    break
-
-        # 2.9 Readability - Content chunking
-        # Check for very long paragraphs (>5 lines estimated)
-        paragraphs = re.findall(r'<p[^>]*>([^<]+)</p>', content, re.IGNORECASE)
-        for p in paragraphs:
-            word_count = len(p.split())
-            if word_count > 100:  # ~5-6 lines
-                self.warnings.append(f"[Typography] {filename}: Long paragraph detected ({word_count} words). Break into 3-4 line chunks for readability.")
-
-        # Check for missing subheadings in long content
-        if len(paragraphs) > 5:
-            subheadings = len(re.findall(r'<h[2-6]', content, re.IGNORECASE))
-            if subheadings == 0:
-                self.warnings.append(f"[Typography] {filename}: Long content without subheadings. Add h2/h3 to break up text.")
-
-        # --- 3. VISUAL EFFECTS (frontend-design SKILL.md - effects) ---
-        
-        # Glassmorphism Check
-        if 'backdrop-filter' in content or 'blur(' in content:
-            if not re.search(r'background:\s*rgba|bg-opacity|bg-[a-z0-9]+\/\d+', content):
-                self.warnings.append(f"[Visual] {filename}: Blur used without semi-transparent background (Glassmorphism fail)")
-        
-        # GPU Acceleration / Performance
-        if re.search(r'@keyframes|transition:', content):
-            expensive_props = re.findall(r'width|height|top|left|right|bottom|margin|padding', content)
-            if expensive_props:
-                self.warnings.append(f"[Performance] {filename}: Animating expensive properties ({', '.join(set(expensive_props))}). Use transform/opacity where possible.")
-            
-            # Reduced Motion
-            if not re.search(r'prefers-reduced-motion', content):
-                self.warnings.append(f"[Accessibility] {filename}: Animations found without prefers-reduced-motion check")
-
-        # Natural Shadows
-        shadows = re.findall(r'box-shadow:\s*([^;]+)', content)
-        for shadow in shadows:
-            # Check if natural (Y > X) or multiple layers
-            if ',' not in shadow and not re.search(r'\d+px\s+[1-9]\d*px', shadow): # Simple heuristic for Y-offset
-                 self.warnings.append(f"[Visual] {filename}: Simple/Unnatural shadow detected. Consider multiple layers or Y > X offset for realism.")
-
-        # --- 3.1 NEOMORPHISM CHECK ---
-        # Check for neomorphism patterns (dual shadows with opposite directions)
-        neo_shadows = re.findall(r'box-shadow:\s*([^;]+)', content)
-        for shadow in neo_shadows:
-            # Neomorphism has two shadows: positive offset + negative offset
-            if ',' in shadow and '-' in shadow:
-                # Check for inset pattern (pressed state)
-                if 'inset' in shadow:
-                    self.warnings.append(f"[Visual] {filename}: Neomorphism inset detected. Ensure adequate contrast for accessibility.")
-
-        # --- 3.2 SHADOW HIERARCHY ---
-        # Count shadow levels to check for elevation consistency
-        shadow_count = len(shadows)
-        if shadow_count > 0:
-            # Check for shadow opacity levels (should indicate hierarchy)
-            opacities = re.findall(r'rgba?\([^)]+,\s*([\d.]+)\)', content)
-            shadow_opacities = [float(o) for o in opacities if float(o) < 0.5]
-            if shadow_count >= 3 and len(shadow_opacities) > 0:
-                # Check if there's variety in shadow opacities for different elevations
-                unique_opacities = len(set(shadow_opacities))
-                if unique_opacities < 2:
-                    self.warnings.append(f"[Visual] {filename}: All shadows at same opacity level. Vary shadow intensity for elevation hierarchy.")
-
-        # --- 3.3 GRADIENT CHECKS ---
-        # Check for gradient usage
-        has_gradient = bool(re.search(r'gradient|linear-gradient|radial-gradient|conic-gradient', content))
-        if has_gradient:
-            # Warn about mesh/aurora gradients (can be overused)
-            gradient_count = len(re.findall(r'gradient', content, re.IGNORECASE))
-            if gradient_count > 5:
-                self.warnings.append(f"[Visual] {filename}: Many gradients detected ({gradient_count}). Ensure this serves purpose, not decoration.")
-        else:
-            # Check if hero section exists without gradient
-            if has_hero and not re.search(r'background:|bg-', content):
-                self.warnings.append(f"[Visual] {filename}: Hero section without visual interest. Consider gradient for depth.")
-
-        # --- 3.4 BORDER EFFECTS ---
-        # Check for gradient borders or animated borders
-        has_border = bool(re.search(r'border:|border-', content))
-        if has_border:
-            # Check for overly complex borders
-            border_count = len(re.findall(r'border:', content))
-            if border_count > 8:
-                self.warnings.append(f"[Visual] {filename}: Many border declarations ({border_count}). Simplify for cleaner look.")
-
-        # --- 3.5 GLOW EFFECTS ---
-        # Check for text-shadow or multiple box-shadow layers (glow effects)
-        text_shadows = re.findall(r'text-shadow:', content)
-        for ts in text_shadows:
-            # Multiple text-shadow layers indicate glow
-            if ',' in ts:
-                self.warnings.append(f"[Visual] {filename}: Text glow effect detected. Ensure readability is maintained.")
-
-        # Check for box-shadow glow (multiple layers with 0 offset)
-        glow_shadows = re.findall(r'box-shadow:\s*[^;]*0\s+0\s+', content)
-        if len(glow_shadows) > 2:
-            self.warnings.append(f"[Visual] {filename}: Multiple glow effects detected. Use sparingly for emphasis only.")
-
-        # --- 3.6 OVERLAY TECHNIQUES ---
-        # Check for image overlays (for readability)
-        has_images = bool(re.search(r'<img|background-image:|bg-\[url', content))
-        if has_images and has_long_text:
-            has_overlay = bool(re.search(r'overlay|rgba\(0|gradient.*transparent|::after|::before', content))
-            if not has_overlay:
-                self.warnings.append(f"[Visual] {filename}: Text over image without overlay. Add gradient overlay for readability.")
-
-        # --- 3.7 PERFORMANCE: will-change ---
-        # Check for will-change usage
-        if re.search(r'will-change:', content):
-            will_change_props = re.findall(r'will-change:\s*([^;]+)', content)
-            for prop in will_change_props:
-                prop = prop.strip().lower()
-                if prop in ['width', 'height', 'top', 'left', 'right', 'bottom', 'margin', 'padding']:
-                    self.issues.append(f"[Performance] {filename}: will-change on '{prop}' (layout property). Use only for transform/opacity.")
-
-        # Check for excessive will-change usage
-        will_change_count = len(re.findall(r'will-change:', content))
-        if will_change_count > 3:
-            self.warnings.append(f"[Performance] {filename}: Many will-change declarations ({will_change_count}). Use sparingly, only for heavy animations.")
-
-        # --- 3.8 EFFECT SELECTION ---
-        # Check for effect overuse (too many visual effects)
-        effect_count = (
-            (1 if has_gradient else 0) +
-            shadow_count +
-            len(re.findall(r'backdrop-filter|blur\(', content)) +
-            len(re.findall(r'text-shadow:', content))
-        )
-        if effect_count > 10:
-            self.warnings.append(f"[Visual] {filename}: Many visual effects ({effect_count}). Ensure effects serve purpose, not decoration.")
-
-        # Check for static/flat design (no depth)
-        if has_long_text and effect_count == 0:
-            self.warnings.append(f"[Visual] {filename}: Flat design with no depth. Consider shadows or subtle gradients for hierarchy.")
-
-        # --- 4. COLOR SYSTEM (frontend-design SKILL.md - color) ---
-
-        # 4.1 Purple as an unexamined default (anti-default heuristic, advisory only).
-        # Skipped when the project's DESIGN.md declares a purple/violet palette on purpose.
-        if not self.design_allows_purple:
-            purple_markers = ['#8b5cf6', '#a855f7', '#9333ea', '#7c3aed', '#6d28d9',
-                              '#a78bfa', '#c4b5fd', '#ddd6fe', '#ede9fe']
-            lowered = content.lower()
-            if any(marker in lowered for marker in purple_markers) or re.search(r'\b(purple|violet)-[0-9]{2,3}\b', lowered):
-                self.warnings.append(f"[Color] {filename}: Tailwind-default purple palette detected. Fine if the brand/DESIGN.md asks for it; otherwise pick a deliberate primary.")
-
-        # 4.2 60-30-10 Rule check
-        # Count color usage to estimate ratio
-        color_hex_count = len(re.findall(r'#[0-9a-fA-F]{3,6}', content))
-        hsl_count = len(re.findall(r'hsl\(', content))
-        total_colors = color_hex_count + hsl_count
-        if total_colors > 3:
-            # Check for dominant colors (should be ~60%)
-            bg_declarations = re.findall(r'(?:background|bg-|bg\[)([^;}\s]+)', content)
-            text_declarations = re.findall(r'(?:color|text-)([^;}\s]+)', content)
-            if len(bg_declarations) > 0 and len(text_declarations) > 0:
-                # Just warn if too many distinct colors
-                unique_hexes = set(re.findall(r'#[0-9a-fA-F]{6}', content))
-                if len(unique_hexes) > 5:
-                    self.warnings.append(f"[Color] {filename}: {len(unique_hexes)} distinct colors. Consider 60-30-10 rule: dominant (60%), secondary (30%), accent (10%).")
-
-        # 4.3 Color Scheme Pattern Detection
-        # Detect monochromatic (same hue, different lightness)
-        hsl_matches = re.findall(r'hsl\((\d+),\s*\d+%,\s*\d+%\)', content)
-        if len(hsl_matches) >= 3:
-            hues = [int(h) for h in hsl_matches]
-            hue_range = max(hues) - min(hues)
-            if hue_range < 10:
-                self.warnings.append(f"[Color] {filename}: Monochromatic palette detected (hue variance: {hue_range}deg). Ensure adequate contrast.")
-
-        # 4.4 Dark Mode Compliance
-        # Check for pure black (#000000) or pure white (#FFFFFF) text (forbidden)
-        if re.search(r'color:\s*#000000|#000\b', content):
-            self.warnings.append(f"[Color] {filename}: Pure black (#000000) detected. Use #1a1a1a or darker grays for better dark mode.")
-        if re.search(r'background:\s*#ffffff|#fff\b', content) and re.search(r'dark:\s*|dark:', content):
-            self.warnings.append(f"[Color] {filename}: Pure white background in dark mode context. Use slight off-white (#f9fafb) for reduced eye strain.")
-
-        # 4.5 WCAG Contrast Pattern Check
-        # Look for potential low-contrast combinations
-        light_bg_light_text = bool(re.search(r'bg-(?:gray|slate|zinc)-50|bg-white.*text-(?:gray|slate)-[12]', content))
-        dark_bg_dark_text = bool(re.search(r'bg-(?:gray|slate|zinct)-9|bg-black.*text-(?:gray|slate)-[89]', content))
-        if light_bg_light_text or dark_bg_dark_text:
-            self.warnings.append(f"[Color] {filename}: Possible low-contrast combination detected. Verify WCAG AA (4.5:1 for text).")
-
-        # 4.6 Color Psychology Context Check
-        # Warn if blue used for food/restaurant context
-        has_blue = bool(re.search(r'bg-blue|text-blue|from-blue|#[0-9a-fA-F]*00[0-9A-Fa-f]{2}|#[0-9a-fA-F]*1[0-9A-Fa-f]{2}', content))
-        has_food_context = bool(re.search(r'restaurant|food|cooking|recipe|menu|dish|meal', content, re.IGNORECASE))
-        if has_blue and has_food_context:
-            self.warnings.append(f"[Color] {filename}: Blue color in food context. Blue suppresses appetite; consider warm colors (red, orange, yellow).")
-
-        # 4.7 HSL-Based Palette Detection
-        # Check if using HSL for palette (frontend-design skill)
-        has_color_vars = bool(re.search(r'--color-|color-|primary-|secondary-', content))
-        if has_color_vars and not re.search(r'hsl\(', content):
-            self.warnings.append(f"[Color] {filename}: Color variables without HSL. Consider HSL for easier palette adjustment (Hue, Saturation, Lightness).")
-
-        # --- 5. ANIMATION GUIDE (frontend-design SKILL.md - motion) ---
-
-        # 5.1 Duration Appropriateness
-        # Check for excessively long or short animations
-        durations = re.findall(r'(?:duration|animation-duration|transition-duration):\s*([\d.]+)(s|ms)', content)
-        for duration, unit in durations:
-            duration_ms = float(duration) * (1000 if unit == 's' else 1)
-            if duration_ms < 50:
-                self.warnings.append(f"[Animation] {filename}: Very fast animation ({duration}{unit}). Minimum 50ms for visibility.")
-            elif duration_ms > 1000 and 'transition' in content.lower():
-                self.warnings.append(f"[Animation] {filename}: Long transition ({duration}{unit}). Transitions should be 100-300ms for responsiveness.")
-
-        # 5.2 Easing Function Correctness
-        # Check for incorrect easing patterns
-        if re.search(r'ease-in\s+.*entry|fade-in.*ease-in', content):
-            self.warnings.append(f"[Animation] {filename}: Entry animation with ease-in. Entry should use ease-out for snappy feel.")
-        if re.search(r'ease-out\s+.*exit|fade-out.*ease-out', content):
-            self.warnings.append(f"[Animation] {filename}: Exit animation with ease-out. Exit should use ease-in for natural feel.")
-
-        # 5.3 Micro-interaction Feedback Patterns
-        # Check for interactive elements without hover/focus states
-        interactive_elements = len(re.findall(r'<button|<a\s+href|onClick|@click', content))
-        has_hover_focus = bool(re.search(r'hover:|focus:|:hover|:focus', content))
-        if interactive_elements > 2 and not has_hover_focus:
-            self.warnings.append(f"[Animation] {filename}: Interactive elements without hover/focus states. Add micro-interactions for feedback.")
-
-        # 5.4 Loading State Indicators
-        # Check for loading patterns
-        has_async = bool(re.search(r'async|await|fetch|axios|loading|isLoading', content))
-        has_loading_indicator = bool(re.search(r'skeleton|spinner|progress|loading|<circle.*animate', content))
-        if has_async and not has_loading_indicator:
-            self.warnings.append(f"[Animation] {filename}: Async operations without loading indicator. Add skeleton or spinner for perceived performance.")
-
-        # 5.5 Page Transition Patterns
-        # Check for page/view transitions
-        has_routing = bool(re.search(r'router|navigate|Link.*to|useHistory', content))
-        has_page_transition = bool(re.search(r'AnimatePresence|motion\.|transition.*page|fade.*route', content))
-        if has_routing and not has_page_transition:
-            self.warnings.append(f"[Animation] {filename}: Routing detected without page transitions. Consider fade/slide for context continuity.")
-
-        # 5.6 Scroll Animation Performance
-        # Check for scroll-driven animations
-        has_scroll_anim = bool(re.search(r'onScroll|scroll.*trigger|IntersectionObserver', content))
-        if has_scroll_anim:
-            # Check if using expensive properties in scroll handlers
-            if re.search(r'onScroll.*[^\w](width|height|top|left)', content):
-                self.issues.append(f"[Animation] {filename}: Scroll handler animating layout properties. Use transform/opacity for 60fps.")
-
-        # --- 6. MOTION GRAPHICS (frontend-design SKILL.md - motion) ---
-
-        # 6.1 Lottie Animation Checks
-        has_lottie = bool(re.search(r'lottie|Lottie|@lottie-react', content))
-        if has_lottie:
-            # Check for reduced motion fallback
-            has_lottie_fallback = bool(re.search(r'prefers-reduced-motion.*lottie|lottie.*isPaused|lottie.*stop', content))
-            if not has_lottie_fallback:
-                self.warnings.append(f"[Motion] {filename}: Lottie animation without reduced-motion fallback. Add pause/stop for accessibility.")
-
-        # 6.2 GSAP Memory Leak Risks
-        has_gsap = bool(re.search(r'gsap|ScrollTrigger|from\(.*gsap', content))
-        if has_gsap:
-            # Check for cleanup patterns
-            has_gsap_cleanup = bool(re.search(r'kill\(|revert\(|useEffect.*return.*gsap', content))
-            if not has_gsap_cleanup:
-                self.issues.append(f"[Motion] {filename}: GSAP animation without cleanup (kill/revert). Memory leak risk on unmount.")
-
-        # 6.3 SVG Animation Performance
-        svg_animations = re.findall(r'<animate|<animateTransform|stroke-dasharray|stroke-dashoffset', content)
-        if len(svg_animations) > 3:
-            self.warnings.append(f"[Motion] {filename}: Multiple SVG animations detected. Ensure stroke-dashoffset is used sparingly for mobile performance.")
-
-        # 6.4 3D Transform Performance
-        has_3d_transform = bool(re.search(r'transform3d|perspective\(|rotate3d|translate3d', content))
-        if has_3d_transform:
-            # Check for perspective on parent
-            has_perspective_parent = bool(re.search(r'perspective:\s*\d+px|perspective\s*\(', content))
-            if not has_perspective_parent:
-                self.warnings.append(f"[Motion] {filename}: 3D transform without perspective parent. Add perspective: 1000px for realistic depth.")
-
-            # Warn about mobile performance
-            self.warnings.append(f"[Motion] {filename}: 3D transforms detected. Test on mobile; can impact performance on low-end devices.")
-
-        # 6.5 Particle Effect Warnings
-        # Check for canvas/WebGL particle systems
-        has_particles = bool(re.search(r'particle|canvas.*loop|requestAnimationFrame.*draw|Three\.js', content))
-        if has_particles:
-            self.warnings.append(f"[Motion] {filename}: Particle effects detected. Ensure fallback or reduced-quality option for mobile devices.")
-
-        # 6.6 Scroll-Driven Animation Performance
-        has_scroll_driven = bool(re.search(r'IntersectionObserver.*animate|scroll.*progress|view-timeline', content))
-        if has_scroll_driven:
-            # Check for throttling/debouncing
-            has_throttle = bool(re.search(r'throttle|debounce|requestAnimationFrame', content))
-            if not has_throttle:
-                self.issues.append(f"[Motion] {filename}: Scroll-driven animation without throttling. Add requestAnimationFrame for 60fps.")
-
-        # 6.7 Motion Decision Tree - Context Check
-        # Check if animation serves purpose (not just decoration)
-        total_animations = (
-            len(re.findall(r'@keyframes|transition:|animate-', content)) +
-            (1 if has_lottie else 0) +
-            (1 if has_gsap else 0)
-        )
-        if total_animations > 5:
-            # Check if animations are functional
-            functional_animations = len(re.findall(r'hover:|focus:|disabled|loading|error|success', content))
-            if functional_animations < total_animations / 2:
-                self.warnings.append(f"[Motion] {filename}: Many animations ({total_animations}). Ensure majority serve functional purpose (feedback, guidance), not decoration.")
-
-        # --- 7. ACCESSIBILITY ---
-        if re.search(r'<img(?![^>]*alt=)[^>]*>', content):
-            self.issues.append(f"[Accessibility] {filename}: Missing img alt text")
-
-    def audit_directory(self, directory: str) -> None:
-        extensions = {'.tsx', '.jsx', '.html', '.vue', '.svelte', '.css'}
-        for root, dirs, files in os.walk(directory):
-            dirs[:] = [d for d in dirs if d not in {'node_modules', '.git', 'dist', 'build', '.next', 'ui'}]
-            for file in files:
-                if Path(file).suffix in extensions:
-                    self.audit_file(os.path.join(root, file))
-
-    def get_report(self):
-        return {
-            "files_checked": self.files_checked,
-            "issues": self.issues,
-            "warnings": self.warnings,
-            "passed_checks": self.passed_count,
-            "compliant": len(self.issues) == 0
-        }
-
-def main():
-    if len(sys.argv) < 2: sys.exit(1)
-    
-    path = sys.argv[1]
-    is_json = "--json" in sys.argv
-    
-    auditor = UXAuditor(project_root=path if os.path.isdir(path) else os.path.dirname(os.path.abspath(path)))
-    if os.path.isfile(path): auditor.audit_file(path)
-    else: auditor.audit_directory(path)
-    
-    report = auditor.get_report()
-    
-    if is_json:
-        print(json.dumps(report))
-    else:
-        # Use ASCII-safe output for Windows console compatibility
-        print(f"\n[UX AUDIT] {report['files_checked']} files checked")
-        print("-" * 50)
-        if report['issues']:
-            print(f"[!] ISSUES ({len(report['issues'])}):")
-            for i in report['issues'][:10]: print(f"  - {i}")
-        if report['warnings']:
-            print(f"[*] WARNINGS ({len(report['warnings'])}):")
-            for w in report['warnings'][:15]: print(f"  - {w}")
-        print(f"[+] PASSED CHECKS: {report['passed_checks']}")
-        status = "PASS" if report['compliant'] else "FAIL"
-        print(f"STATUS: {status}")
-
-    sys.exit(0 if report['compliant'] else 1)
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

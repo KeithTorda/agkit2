@@ -7,14 +7,14 @@
 
 ## Compiler first
 
-Compiler-first when the React Compiler is enabled; the memo rule is in `SKILL.md` (Baseline assumptions). The compiler memoizes components, hooks, and JSX automatically, so:
+Compiler-first when the React Compiler is enabled; the memo rule is in `SKILL.md` ("The memo rule"). The compiler memoizes components, hooks, and JSX automatically, so:
 
 - Manual `useMemo`, `useCallback`, and `React.memo` add noise and can hide real bugs (missing dependencies).
 - A bailout is visible: React DevTools shows a "Memo" badge on compiled components; `eslint-plugin-react-hooks` reports the code the compiler cannot handle. A hot path the compiler did not cover looks like a very expensive computation whose inputs are stable.
 - The compiler cannot fix structural problems: state stored in the wrong place, effects that set state, context values that change on every render, or components that subscribe to values they do not need. The rules below target those.
 - If the project has the compiler off (older codebase, `reactCompiler: false`), the same structural rules apply first; add memo only after measuring.
 
-Verify the compiler is active before adding or removing memo: `grep reactCompiler next.config.*` (Expo: `babel-plugin-react-compiler` in `babel.config.js`) and look for `babel-plugin-react-compiler` in the lockfile.
+Verify the compiler is active before adding or removing memo: look for `reactCompiler` in `next.config.*` (Expo: `babel-plugin-react-compiler` in `babel.config.js`) and for `babel-plugin-react-compiler` in the lockfile. current `eslint-plugin-react-hooks` (`recommended` preset) includes the compiler's diagnostics, so bailouts show up as lint findings.
 
 ---
 

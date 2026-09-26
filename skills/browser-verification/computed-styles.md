@@ -26,7 +26,7 @@ WRONG (what source review concludes)
 
 RIGHT (what the render actually reports)
   Computed: color rgb(71,85,105) · padding 20px · font-size 15px
-  DESIGN.md scale: text-secondary #5A6472 · spacing 16/24 · type 14/16/20
+  DESIGN.md scale (example values): text-secondary #5A6472 · spacing 16/24 · type 14/16/20
   → 3 token violations: color off-scale, 20px not on the spacing scale, 15px not on the type scale.
 ```
 

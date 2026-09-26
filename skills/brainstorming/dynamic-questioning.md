@@ -1,6 +1,6 @@
 # Dynamic Question Generation
 
-> Questions reveal architectural consequences. Each one connects to a decision that changes cost, complexity, or scope. The rule for *when* to ask lives in the global `core-protocol` rule; [SKILL.md](./SKILL.md) points to it and covers the craft.
+Questions reveal architectural consequences. Each one connects to a decision that changes cost, complexity or scope. When to ask (only when blocked, max 3, each with a default) is in [SKILL.md](./SKILL.md).
 
 ## Principles
 
@@ -76,9 +76,9 @@ Default: Cloudinary.
 Why: query complexity and caching; algorithmic needs ranking signals and precomputed tables.
 Default: follow-only.
 
-**3. Auth** — Email/password, social only, magic link, or hosted (Clerk / Better Auth)?
+**3. Auth** — Email/password, social only, magic link, or an auth library (Better Auth self-hosted, Clerk hosted)?
 Why: effort, security posture, sign-up friction.
-Default: hosted.
+Default: Better Auth (self-hosted, no per-user fee).
 
 Assumptions unless you object: polling instead of WebSockets for notifications; video and DMs deferred to v2.
 ```

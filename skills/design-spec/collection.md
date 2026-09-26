@@ -4,8 +4,8 @@
 what you borrow from each (grid, type treatment, nav, density, colour logic). The section you reach
 for is decided by the user of the thing you are building, never by the design you have seen most.
 Building a barangay portal? Section 1. A sari-sari store's POS? Section 3. A clinic booking flow?
-Section 5. Section 12 — developer products — is last on purpose: reach for it only when you are
-building a developer product.
+Section 5. Section 12 (developer products) sits near the end on purpose: reach for it only when you
+are building a developer product. Section 13 is for brand, launch and event sites that want a statement.
 
 **These are pointers to durable patterns, not specifications.** Products redesign. Open the one you
 pick and look at it before you borrow from it; if you cannot, borrow the pattern named here and say
@@ -160,7 +160,7 @@ in this list.
 
 ## 12. Developer and technical products — only when building one
 
-**This section is last on purpose.** It is the design most written about on the internet, which makes
+**This section sits near the end on purpose.** It is the design most written about on the internet, which makes
 it the reflex answer and the wrong one for a POS, a clinic, a school portal or a government service.
 Its aesthetic — dark surfaces, monospace accents, ultra-minimal chrome, gradient-on-black heroes —
 signals "for engineers". Use it when your users are engineers.
@@ -172,6 +172,19 @@ signals "for engineers". Use it when your users are engineers.
 - **Sentry** `(sentry)` — error monitoring. Data-dense dark dashboard.
 - **GitHub** — code hosting. A neutral shell that survives enormous density.
 - **Raycast** `(raycast)` / **Warp** `(warp)` / **Cursor** `(cursor)` — developer tools. Dark chrome with command-palette entry.
+
+## 13. Brand, launch and expressive sites
+
+When the brief wants a statement: a product launch, a fashion or music brand, an event, a studio
+portfolio. Motion, colour and effects are expected here; craft is what separates it from a template.
+
+- **Apple product pages** `(apple)` — launches. Scroll-driven storytelling, one product shot per viewport, huge type used sparingly.
+- **Nothing** — consumer tech. Dot-matrix display type, monochrome with one red accent, playful restraint.
+- **Arc / The Browser Company** — consumer software. Soft gradients, rounded playful shapes, personality in the copy.
+- **Framer** `(framer)` — site builder. Dark aurora backgrounds, glass panels, glow used on one element per view.
+- **Nike** `(nike)` — sportswear. Full-bleed photography, condensed bold type, colour blocking.
+- **Spotify Wrapped** — campaign. Kinetic type, clashing colour blocks, one data point per screen.
+- **Music festivals and esports events** — the pattern: schedule and tickets stay plain and findable under a loud visual identity.
 
 ---
 

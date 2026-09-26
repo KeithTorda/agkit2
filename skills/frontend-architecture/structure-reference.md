@@ -31,7 +31,7 @@ src/
 └─ lib/                      # shared utilities and service files
 ```
 
-Full Next.js tree, path aliases, and core files: `app-builder` [scaffolding.md](../app-builder/scaffolding.md). Multi-app repos (`apps/` deployable, `packages/` shared, `@repo/*` via `workspace:*`): `app-builder` [monorepo-turborepo/TEMPLATE.md](../app-builder/templates/monorepo-turborepo/TEMPLATE.md).
+Full Next.js tree, path aliases and core files: `KIT/skills/app-builder/scaffolding.md`. Multi-app repos (`apps/` deployable, `packages/` shared, `@repo/*` via `workspace:*`): `KIT/skills/app-builder/templates/monorepo-turborepo/TEMPLATE.md`.
 
 ## 2. File responsibility and size
 
@@ -49,13 +49,13 @@ Two call sites that merely look alike are not a pattern. A premature abstraction
 | Shared client state in a subtree or across the app | Zustand or Jotai (React); Pinia (Vue) |
 | Rarely-changing values (theme, session, locale) | React Context / `provide`-`inject` (Vue) — never for frequently updated state |
 | Server state | §4, never a global store |
-| Continuous input-driven values (scroll, pointer) | motion values (`frontend-design` §3.B) |
+| Continuous input-driven values (scroll, pointer) | refs or `motion/react` motion values (`nextjs-react-expert` Rule 5.10) |
 
 ## 4. Data layer (default order)
 
 1. **Reads: Server Components.** `page.tsx` / `layout.tsx` fetch directly (DB, API, cached `fetch`) and pass plain data down. No client fetching for data known at render time.
-2. **Mutations: Server Actions + `useActionState`.** Submits call an action in `actions/*.ts` (`"use server"`) validated with the shared zod schema; the component reads `[state, formAction, isPending]` for inline errors and pending UI; `revalidatePath` / `revalidateTag` after the write. Server Actions are for mutations, not real-time data.
-3. **Client-interactive server state: TanStack Query.** Only for polling, infinite lists, optimistic UI, or background refetching. Queries wrap service functions; mutations call Server Actions or the service. No SWR; no server state in Zustand or Redux.
+2. **Mutations: Server Actions + `useActionState`.** Submits call an action in `*.actions.ts` (`"use server"`) that validates with the shared Zod schema and checks auth inside the action; the component reads `[state, formAction, isPending]` for inline errors and pending UI; `updateTag` / `revalidatePath` after the write (`nextjs-react-expert` section 9). Server Actions are for mutations, not real-time data.
+3. **Client-interactive server state: TanStack Query.** For polling, infinite lists, optimistic UI or background refetching. Queries wrap service functions; mutations call Server Actions or the service. Keep server state out of Zustand or Redux; a project already on SWR keeps it.
 4. **Real-time:** a subscription (WebSocket / SSE / provider SDK) feeding a query cache or local store, never polling through Server Actions.
 
 ```ts
@@ -77,7 +77,8 @@ Vue/Nuxt: `useFetch` / `$fetch` for reads, TanStack Query for interactive state,
 
 - React/Next: native `<form action={serverAction}>` + `useActionState` for simple forms; `react-hook-form` + `zod` (via `@hookform/resolvers`) for complex forms (multi-step, dynamic fields, heavy client validation), still submitting to a Server Action.
 - Vue: `vee-validate` + zod/yup.
-- Schemas live in `*.schema.ts` next to the form, shared with the server action. Errors render inline below the field (`frontend-design` §4.4).
+- Schemas live in `*.schema.ts` next to the form, shared with the server action. Errors render inline next to the field (form states: `frontend-design`).
+- Laravel: a Form Request holds the rules; Blade shows `@error('field')` next to the input and keeps `old('field')` values.
 
 ## 6. Vue: Composition API + composables
 
@@ -115,4 +116,33 @@ Utilities and important hooks/composables → unit tests; main forms → validat
 
 ## 10. TypeScript
 
-`strict: true`; no `any`; explicit types for props, API responses, and domain models; unions over enums when a union suffices; schemas for external data (types do not guard runtime input).
+`strict: true`; avoid `any` (use `unknown` and narrow, or a schema); explicit types for props, API responses and domain models; unions over enums (Node's type stripping and `erasableSyntaxOnly` reject enums); schemas for external data, because types do not guard runtime input. TypeScript 5.9+ baseline.
+
+## 11. Laravel Blade (with Livewire or Alpine)
+
+```
+app/
+├─ Http/Controllers/OrderController.php     # thin: validate (Form Request), authorise (Policy), call an action
+├─ Http/Requests/StoreOrderRequest.php
+├─ Actions/Orders/CreateOrder.php           # business logic, one use case per class
+├─ Livewire/Orders/OrderTable.php           # interactive pieces only (if Livewire is used)
+resources/views/
+├─ layouts/app.blade.php
+├─ components/                              # Blade components: <x-order-status-badge>
+└─ orders/index.blade.php, create.blade.php
+resources/css/app.css, resources/js/app.js  # Vite entry points
+```
+
+Blade components for repeated markup; Livewire or Alpine for the interactive islands; Inertia (Vue or React) when the app is mostly client-side screens. Keep queries out of views: pass prepared data from the controller, and eager-load relations there (`database-design`).
+
+## 12. Plain HTML, CSS and JavaScript sites
+
+```
+index.html, about.html, ...
+assets/css/tokens.css      # custom properties from DESIGN.md
+assets/css/base.css, layout.css, components/*.css
+assets/js/main.js          # small ES modules, one per feature: nav.js, precinct-finder.js
+assets/img/, assets/data/*.json
+```
+
+One ES module per behaviour, loaded with `<script type="module">`; data in JSON files rather than inside scripts; progressive enhancement so content works before JavaScript loads. Reach for a build tool or framework when pages share a lot of repeated markup or the site needs templating.

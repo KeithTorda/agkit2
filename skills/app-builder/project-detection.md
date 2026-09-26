@@ -1,12 +1,15 @@
 # Project Type Detection
 
-> Analyze user requests to determine project type and template.
+Map a request, or an existing folder, to a project type and template. Detect existing projects first.
 
 ## Keyword Matrix
 
 | Keywords | Project Type | Template |
 |----------|--------------|----------|
 | blog, post, article | Blog | astro-static |
+| simple site, brochure, "just HTML", upload to cPanel | Static site | none: plain HTML/CSS/JS with one stylesheet and `DESIGN.md` tokens |
+| barangay, LGU, school, COMELEC portal with admin | Admin portal | nextjs-fullstack, or Laravel (see Existing projects) when hosted on PHP |
+| pos, point of sale, inventory, canteen | POS / inventory | nextjs-fullstack or Laravel; ask about offline use |
 | e-commerce, product, cart, payment | E-commerce | nextjs-saas |
 | dashboard, panel, management | Admin Dashboard | nextjs-fullstack |
 | ai, chat, bot, llm, rag, agent app | AI / Chatbot App | nextjs-fullstack (AI SDK / Streaming) |
@@ -32,7 +35,7 @@
 1. Tokenize user request
 2. Extract keywords
 3. Determine project type
-4. Detect missing information → one round of questions (Questions: follow the global `core-protocol` rule (ask only when the answer changes the build; 1–3 questions in one message for new apps / multi-file work; proceed on simple tasks). Format: `@[skills/brainstorming]`), then `project-planner`
+4. Missing information that changes the build → one message, at most 3 questions, each with a default (`brainstorming` for format). Otherwise state assumptions
 5. Suggest tech stack
 ```
 
@@ -44,7 +47,7 @@ When a request matches multiple keywords (e.g. "a CLI to manage my e-commerce pr
 |---|---|---|
 | 1 | **Platform wins over domain.** A concrete platform (mobile / desktop / cli / extension) outranks a web/business domain (e-commerce, crm, blog). | "CLI to manage e-commerce" → **cli-tool** (e-commerce is the data domain, not the deliverable) |
 | 2 | **Head noun wins.** The keyword describing what is being built (grammatical subject) outranks modifiers. | "a **dashboard** for my Shopify store" → **nextjs-fullstack** (dashboard is the thing; Shopify is context) |
-| 3 | **Still ambiguous → ask.** If no rule breaks the tie, do not guess. Offer the options as one question (it counts toward the `core-protocol` question budget) and let the user choose. | "an app for my shop" → ask: web, mobile, or desktop? |
+| 3 | **Still ambiguous → ask.** If no rule breaks the tie, offer the options as one of your (at most 3) questions, with a default. | "an app for my shop" → ask: web, mobile or desktop? Default: web, works on phones |
 
 ## Existing projects (detect before choosing a template)
 
@@ -52,7 +55,7 @@ When a request matches multiple keywords (e.g. "a CLI to manage my e-commerce pr
 |---|---|---|
 | `next.config.*` | Next.js | Work in the existing structure; backend inside the app is Route Handlers + Server Actions |
 | `nuxt.config.*` | Nuxt | Existing structure; `frontend-specialist` handles Vue/Nuxt when the project already uses it |
-| `composer.json` + `artisan` | Laravel | No template: work in the existing structure. New Laravel app: `laravel new <name>` or `composer create-project laravel/laravel <name>`. Laravel paths per agent: the ownership table in `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/agents/orchestrator.md` |
+| `composer.json` + `artisan` | Laravel | No template: work in the existing structure. New Laravel app: `laravel new <name>` or `composer create-project laravel/laravel <name>`. Laravel paths per agent: the ownership table in `KIT/agents/orchestrator.md` |
 | `pyproject.toml` / `manage.py` | Python (FastAPI / Django) | Existing structure; `python-fastapi` template only for a new service |
 | `app.json` + `expo` dependency, or `pubspec.yaml` | Expo / Flutter | Existing structure; `mobile-developer` |
 

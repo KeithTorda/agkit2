@@ -34,7 +34,7 @@ Block = the component, element = a part of it (`__`), modifier = a variant or st
 | Modifier changes one thing and sits beside the block or element class | `.invoice-table--compact`, `.invoice-table__row--overdue` |
 | JS state is a modifier or `is-*` on the block only | `.order-form--submitting` or `.order-form.is-submitting` |
 | Space between components is an object, not a component rule | `.o-stack > * + * { margin-top: var(--space-md) }` — never `.invoice-table { margin-top }` |
-| A component never styles another component's elements | `.app-sidebar .invoice-table__row` is banned; add a modifier to `invoice-table` |
+| A component does not style another component's elements | Avoid `.app-sidebar .invoice-table__row`; add a modifier to `invoice-table` |
 
 Selectors stay flat: one class, at most one combinator. Specificity is (0,1,0) almost everywhere, so order decides and the layers stay meaningful.
 
@@ -54,15 +54,15 @@ With SCSS, each partial wraps its own body in `@layer components { ... }` (Sass 
 
 ## Migrating an override-heavy stylesheet
 
-1. **Inventory** — list every selector with file and line (`grep -n "{" resources/css`), count `!important` and duplicate selectors (`python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/naming_check.py .`). Screenshot the affected routes at 390 / 768 / 1440 through `/see`.
+1. **Inventory** — list every selector with file and line (`grep -n "{" resources/css`), count `!important` and duplicate selectors (`python "KIT/scripts/naming_check.py" .`). If a dev server runs, screenshot the affected routes at ~390 and ~1440 with `/see` as a baseline.
 2. **Group by component** — assign each rule to a block (`invoice-table`, `app-sidebar`), an object, a token, or "dead". A rule with no owner is dead or belongs to a page-level object.
 3. **Move into layers** — create one partial per block with the BEM names; move the rules in, replacing raw values with tokens; wrap each partial in its `@layer`.
-4. **Delete duplicates** — where two rules set the same property on the same block, keep the one the markup needs and delete the other; remove every `!important` (order makes it unnecessary); delete the override files.
-5. **Verify with `/see`** — the same routes at the same widths, compared with the step-1 screenshots; the unused-CSS check; `naming_check.py` reports zero duplicate classes.
+4. **Delete duplicates** — where two rules set the same property on the same block, keep the one the markup needs and delete the other; remove `!important` where layer order makes it unnecessary (keep, with a comment, only the ones fighting third-party CSS); delete the override files once empty.
+5. **Verify** in proportion to the change: the same routes at the same widths compared with the step-1 screenshots when you took them; the unused-CSS check if the project has one; `naming_check.py` for duplicate classes.
 
 ## Laravel notes
 
 - Vite entry: `resources/css/app.css` (or `app.scss` with `sass` installed) is the only stylesheet in the `vite.config.js` `input` list; Blade layouts load it with `@vite(['resources/css/app.css', 'resources/js/app.js'])`.
 - Blade components map to BEM blocks: `<x-invoice-table>` is `resources/views/components/invoice-table.blade.php` plus `resources/css/components/_invoice-table.scss`, block `.invoice-table`. Props map to modifiers (`compact` → `.invoice-table--compact`).
-- Page views (`resources/views/invoices/index.blade.php`) hold no `<style>` blocks and no `@push('styles')`; a page-only rule is an object or a modifier.
+- Page views (`resources/views/invoices/index.blade.php`) should not carry `<style>` blocks or `@push('styles')` for anything reusable; a page-only rule is usually an object or a modifier.
 - Tokens: `resources/css/settings/_tokens.scss` holds `:root { --color-*; --space-*; --radius-*; ... }` from `DESIGN.md`. No `$scss-variables` for values the browser should own at runtime (theme swaps, dark mode).

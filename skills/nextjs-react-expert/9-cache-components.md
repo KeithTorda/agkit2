@@ -1,6 +1,6 @@
 # Cache Components: `use cache` & `cacheLife`
 
-> Next.js 16 only, with `cacheComponents: true` in `next.config.ts`. On Next.js 15 or earlier, or with the flag off, use the older `fetch` cache options and `export const revalidate`.
+> Next.js 16 with `cacheComponents: true` in `next.config.ts` (this flag replaces the old `experimental.ppr` and `dynamicIO`). On Next.js 15 or earlier, or with the flag off, use the older `fetch` cache options and `export const revalidate`.
 
 ## Core idea
 Next.js 16 moves from segment-level caching (`export const revalidate = 3600`, route-wide `dynamic` settings) to component- and function-level caching: a `'use cache'` directive plus `cacheLife` profiles and `cacheTag` labels. Everything not cached is dynamic and streams inside a Suspense boundary.
@@ -71,18 +71,24 @@ async function getProfile(user: string) {
 ### Revalidation
 In a Server Action:
 ```tsx
+'use server'
 import { revalidateTag, updateTag } from 'next/cache'
 
-export async function updateProfile(user: string, data: any) {
+export async function updateProfile(user: string, data: ProfileInput) {
+  // validate input, check auth and ownership first (3-server, Rule 3.1)
   await db.user.update(...)
 
-  // Choice A: mark stale, serve the old value once more while refreshing (stale-while-revalidate)
-  revalidateTag(`profile-${user}`)
-
-  // Choice B: expire now so the caller reads its own write on the next render
+  // Choice A: read-your-own-writes. Expires the entry now; the next render fetches fresh data.
+  // Server Actions only.
   updateTag(`profile-${user}`)
+
+  // Choice B: stale-while-revalidate. Serves the cached value once more while refreshing.
+  // Next.js 16 takes a cacheLife profile as the second argument; the one-argument form is deprecated.
+  revalidateTag(`profile-${user}`, 'max')
 }
 ```
+
+Use `updateTag` after a user edits their own data (they expect to see the change); use `revalidateTag(tag, profile)` for content others will see eventually, and from Route Handlers such as a CMS webhook. `refresh()` from `next/cache` re-renders uncached data on the current page without touching cached entries. `revalidatePath` still works for path-level invalidation.
 
 ## 4. Partial Prerendering (PPR)
 With `cacheComponents` on, each route is split into a static shell (cached and prerendered) and dynamic holes that stream at request time.

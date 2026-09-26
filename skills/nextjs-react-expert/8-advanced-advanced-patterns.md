@@ -7,7 +7,7 @@
 
 ## Overview
 
-Three rules for specific cases.
+Two rules for specific cases.
 
 ---
 
@@ -52,89 +52,48 @@ Reference: [Initializing the application](https://react.dev/learn/you-might-not-
 
 ---
 
-## Rule 8.2: Store Event Handlers in Refs
+## Rule 8.2: `useEffectEvent` for Callbacks Read Inside Effects
 
 **Impact:** LOW  
-**Tags:** advanced, hooks, refs, event-handlers, optimization  
+**Tags:** advanced, hooks, useEffectEvent, refs
 
-Store callbacks in refs when used in effects that shouldn't re-subscribe on callback changes.
+When an effect calls a callback (a prop handler, a logger) that should always see the latest values but should not re-run the effect when it changes, wrap it in `useEffectEvent` (stable in React 19.2).
 
-**Incorrect (re-subscribes on every render):**
+**Incorrect (re-subscribes or restarts whenever the parent passes a new function):**
 
 ```tsx
-function useWindowEvent(event: string, handler: (e) => void) {
+function useWindowEvent(event: string, handler: (e: Event) => void) {
   useEffect(() => {
     window.addEventListener(event, handler)
     return () => window.removeEventListener(event, handler)
   }, [event, handler])
 }
-```
 
-**Correct (stable subscription):**
-
-```tsx
-function useWindowEvent(event: string, handler: (e) => void) {
-  const handlerRef = useRef(handler)
+function SearchInput({ onSearch }: { onSearch: (q: string) => void }) {
+  const [query, setQuery] = useState('')
   useEffect(() => {
-    handlerRef.current = handler
-  }, [handler])
-
-  useEffect(() => {
-    const listener = (e) => handlerRef.current(e)
-    window.addEventListener(event, listener)
-    return () => window.removeEventListener(event, listener)
-  }, [event])
+    const timeout = setTimeout(() => onSearch(query), 300)
+    return () => clearTimeout(timeout)
+  }, [query, onSearch])   // restarts the debounce when onSearch changes
 }
 ```
 
-**Preferred on React 19.2+: `useEffectEvent` (stable):**
+**Correct:**
 
 ```tsx
-import { useEffectEvent } from 'react'
+import { useEffect, useEffectEvent, useState } from 'react'
 
-function useWindowEvent(event: string, handler: (e) => void) {
+function useWindowEvent(event: string, handler: (e: Event) => void) {
   const onEvent = useEffectEvent(handler)
-
   useEffect(() => {
     window.addEventListener(event, onEvent)
     return () => window.removeEventListener(event, onEvent)
   }, [event])
 }
-```
-
-`useEffectEvent` gives the same result with less code: a stable function that always calls the latest handler. Effect Events must be called from inside effects, not passed to child components or other hooks.
-
----
-
-## Rule 8.3: useEffectEvent for Stable Callback Refs
-
-**Impact:** LOW  
-**Tags:** advanced, hooks, useEffectEvent, refs, optimization  
-
-Access latest values in callbacks without adding them to dependency arrays. Prevents effect re-runs while avoiding stale closures.
-
-**Incorrect (effect re-runs on every callback change):**
-
-```tsx
-function SearchInput({ onSearch }: { onSearch: (q: string) => void }) {
-  const [query, setQuery] = useState('')
-
-  useEffect(() => {
-    const timeout = setTimeout(() => onSearch(query), 300)
-    return () => clearTimeout(timeout)
-  }, [query, onSearch])
-}
-```
-
-**Correct (React 19.2+ `useEffectEvent`):**
-
-```tsx
-import { useEffectEvent } from 'react';
 
 function SearchInput({ onSearch }: { onSearch: (q: string) => void }) {
   const [query, setQuery] = useState('')
   const onSearchEvent = useEffectEvent(onSearch)
-
   useEffect(() => {
     const timeout = setTimeout(() => onSearchEvent(query), 300)
     return () => clearTimeout(timeout)
@@ -142,3 +101,4 @@ function SearchInput({ onSearch }: { onSearch: (q: string) => void }) {
 }
 ```
 
+Effect Events are called only from inside effects; do not pass them to child components or other hooks. On React versions before 19.2, the older pattern is a ref updated in an effect (`handlerRef.current = handler`) and read inside the listener.

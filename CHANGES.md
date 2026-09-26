@@ -1,5 +1,50 @@
 # AG Kit v2 — Changelog
 
+## v2.5.0 (2026-09-27) — Working model rewrite, /proplan, native subagents
+
+### Why
+The owner rated v2.2 4/10. It was too strict and generic on design, ran gates on every task and had no professional planning flow. Plan: `PLAN-v2.5.md`.
+
+### Rules (always-on 75 KB → 12 KB)
+- `core-protocol`: rewritten as a loop: understand, right-size, ask only when blocked, build, verify by risk, report. It defines `KIT` once and drops the mandatory plan line.
+- `code-rules`: a risk-tier verification table replaces the required gates. Fix-at-source is now a strong default, and overrides are allowed with a comment when the source is outside your control. Naming is a convention, not a gate.
+- `design-rules`: merges the two old design rules. DESIGN.md and the brief win. Anti-template is guidance. Accessibility and honest copy stay firm, and the rule contains no hex values.
+- `engineering-excellence`, `universal-rules`, `request-routing`: rewritten; `/proplan` and the new agents added.
+- `copy.md` (40 KB, always on) and `design.md` removed. The installer deletes them.
+
+### Agents (17 → 20)
+- All agents use the Antigravity 2.0 native subagent frontmatter (`model: inherit`, `subagent: true`, `kit-skills`), with no `tools:` field.
+- New sections: Role, How you work, As a subagent, and a proportional Done.
+- New agents: `solution-architect`, `ux-architect`, `plan-reviewer`.
+
+### Skills (49 → 51)
+- New `/proplan`: phased planning with subagents, 17 document templates, a café POS example, update and lite modes, and handoff to `/orchestrate`.
+- New `anti-template`: the 35-part design and copy reference, framed as guidance.
+- frontend-design:
+  - 2-3 design directions offered when the brief is open
+  - a `directions.md` style menu
+  - new style files: style-dark-dashboard (the old high-contrast recipe, now optional) and style-glass-aurora
+- parallel-agents and orchestrate rebuilt around `invoke_subagent`. `/orchestrate docs/proplan/<slug> M1` runs one milestone and marks tasks done only with evidence.
+- All skills: `KIT/` paths, gate wording replaced with tiers, facts updated to the September 2026 baseline, duplication cut. The mobile-design skill went from about 109 KB to 46 KB.
+
+### Scripts
+- `checklist.py`: `--quick` (default: changed files) and `--full`. Only security high+, type errors and failing tests are required failures; `--strict` makes everything fail; `--json` output.
+- `css_audit.py` and `naming_check.py`: advisory by default, with fewer false positives (vendor files, Tailwind `@theme`, CSS modules).
+- `validate_kit.py`: checks the v2.5 schema and the always-on budget. `proplan_check.py` is new.
+- All 17 skill scripts:
+  - Fixed: masked secrets and working SQL-injection checks in security_scan, correct label detection in accessibility_checker, and UTF-16 lock files.
+  - Style opinions are now info level only.
+  - Common behaviour: `--json`, exit codes 0/1/2, optional tools reported as NOT RUN.
+- Tests: 22 → 66, and they run without `.git`.
+
+### Install
+- Clean plugin install with an explicit rule list.
+- Stale rules removed.
+- Paths quoted.
+- Validation runs against the installed layout.
+
+---
+
 ## v2.2.2 (2026-09-08) — Document Generation Gate, CSS Invariant Audit & Verification Harness
 
 ### 1. Document Generation Gate & Verification (`/see-doc`, `document-generation`)

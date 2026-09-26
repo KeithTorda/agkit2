@@ -1,7 +1,7 @@
 ---
 name: seo-fundamentals
-description: Search and AI-answer visibility for web pages - technical SEO, E-E-A-T, Core Web Vitals, structured data, and generative engine optimisation (GEO) for ChatGPT, Claude, Perplexity, and Gemini, plus AI-crawler access rules. Use when adding meta tags, sitemaps, or schema, fixing Core Web Vitals, writing content meant to rank or be cited, or configuring robots.txt for AI bots.
-version: 2.0.0
+description: Search and AI-answer visibility for web pages - technical SEO, E-E-A-T, Core Web Vitals (LCP, INP, CLS), structured data, and generative engine optimisation (GEO) for ChatGPT, Claude, Perplexity, and Gemini, plus AI-crawler access rules. Use when adding meta tags, sitemaps, or schema, fixing Core Web Vitals, writing content meant to rank or be cited, or configuring robots.txt for AI bots.
+version: 2.5.0
 ---
 
 # SEO and GEO Fundamentals
@@ -37,7 +37,7 @@ Next.js: use the `metadata` export or `generateMetadata()` per route, `app/sitem
 | INP | under 200 ms | Responsiveness to interaction |
 | CLS | under 0.1 | Visual stability |
 
-Measure with PageSpeed Insights (field data) and Lighthouse 12 (`@[skills/performance-profiling]`); fix in the order LCP, CLS, INP. Preload the hero image and fonts, reserve space for media, and keep third-party scripts off the critical path.
+Measure with PageSpeed Insights (field data) and Lighthouse (`@[skills/performance-profiling]`); fix in the order LCP, CLS, INP. Preload the hero image and fonts, reserve space for media, and keep third-party scripts off the critical path.
 
 ## 3. Content that ranks and gets cited (E-E-A-T)
 
@@ -88,12 +88,12 @@ Search Console (indexing, queries, Core Web Vitals field data), analytics with U
 
 ## 7. Scripts (advisory)
 
-Both scripts are heuristic and never block a task on their own; review their findings before changing content.
+Both scripts are heuristic; review their findings before changing content.
 
-- `./scripts/seo_checker.py <project>` scans HTML/JSX/TSX pages for a title, meta description, Open Graph tags, multiple `h1`s, and images without `alt`. It also flags `alt=""`; treat that as informational for decorative images.
-- `./scripts/geo_checker.py <project>` scores public pages on citation readiness: single `h1`, `h2` structure, JSON-LD and recognisable schema entities, author and date on articles, and bonus points for FAQ sections, lists, tables, data-backed claims, and definition phrasing. Average score below 60 returns exit code 1.
+- `./scripts/seo_checker.py <project-or-file>` scans HTML, PHP/Blade, Astro, Vue, Svelte and Next.js pages. Error: a document or Next.js root layout with no title. Warning: missing meta description, page marked `noindex`, more than one `h1`. Info: missing Open Graph tags or canonical link, title/description length, Next.js pages without their own metadata, no `robots.txt` or sitemap. Image `alt` and `<html lang>` are left to `accessibility_checker.py` (`frontend-design`). Flags: `--json`, `--verbose`, `--fail-on error|warning|never` (default `error`; exit 1 at or above it).
+- `./scripts/geo_checker.py <project>` is advisory. It scores route entry points (HTML, Next.js app/pages routes, Astro/Vue/Svelte pages, Blade views) on citation readiness: one `h1`, `h2` sections, JSON-LD, author and date on articles, FAQ/list/table content, direct-answer phrasing. It follows local imports (`content.tsx`, `*.mdx`) so thin route wrappers are scored on the content they render, preferring the English locale; docs, tests, layouts and components are not scored. Low scores are info, and it exits 0 unless you pass `--min-score N` (exit 1 when the average is below N). Flags: `--json`, `--verbose` (list passed checks too).
 
 ```powershell
-python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/seo-fundamentals/scripts/seo_checker.py .
-python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/seo-fundamentals/scripts/geo_checker.py .
+python "KIT/skills/seo-fundamentals/scripts/seo_checker.py" .
+python "KIT/skills/seo-fundamentals/scripts/geo_checker.py" .
 ```

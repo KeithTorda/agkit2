@@ -1,7 +1,7 @@
 ---
 name: shell-ops
 description: Shell and server cheat sheet - Bash and PowerShell 7 equivalents, safe defaults for scripts and process handling, Windows 11 host notes (PowerShell 7, PortableGit), and Linux server basics (systemd, nginx, ufw, SSH keys, backups). Use when writing or translating shell commands and scripts, running commands on the user's Windows host or a Linux server, or setting up and operating a small server.
-version: 2.0.0
+version: 2.5.0
 ---
 
 # Shell Ops
@@ -95,7 +95,7 @@ Processes and networking (both):
 
 ## 3. Windows host notes
 
-- Run project commands from `pwsh`, not `cmd.exe`. `python` and `node` resolve from PATH; kit scripts run as `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/checklist.py .`.
+- Run project commands from `pwsh`, not `cmd.exe`. `python` and `node` resolve from PATH; kit scripts run as `python "KIT/scripts/checklist.py" .` (with `KIT` expanded, per `core-protocol`).
 - PortableGit provides `git` plus a Bash (`git-bash`) with `ssh`, `scp`, `tar`, `curl`; use it when a tool only ships Bash instructions. `sh -c` inside PowerShell needs Git's `sh.exe` on PATH.
 - npm scripts run through `cmd`; a `--` is required before extra flags: `npm run build -- --debug`.
 - Line endings: set `git config core.autocrlf input` for repos that deploy to Linux; keep kit files LF.

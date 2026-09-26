@@ -1,94 +1,71 @@
 # Architecture Examples
 
-> Real-world architecture decisions by project type.
+Reference decisions by project type. Use them as starting points; the project's constraints decide.
 
----
-
-## Example 1: MVP E-commerce (Solo Developer)
+## 1. LGU, barangay or school portal
 
 ```yaml
 Requirements:
-  - <1000 users initially
-  - Solo developer
-  - Fast to market (8 weeks)
-  - Budget-conscious
-
-Architecture Decisions:
-  App Structure: Monolith (simpler for solo)
-  Framework: Next.js (full-stack, fast)
-  Data Layer: Prisma direct (no over-abstraction)
-  Authentication: JWT (simpler than OAuth)
-  Payment: Stripe (hosted solution)
-  Database: PostgreSQL (ACID for orders)
-
-Trade-offs Accepted:
-  - Monolith → Can't scale independently (team doesn't justify it)
-  - No Repository → Less testable (simple CRUD doesn't need it)
-  - JWT → No social login initially (can add later)
-
-Future Migration Path:
-  - Users > 10K → Extract payment service
-  - Team > 3 → Add Repository pattern
-  - Social login requested → Add OAuth
+  - Public information pages, announcements, downloadable forms, a lookup (for example a precinct finder)
+  - A few staff editors, traffic spikes on announcement days
+  - Cheap hosting, maintained by one developer
+Decisions:
+  Structure: static-first site (Astro or plain HTML) or Next.js with static rendering
+  Data: content in Markdown/JSON in the repo, or a small SQLite/Postgres table for lookups
+  Editing: Git-based edits by the developer, or a headless CMS only if staff must edit
+  Hosting: static host or CDN (Vercel, Netlify, Cloudflare Pages)
+Trade-offs accepted:
+  - No admin panel at first -> edits go through the developer
+  - Lookup data refreshed by import, not live
+Revisit when: staff need to publish without the developer; the lookup needs live data
 ```
 
----
-
-## Example 2: SaaS Product (5-10 Developers)
+## 2. POS and inventory for one business or school canteen
 
 ```yaml
 Requirements:
-  - 1K-100K users
-  - 5-10 developers
-  - Long-term (12+ months)
-  - Multiple domains (billing, users, core)
-
-Architecture Decisions:
-  App Structure: Modular Monolith (team size optimal)
-  Framework: NestJS (modular by design)
-  Data Layer: Repository pattern (testing, flexibility)
-  Domain Model: Partial DDD (rich entities)
-  Authentication: OAuth + JWT
-  Caching: Redis
-  Database: PostgreSQL
-
-Trade-offs Accepted:
-  - Modular Monolith → Some module coupling (microservices not justified)
-  - Partial DDD → No full aggregates (no domain experts)
-  - RabbitMQ later → Initial synchronous (add when proven needed)
-
-Migration Path:
-  - Team > 10 → Consider microservices
-  - Domains conflict → Extract bounded contexts
-  - Read performance issues → Add CQRS
+  - Cashier sales, deliveries, stock levels, daily reports, receipts
+  - 2-10 staff with roles; money and stock must never drift
+  - Internet can drop during a sale
+Decisions:
+  Structure: monolith - Laravel 12 (Blade/Livewire or Inertia) or Next.js 16 full-stack
+  Database: Postgres 17/18 or MySQL 8.4; money as integer centavos or NUMERIC
+  Integrity: sale + stock movement + ledger in one transaction; stock as a movements table
+             with a derived balance; atomic decrement guarded by a CHECK or WHERE qty >= n
+  Audit: append-only audit log of who changed what
+  Offline: if required, local queue of sales with client-generated idempotency keys
+  Hosting: one VPS or managed platform + managed database, daily backups
+Trade-offs accepted:
+  - One app, one database -> simple to run, scales to many terminals for one client
+  - No separate reporting store -> reports use indexed queries and views
+Revisit when: several branches need independent operation; reporting slows sales
 ```
 
----
-
-## Example 3: Enterprise (100K+ Users)
+## 3. SaaS product (several clients, small team)
 
 ```yaml
 Requirements:
-  - 100K+ users
-  - 10+ developers
-  - Multiple business domains
-  - Different scaling needs
-  - 24/7 availability
+  - 1K-100K users across tenants; billing, users, core domain
+  - 2-10 developers, long-lived
+Decisions:
+  Structure: modular monolith (modules per domain with explicit public functions)
+  Stack: Next.js 16 + Postgres, or Next.js front + Hono API when mobile clients also consume it
+  Tenancy: tenant_id on every tenant table + row-level security or scoped queries, decided in an ADR
+  Auth: session cookies (Better Auth or Clerk); OAuth/OIDC for social or enterprise login
+  Async: background jobs for e-mail, exports, webhooks
+Trade-offs accepted:
+  - Shared database -> cheaper and simpler; per-tenant isolation relies on disciplined scoping
+Revisit when: a tenant needs data residency or isolation; one module needs separate scaling
+```
 
-Architecture Decisions:
-  App Structure: Microservices (independent scale)
-  API Gateway: Kong/AWS API GW
-  Domain Model: Full DDD
-  Consistency: Event-driven (eventual OK)
-  Message Bus: Kafka
-  Authentication: OAuth + SAML (enterprise SSO)
-  Database: Polyglot (right tool per job)
-  CQRS: Selected services
+## 4. Larger platform (many teams, 100K+ active users)
 
-Operational Requirements:
-  - Service mesh (Istio/Linkerd)
-  - Distributed tracing (Jaeger/Tempo)
-  - Centralized logging (ELK/Loki)
-  - Circuit breakers (Resilience4j)
-  - Kubernetes/Helm
+```yaml
+Decisions:
+  Structure: modular monolith first; extract services along proven boundaries
+  Communication: synchronous APIs inside a request; events (a managed queue or Kafka) between domains
+  Data: database per service only where the boundary is real
+  Operations: tracing, central logs, dashboards, automated deploys and rollbacks
+Trade-offs accepted:
+  - Eventual consistency between domains -> needs idempotent consumers and clear ownership
 ```

@@ -1,14 +1,14 @@
 ---
 name: css-architecture
-description: "How styles are organised so a change lands in one place — one token source, cascade layers, co-located component styles, the override ban as a method, naming, dead-CSS removal; the Tailwind v4 mapping and a plain CSS/SCSS mode for Laravel Blade. Use when adding, moving, or fixing CSS, creating a stylesheet, or when a fix would otherwise add an override."
-version: 1.0.0
+description: "How styles are organised so a change lands in one place: one token source, cascade layers, co-located component styles, fixing the owning rule instead of overriding it, naming, dead-CSS removal; Tailwind v4 and a plain CSS/SCSS mode for Laravel Blade. Use when adding, moving or fixing CSS, creating a stylesheet, or when a fix is about to become an override."
+version: 2.5.0
 ---
 
 # CSS Architecture
 
 > Every style has exactly one home. If you cannot say where a rule belongs, you are about to create an override.
 
-Before writing a rule, name its home: a token (`@theme`), base, a shared component class, this component, or this page. No home means the rule patches a symptom — find the rule that owns the behaviour and change that one. The override ban is policy (`code-rules` "Fix at the source"); this file is the method.
+Before writing a rule, name its home: a token (`@theme`), base, a shared component class, this component, or this page. No home usually means the rule patches a symptom: find the rule that owns the behaviour and change that one. The policy is `code-rules` "Fix at the source"; this file is the method. The project's existing structure wins over this layout; follow it and improve it where you touch it.
 
 ## File structure (Tailwind v4 / Next.js)
 
@@ -28,7 +28,7 @@ components/
 - `globals.css` holds four things: `@import "tailwindcss"`, `@theme { tokens }` (values from `DESIGN.md`), `@layer base { resets, element defaults }`, `@layer components { the few real shared classes }`. Nothing else is global.
 - Component styles live with the component: `className` first; a co-located `<component>.module.css` only for what Tailwind cannot express (complex keyframes, skinning a third-party widget).
 - Page-specific rules live in the page file. A rule two pages need is a component or a token, not a page rule.
-- Never create `overrides.css`, `fixes.css`, `custom.css`, `theme-overrides.css`. The file's existence is the smell: every rule in it has an owner that already exists.
+- Avoid creating `overrides.css`, `fixes.css`, `custom.css`, `theme-overrides.css`. Such a file tends to grow into a second source of truth: nearly every rule in it has an owner that already exists. If the project already has one, move rules out of it as you touch them.
 
 ## Cascade layers, not specificity wars
 
@@ -49,20 +49,20 @@ Tailwind v4 orders its layers `theme, base, components, utilities`. Put custom C
 2. Fix that cause in the rule that owns the behaviour.
 3. Delete the rule you were about to duplicate. One rule per behaviour.
 
-`!important` has one allowed home: a Tailwind `!` utility (`w-full!` — v4 puts the mark at the end) on a third-party widget that ships unlayered CSS, with a comment naming the widget: `{/* react-datepicker sets inline widths */}`.
+`!important` is a last resort, not a crime. The usual legitimate case: a third-party widget that ships unlayered CSS or sets inline styles you cannot configure. Use the narrowest form (a Tailwind v4 `!` utility such as `w-full!`, or one declaration on one selector) with a comment naming the source: `{/* react-datepicker sets inline widths */}`. Utilities meant to always win (`.u-hidden`) are the other accepted use.
 
 ## Naming (the CSS half; files and exports are in `clean-code`)
 
-- Classes are component-prefixed BEM: `.invoice-table`, `.invoice-table__row`, `.invoice-table--compact`. Global `.container .wrapper .card .header .content .box .item .row` are banned; they collide within a month.
+- Follow the project's naming. In new plain-CSS code, prefer component-prefixed BEM: `.invoice-table`, `.invoice-table__row`, `.invoice-table--compact`. Bare global names (`.container .wrapper .card .header .content .box .item .row`) tend to collide; avoid adding new ones (framework classes such as Bootstrap's `.container` are fine).
 - Custom properties: `--<component>-<property>` for component-local values (`--invoice-table-gap`); `--color-* --space-* --radius-* --shadow-* --font-* --motion-*` for tokens, and only tokens `DESIGN.md` defines.
 - No raw hex or px in a component when a token exists. A value used twice is a missing token (`tailwind-patterns` §2).
-- Check: `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/naming_check.py .`
+- Check (advisory; `--strict` to fail): `python "KIT/scripts/naming_check.py" .`
 
 ## Dead CSS
 
 - Replace a rule or a class: delete the old one in the same change, and grep the markup for the old class name before closing the task.
 - Run the project's unused-CSS check when one exists (PurgeCSS, `knip`, a DevTools coverage pass); report what it removed.
-- A stylesheet that only grows is unmaintained. Each change leaves it the same size or smaller.
+- A stylesheet that only grows is unmaintained. Aim for each fix to leave it the same size or smaller.
 
 ## Plain CSS / SCSS mode (Laravel Blade, non-Tailwind)
 
@@ -88,7 +88,7 @@ RIGHT (fix the one rule)
 - **A second token list** — values in `tailwind.config.js`, a `theme.ts`, or a components file beside `@theme`. One source; the others drift within a sprint.
 - **Page-specific overrides of a shared component** — `.checkout .btn { }` is a variant in disguise; add `.btn--wide` or a `variant` prop to the component.
 - **Inline `style=` for layout** — invisible to the theme, the layer order, and the next reader. Inline only for runtime values (`style={{ '--index': i }}`).
-- **`!important` to beat a layer** — you found the layer order and fought it. Move the rule into the right layer.
+- **`!important` to beat a layer**: you found the layer order and fought it. Move the rule into the right layer; keep `!important` for sources you cannot change, with a comment.
 
 ## Boundaries
 
@@ -106,10 +106,11 @@ The browser shows you that text is the wrong colour. This shows you *why*, with 
 before you render anything:
 
 ```bash
-python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/css_audit.py .
+python "KIT/scripts/css_audit.py" .            # advisory report
+python "KIT/scripts/css_audit.py" . --strict   # exit 1 on errors (uncommented !important counts), as a gate
 ```
 
-It reads every `.css`/`.scss` plus `<style>` blocks and `style=""` attributes, and fails on:
+It reads every `.css`/`.scss` plus `<style>` blocks and `style=""` attributes, and reports:
 
 - **token-collision** — one custom property defined more than once with different values outside a
   theme selector. Whichever file loads last silently wins, so the colour changes with import order.
@@ -119,9 +120,9 @@ It reads every `.css`/`.scss` plus `<style>` blocks and `style=""` attributes, a
   declaration is dropped and the element inherits, which is how text becomes invisible.
 - **contrast** — a rule setting both `color` and a background below 4.5:1 (3:1 counts as an error).
   Values resolve through `var()` when the token has one unambiguous definition.
-- **important** — `!important` on a colour: an override, not a fix.
+- **important** — `!important` on a colour: check whether the owning rule should change instead; fine with a comment when the source is third-party.
 - **inline-style** / **cross-file-override** — a colour set in a `style=""` attribute, or the same
   property on the same selector in more than one file. Both decide the rendered colour by load order
   rather than by ownership.
 
-Run it before `/see`, not after: a render tells you something is wrong, this tells you which line.
+Useful before `/see`: a render tells you something is wrong, this tells you which line. It sees declared pairs only; colours over images or translucent layers need the rendered check.

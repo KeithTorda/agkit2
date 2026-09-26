@@ -1,6 +1,6 @@
 # Project Scaffolding
 
-> Directory structure and core files for new projects.
+Directory structure and core files for a new Next.js full-stack project. Other stacks: their `templates/<name>/TEMPLATE.md`.
 
 ---
 
@@ -29,12 +29,14 @@ project-name/
 │   ├── lib/                        # Shared utilities & server-only logic
 │   │   ├── db.ts                   # Prisma singleton client (Prisma 7)
 │   │   ├── dal.ts                  # Data Access Layer (server-only, DTOs)
-│   │   └── utils.ts                # Helper functions
+│   │   ├── format-currency.ts      # Domain-named helpers, one concern per file
+│   │   └── utils.ts                # Only `cn()` and similar one-liners
 │   │
 │   ├── actions/                    # Server Actions (mutations)
 │   │
 │   └── types/                      # Global TypeScript types
 │
+├── prisma.config.ts                # Prisma 7 CLI config (schema path, seed, datasource URL)
 ├── prisma/
 │   ├── schema.prisma
 │   ├── migrations/
@@ -42,7 +44,7 @@ project-name/
 │
 ├── public/
 ├── proxy.ts                        # Network boundary (auth, redirects)
-├── DESIGN.md                       # Design source-of-truth tokens & rationale (required before UI)
+├── DESIGN.md                       # Design tokens and direction; written before UI code
 ├── .env.example
 ├── .env.local
 ├── package.json
@@ -69,14 +71,15 @@ project-name/
 | File | Purpose |
 |------|---------|
 | `proxy.ts` | Next.js 16 network boundary logic (auth, redirects). Renamed from `middleware.ts`, runs on Node.js runtime |
-| `DESIGN.md` | Single source of truth for visual tokens (YAML frontmatter) & rationale (required before UI; see `@[skills/design-spec]`) |
+| `DESIGN.md` | Source of truth for visual tokens and style direction; written before UI code (`design-spec`) |
 | `package.json` | Dependencies |
 | `next.config.ts` | Next.js config (TypeScript) |
 | `tsconfig.json` | TypeScript + path aliases (`@/*`) |
 | `.env.example` | Environment template |
 | `README.md` | Project documentation |
 | `.gitignore` | Git ignore rules |
-| `prisma/schema.prisma` | Database schema |
+| `prisma/schema.prisma` | Database schema; Prisma 7 uses the `prisma-client` generator with an explicit `output` |
+| `prisma.config.ts` | Prisma 7 config; the client is created with a driver adapter (`@prisma/adapter-pg`) in `lib/db.ts` |
 | `src/app/globals.css` | Tailwind v4 config via `@theme` (no `tailwind.config.js`) |
 
 
@@ -109,5 +112,5 @@ project-name/
 | Server action (mutation) | `actions/` |
 | Data fetching / DB query | `lib/dal.ts` |
 | Prisma client | `lib/db.ts` |
-| Helper function | `lib/utils.ts` |
+| Helper function | `lib/<domain>.ts` (`format-currency.ts`), not a growing `utils.ts` |
 | Auth / redirect logic | `proxy.ts` |

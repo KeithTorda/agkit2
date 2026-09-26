@@ -1,4 +1,5 @@
 {
   "name": "ag-kit-v2",
-  "description": "AG Kit v2 - specialist agents, skills (slash commands), and verification scripts for Antigravity. Rules live in ~/.gemini/config/rules; entry file ~/.gemini/GEMINI.md."
+  "version": "2.5.0",
+  "description": "AG Kit v2.5 for Google Antigravity - 20 specialist agents (native subagents), 51 skills including /proplan, risk-tiered verification, design guidance instead of bans. Rules install to ~/.gemini/config/rules."
 }

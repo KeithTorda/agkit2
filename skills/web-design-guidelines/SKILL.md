@@ -1,7 +1,7 @@
 ---
 name: web-design-guidelines
 description: Reviews built web UI code against Vercel's Web Interface Guidelines (accessibility, interaction, forms, performance, copy) by fetching the current rule set live, with a local fallback floor when the fetch is unavailable, and reporting file:line findings. Use after UI code exists, when asked to review UI, check accessibility, audit design or UX, or check a site against best practices. Not for designing new UI (frontend-design).
-version: 2.0.0
+version: 2.5.0
 ---
 
 # Web Interface Guidelines review
@@ -10,10 +10,10 @@ Audit-only skill. It fetches the live rule set and applies it to the files under
 
 ## Procedure
 
-1. **Fetch the current guidelines** with the session's fetch or browsing tool: `https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md` (last verified 2026-09-05). This is a live external dependency and can move: if it 404s, returns non-markdown, or no fetch tool is available, say so and fall back to the floor below plus `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/frontend-design/scripts/accessibility_checker.py <dir>` and `frontend-design` §10. Do not reconstruct the guideline text from memory — audit against the floor and say which source you used.
+1. **Fetch the current guidelines** with the session's fetch or browsing tool: `https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md` (last verified 2026-09-05). This is a live external dependency and can move: if it 404s, returns non-markdown, or no fetch tool is available, say so and fall back to the floor below plus `python "KIT/skills/frontend-design/scripts/accessibility_checker.py" <dir>` and `frontend-design` §10. Do not reconstruct the guideline text from memory — audit against the floor and say which source you used.
 2. Read the files or pattern the user named; if none, ask which files to review (one question).
 3. Apply every rule in the fetched document (or the floor, on fallback) to those files, leading with the highest-value checks below.
-4. Report findings in the terse `file:line` format the fetched document specifies. Findings are advisory (see the auto-fix policy in the global `code-rules` rule): report them, ask before changing design or scope.
+4. Report findings in the terse `file:line` format the fetched document specifies. Findings are advisory except accessibility failures, which `design-rules` treats as firm: report everything, fix accessibility and clear bugs when asked to fix, and ask before changing design direction or scope. A style the project's `DESIGN.md` chose on purpose (glass, gradients, glow, dense layout) is not a finding by itself; check that it stays accessible.
 
 ## Highest-value checks (lead with these; the floor when the live doc is unavailable)
 
@@ -28,5 +28,6 @@ The live guidelines are broad; these catch the most real defects. Thresholds and
 | Skill | Role |
 |---|---|
 | `design-spec` | Before coding: the project's `DESIGN.md` tokens |
-| `frontend-design` | Before and during coding: design read, dials, layout / motion / copy defaults, anti-default heuristics, mechanical pre-flight |
+| `frontend-design` | Before and during coding: design read, directions, dials, layout / motion / copy craft, defaults to question |
+| `anti-template` | Any time: defaults that make work look generated (part 35 is the review checklist) |
 | `web-design-guidelines` (this) | After coding: audit against the live Web Interface Guidelines |

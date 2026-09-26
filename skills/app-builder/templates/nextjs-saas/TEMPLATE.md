@@ -1,6 +1,7 @@
 ---
 name: nextjs-saas
 description: Next.js SaaS template. React 19, Server Actions, Prisma 7, Stripe, Resend.
+version: 2.5.0
 ---
 
 # Next.js SaaS Template
@@ -15,7 +16,7 @@ description: Next.js SaaS template. React 19, Server Actions, Prisma 7, Stripe, 
 | Runtime | Node.js | 24 LTS |
 | Auth | Better Auth or Clerk; Auth.js for existing projects | Passkeys + OAuth; Lucia is deprecated |
 | Payments | Stripe API | Latest |
-| Database | PostgreSQL | Prisma 7 (Rust-free client, edge-capable) |
+| Database | PostgreSQL | Prisma 7 (Rust-free client, driver adapter, `prisma.config.ts`) |
 | Email | Resend | React Email |
 | UI | Tailwind CSS | v4 (CSS-first, no config file) |
 | Lint | ESLint 9 flat config | `eslint .`; `next lint` no longer exists |
@@ -49,7 +50,7 @@ project-name/
 │   │   ├── data/        # Data Access Layer (server-only reads for Server Components)
 │   │   └── stripe.ts    # Stripe Singleton
 │   └── app/globals.css  # Tailwind v4 imports (@theme in CSS)
-├── DESIGN.md            # Visual source of truth (required before UI)
+├── DESIGN.md            # Visual source of truth (written before UI code)
 └── package.json
 ```
 
@@ -102,7 +103,7 @@ project-name/
 
 2. Install core libraries (auth package per the chosen library: `better-auth` or `@clerk/nextjs`; `next-auth` only in an existing Auth.js project):
    ```bash
-   npm install stripe resend @prisma/client zod
+   npm install stripe resend @prisma/client @prisma/adapter-pg zod
    npm install -D prisma babel-plugin-react-compiler
    ```
    Then set `reactCompiler: true` in `next.config.ts` (compiler-first when the React Compiler is enabled; the memo rule is in `nextjs-react-expert`).

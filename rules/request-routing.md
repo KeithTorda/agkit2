@@ -1,44 +1,46 @@
 ---
 name: request-routing
-version: 2.0.0
+version: 2.5.0
 priority: P0
 trigger: always_on
-description: Classifies every request and routes it to the right specialist agent or slash command before any work starts.
+description: Which agent or command handles a request. Agents are KIT/agents/<name>.md and can also run as native subagents.
 ---
 
 # Request Routing
 
-## 1. Classify
-| Type | Signals | Response |
-|---|---|---|
-| QUESTION | what is, how does, explain | Text answer; no agent, no plan file |
-| SURVEY | analyze, overview, map the codebase | `explorer-agent`, report only |
-| SIMPLE CODE | add / change in one file, UI tweak | Specialist, **Build** steps, proceed directly |
-| REPAIR | fix, broken, wrong, not working, out of place, misaligned, overlapping, cut off, regression | Specialist, **Repair** steps; UI → `/fix-ui` |
-| COMPLEX CODE | build / implement / refactor across files | Specialist, plan file required |
-| NEW APP | new app, from scratch, multi-page | `/create` → `project-planner` → `orchestrator` |
-| MULTI-DOMAIN | frontend + backend + data in one task | `orchestrator` |
-| COMMAND | `/plan` `/debug` `/test` `/verify` `/see` `/see-doc` `/fix-ui` `/review` `/deploy` `/orchestrate` `/enhance` `/brainstorm` `/remember` `/status` `/create` | Read `skills/<command>/SKILL.md`, follow its Steps |
-
-## 2. Pick the agent (`C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/agents/<name>.md`)
-| Agent | Triggers |
+## Commands (`KIT/skills/<command>/SKILL.md`)
+| Command | Use |
 |---|---|
-| frontend-specialist | component, react, next.js, vue, nuxt, blade, livewire, ui, css, tailwind, page |
-| mobile-developer | mobile, react native, expo, flutter, ios, android |
-| backend-specialist | backend, api, endpoint, service, auth, webhook, queue, laravel, php, artisan, eloquent, export, pdf, excel, xlsx, csv, docx, report file, receipt, invoice, certificate, payslip |
-| database-architect | database, sql, schema, migration, query, prisma, drizzle, eloquent schema |
-| test-engineer | test, spec, coverage, e2e, playwright, vitest, flaky |
-| debugger | bug, error, crash, stack trace, not working, regression |
-| security-auditor | security, vulnerability, owasp, xss, injection, secrets |
-| penetration-tester | exploit, attack simulation, red team (authorized only) |
-| performance-optimizer | performance, slow, bundle size, lighthouse, web vitals |
-| seo-specialist | seo, geo, ranking, meta tags, structured data, sitemap |
-| devops-engineer | deploy, ci/cd, docker, server, release, rollback |
-| project-planner | plan, roadmap, scope, milestones, task breakdown |
-| product-manager | requirements, user story, prd, backlog, mvp, prioritize |
-| documentation-writer | readme, api docs, changelog, docstring, adr |
-| code-archaeologist | legacy, undocumented, modernize, brownfield |
-| explorer-agent | explore, map codebase, architecture overview |
-| orchestrator | orchestrate, multi-agent, full-stack, end-to-end |
+| `/proplan <system>` | Professional plan for a system: goals, requirements, architecture, data, API, UX, security, tests, roadmap, full docs. Runs planning subagents. `--lite` for small systems |
+| `/plan <task>` | Task list with owners and verify lines in `docs/plans/<slug>.md`. No code |
+| `/create <app>` | New app end to end |
+| `/orchestrate <task or plan path>` | Multi-domain build with subagents; can execute a `/proplan` milestone |
+| `/enhance` `/brainstorm` `/debug` `/test` `/verify` `/see` `/see-doc` `/fix-ui` `/review` `/deploy` `/status` `/remember` | As named; each skill states its steps |
 
-Mobile ≠ frontend-specialist; a mobile app's backend goes to backend-specialist. If the user names `@agent`, use it. Unclear domain → the closest specialist, not the orchestrator. Then continue with `core-protocol` step 2: read that agent file now.
+## Agents
+| Agent | Takes |
+|---|---|
+| `frontend-specialist` | web UI: components, pages, layout, CSS, Tailwind, React, Vue, Blade |
+| `mobile-developer` | React Native, Expo, Flutter, iOS, Android |
+| `backend-specialist` | API, server, auth, webhooks, jobs, Laravel, exports (PDF, Excel, DOCX, receipts) |
+| `database-architect` | schema, migrations, queries, indexes, ORM |
+| `solution-architect` | system architecture, integration design, ADRs, tech choices, scaling |
+| `ux-architect` | user flows, screen inventory, information architecture, wireframe specs |
+| `product-manager` | goals, requirements, user stories, acceptance criteria, scope, MVP |
+| `project-planner` | milestones, work breakdown, estimates, dependencies, `/plan` files |
+| `plan-reviewer` | adversarial review of a plan or spec before build |
+| `test-engineer` | tests, test strategy, coverage, Playwright, Vitest, Pest, pytest |
+| `debugger` | bugs, errors, crashes, regressions |
+| `security-auditor` | security review, OWASP, secrets, threat model, data privacy |
+| `penetration-tester` | authorised offensive testing only |
+| `performance-optimizer` | slow pages, bundle size, Web Vitals, queries under load |
+| `seo-specialist` | SEO, metadata, structured data, sitemap |
+| `devops-engineer` | deploy, CI/CD, Docker, VPS, Nginx, rollback |
+| `documentation-writer` | README, docs, API docs, changelog, user manuals |
+| `code-archaeologist` | legacy and undocumented code, modernisation |
+| `explorer-agent` | read-only codebase map and feasibility |
+| `orchestrator` | coordinating several agents on one task |
+
+- A pure question needs no agent.
+- Unclear domain: pick the closest specialist; do not ask which agent.
+- One domain, one agent. Several domains: `orchestrator` (or run the agents yourself in order: database → backend → frontend → tests).

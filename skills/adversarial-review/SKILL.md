@@ -1,26 +1,27 @@
 ---
 name: adversarial-review
-description: Attacks your own diff before you report it done — hunting the likeliest bug, the untested edge, the unhandled error path, the race, and the security hole, then reporting findings with concrete failure scenarios ranked by blast radius. Use before reporting done on a non-trivial change, before a commit or PR, and for /review.
-version: 1.0.0
+description: Method for attacking a diff to find real defects - the untested edge, the unhandled error path, the race, the security hole, the silent wrong answer - reported with concrete failure scenarios ranked by consequence. Use for /review, for tier 2 changes (auth, money, permissions, migrations, shared code), and before a PR.
+version: 2.5.0
 ---
 
 # Adversarial Review
 
-> A review that sets out to confirm the code is fine will confirm the code is fine. Set out to break it.
+A review that sets out to confirm the code is fine will confirm the code is fine. Set out to break it.
 
-Self-review fails for one reason: you already believe the code is correct — you just wrote it — so
+Self-review fails for one reason: you already believe the code is correct (you just wrote it), so
 "does this look right?" returns yes. The fix is to change the question. **Assume a defect exists and
 go find it.** If you finish having found nothing, you either did not look hard enough or the change
 is genuinely small; say which.
 
 ## The strong form
 
-Spawn a subagent to review the diff. A fresh reviewer has no memory of the reasoning that produced
-the code, so it cannot inherit the assumption that the reasoning was sound — the single biggest
-source of missed bugs in self-review. Give it the diff and the requirement, not your explanation of
+Hand the diff to a subagent (`invoke_subagent`: the `self` subagent briefed with only the diff and the
+requirement, or `security-auditor` for sensitive code). A fresh reviewer has no memory of the reasoning
+that produced the code, so it cannot inherit the assumption that the reasoning was sound; that
+assumption is the biggest source of missed bugs in self-review. Give it the diff and the requirement, not your explanation of
 why the code is correct: explaining your logic to the reviewer is how you talk it into agreeing.
 
-Reviewing in-session is the fallback. It still works if you follow the discipline below.
+Reviewing in-session is the fallback when subagents are unavailable or the diff is small. It still works if you follow the discipline below.
 
 ## Protocol
 
@@ -128,9 +129,14 @@ that prevents nothing.
 - **Claiming CONFIRMED without tracing it** — if you did not follow the actual path to the actual
   wrong value, it is SUSPECTED. Mislabeling burns the user's trust in the whole report.
 
+## When to use it
+
+This is an on-demand deep check, not a step on every task. Run it when the user asks, when the change is
+tier 2 or higher in `code-rules`, or before a PR. A copy tweak or an isolated component does not need it.
+
 ## Boundaries
 
-Findings only — this skill does not fix. Apply fixes through the normal build-and-verify flow, and
-prove them with `verify-changes`; UI findings go through the render gate (`browser-verification`).
+Findings only; this skill does not fix. Apply fixes through the normal build flow and prove them with
+`verify-changes`; UI findings can be checked in a browser (`browser-verification`, `/see`).
 Full security assessment belongs to `vulnerability-scanner` and `red-team-tactics`; this is the
 security pass over *your own diff*, not an audit of the codebase.

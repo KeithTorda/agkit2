@@ -1,6 +1,7 @@
 ---
 name: cli-tool
 description: Node.js CLI tool template principles. Commander.js, interactive prompts.
+version: 2.5.0
 ---
 
 # CLI Tool Template

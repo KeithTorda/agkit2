@@ -1,3 +1,5 @@
+> Historical review of v2.2.2 (2026-09). Its findings were addressed in v2.5.0; see CHANGES.md.
+
 # AG Kit v2 — Health Check & Fix Plan
 
 Checked: VERSION 2026.9.8 (CHANGES.md v2.2.2), 178 source files (17 agents, 49 skills, 27 scripts, 7 rules, docs, installer).

@@ -1,6 +1,7 @@
 ---
 name: flutter-app
 description: Flutter mobile app template. Riverpod 3, go_router, Drift, feature-first clean architecture.
+version: 2.5.0
 ---
 
 # Flutter App Template
@@ -44,7 +45,7 @@ project_name/
 │       ├── api/              # Dio client, interceptors
 │       └── database/         # Drift database and migrations
 ├── test/
-├── DESIGN.md                 # Visual source of truth (required before UI)
+├── DESIGN.md                 # Visual source of truth (written before UI code)
 └── pubspec.yaml
 ```
 
@@ -82,5 +83,5 @@ project_name/
 - Riverpod 3: generated providers via `riverpod_annotation`; plain `Notifier` classes; the generated ref is `Ref`. Legacy `StateProvider`/`StateNotifierProvider` live in `package:riverpod/legacy.dart`; avoid them in new code.
 - Drift for anything relational or queried; migrations are versioned in the database class. Never store secrets in Drift or Hive.
 - Freezed for models; `json_serializable` for API DTOs.
-- Material 3 theming (Material 3 Expressive on Android 16) built from `DESIGN.md` tokens; see `@[skills/mobile-design]`.
+- Material 3 theming (Material 3 Expressive on Android 16) built from `DESIGN.md` tokens; see `mobile-design`.
 - Tests: unit tests for use cases and DAOs (Drift in-memory), widget tests for screens.

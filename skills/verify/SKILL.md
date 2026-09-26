@@ -1,48 +1,23 @@
 ---
 name: verify
-description: "/verify — Proves code works by running it: build, tests, checklist gates, a runtime request or render, and an error path, reported with evidence. Use after a change, before claiming done, or when the user asks whether something works."
-version: 2.0.0
+description: "/verify - Proves a change works by running it: build, tests, the checklist script, a request or render, one error path, reported with real output. On-demand deep check; use when the user asks whether something works, for tier 2-3 changes, or before a release."
+version: 2.5.0
 ---
 
 # /verify
 
-**Input:** the text after `/verify` says what to verify; if empty, verify the changes made in this session.
-**Agent:** read `C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/agents/test-engineer.md`.
-**Skills:** `@[skills/verify-changes]` (method, evidence report), `@[skills/lint-and-validate]`.
+**Input:** the text after `/verify` says what to verify; empty means the changes made in this session.
+**Agent:** `KIT/agents/test-engineer.md`.
+**Read now:** `KIT/skills/verify-changes/SKILL.md` (method table, evidence rules, report format).
 
 ## Steps
 
-1. **Identify** what changed: files, behavior, the original requirement (`git status`, `git diff`).
-2. **Choose the method** from the table in `verify-changes`: bug fix → reproduce; feature → run it; refactor → existing tests; API → call it; UI → the required render gate (`/see`, `browser-verification`).
-3. **Run the gates.**
-   - Fast gate: `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/checklist.py .`
-   - Release gate (before deploy, app running): `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/verify_all.py . --url <url>`
-   - Required checks pass before "done"; advisory findings are reported. The required-vs-advisory split and the auto-fix policy are the global `code-rules` rule's.
-4. **Execute** the change-specific checks: build, tests, a request or render, and at least one error path.
-5. **Report** with real command output. Flag anything that could not be executed.
+1. **Identify** what changed and what it was meant to do (`git status`, `git diff`, the request).
+2. **Pick the method** from `verify-changes` (bug fix → reproduce; feature → run it; refactor → existing tests; API → call it; UI → render it).
+3. **Run the checks.** When the user calls `/verify`, run the full set for the change, whatever its tier:
+   - `python "KIT/scripts/checklist.py" . --full`
+   - release (app running, before deploy): `python "KIT/scripts/verify_all.py" . --url <url>`
+   - the change-specific commands: build, tests, a request or render, at least one error path.
+4. **Report** with real output; list anything that could not run under `Not verified`.
 
-## Output
-
-```markdown
-## Verification Report
-### Changes verified
-- <file or behavior>: pass | fail
-### Evidence
-- Build: `<command>` → <result>
-- Tests: `<command>` → <n>/<n> passed
-- Checklist: required pass | fail; advisory <n> findings
-- Runtime: `<command>` → <observed output>
-- Error path: <input> → <observed>
-### Not verified
-- <needs manual testing and why>
-```
-
-## Rules
-
-- "It should work" is not verification. Run it.
-- Do not summarize output you did not see in this session.
-
-## Verification
-
-- Every pass line cites a command that ran here.
-- Required checks pass, or the report says exactly what still fails.
+"It should work" is not verification. Do not summarise output you did not see in this session.

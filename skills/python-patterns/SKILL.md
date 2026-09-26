@@ -1,12 +1,12 @@
 ---
 name: python-patterns
-description: Python 3.13+ (3.14 current) backend patterns - choosing FastAPI, Django, or Flask, async versus sync, type hints and Pydantic, project structure, background tasks, error handling, and pytest with httpx. Use when writing or reviewing Python services, scripts, or APIs, or setting up a Python project's tooling (uv, Ruff, mypy or pyright).
-version: 2.0.0
+description: Python 3.13+ backend patterns - FastAPI, Django or Flask, async versus sync, type hints and Pydantic v2, project structure, background tasks, error handling, and pytest with httpx; tooling with uv and Ruff. Use when writing or reviewing Python services, scripts or APIs, or setting up a Python project's tooling.
+version: 2.5.0
 ---
 
 # Python Patterns
 
-Decision guidance for Python 3.13+ (3.14 current) services. Pick the framework and concurrency model for the context (ask once if the choice changes the architecture; otherwise state the default), and keep the tooling baseline below.
+Decision guidance for Python 3.13+ services (3.14 is the newest release; 3.13 is the kit baseline). The project's existing framework, layout and tooling win. For new work, pick the framework and concurrency model for the context (ask once if the choice changes the architecture; otherwise state the default) and use the tooling below. API contract (status codes, error envelope): `api-patterns`.
 
 ## 0. Tooling baseline
 
@@ -15,7 +15,7 @@ Decision guidance for Python 3.13+ (3.14 current) services. Pick the framework a
 | Interpreter | Python 3.13+ (3.14 current; `requires-python = ">=3.13"` in `pyproject.toml`) |
 | Environments and packaging | `uv` (`uv init`, `uv add`, `uv run`); `pyproject.toml` is the single config file |
 | Lint and format | Ruff (`ruff check --fix .`, `ruff format .`) replaces flake8, isort, black |
-| Types | mypy (`[tool.mypy]` strict for libraries) or pyright/basedpyright; one of them in CI |
+| Types | mypy (`[tool.mypy]`, strict for libraries) or pyright/basedpyright; one of them in CI when the project has CI |
 | Tests | pytest, `pytest-asyncio`, `httpx` for API tests |
 | Security | Bandit optional (`bandit -r src -ll`); `pip-audit` for dependencies |
 
@@ -104,7 +104,7 @@ A sync driver (`psycopg2`, `requests`, a sync SQLAlchemy `Session`) on an async 
 
 ### Type at the edges, enforce in CI
 
-Type every function signature, class attribute, and public API; let inference handle obvious locals. Types earn their keep only when a checker runs them: put mypy (`strict` for libraries) or pyright/basedpyright in CI. Treat `Any` as a hole — it silently disables checking on everything it touches downstream. Never write a bare `# type: ignore`; pin the code (`# type: ignore[arg-type]`) so it re-fails when the underlying error changes.
+Type function signatures, class attributes and public APIs; let inference handle obvious locals. Small scripts can stay lighter. Types earn their keep only when a checker runs them, so wire mypy or pyright into the project's checks. Treat `Any` as a hole — it silently disables checking on everything it touches downstream. Prefer a pinned ignore (`# type: ignore[arg-type]`) over a bare `# type: ignore`, so it re-fails when the underlying error changes.
 
 ### Common Type Patterns
 
@@ -203,7 +203,7 @@ When to use async in Django:
 
 ### Django best practices
 
-Fat models, thin views: business logic on the model or a custom manager, never in the view. Class-based views for CRUD, function-based for one-off endpoints, DRF viewsets for APIs. Query discipline: `select_related()` for FKs, `prefetch_related()` for M2M, `.only()`/`.defer()` to trim columns, and watch for the N+1 the ORM makes easy (`@[skills/database-design]`).
+Thin views: business logic on the model, a custom manager, or a service module rather than in the view. Class-based views for CRUD, function-based for one-off endpoints, DRF viewsets (or Django Ninja) for APIs. Query discipline: `select_related()` for FKs, `prefetch_related()` for M2M, `.only()`/`.defer()` to trim columns, and watch for the N+1 the ORM makes easy (`database-design`).
 
 ---
 
@@ -245,6 +245,7 @@ async def create(user: UserCreate) -> UserResponse:
 | **ARQ** | Async, Redis-based |
 | **RQ** | Simple Redis queue |
 | **Dramatiq** | Actor-based, simpler than Celery |
+| **Django tasks** (`django.tasks`, Django 6.0+) | Django projects; a standard task API, with a backend package that runs the worker |
 
 ### When to Use Each
 
@@ -269,7 +270,7 @@ Celery/ARQ:
 
 ### Exception strategy
 
-Raise domain exceptions in services; register `exception_handler`s that map them to one consistent shape — a stable `code`, a human `message`, and field `details` when relevant. Never leak stack traces or internal messages to the client; log the internal detail server-side with a request id. The error-envelope shape is owned by `@[skills/api-patterns]`.
+Raise domain exceptions in services; register `exception_handler`s that map them to one consistent shape — a stable `code`, a human `message`, and field `details` when relevant. Never leak stack traces or internal messages to the client; log the internal detail server-side with a request id. The envelope shape is owned by `api-patterns`.
 
 ---
 
@@ -312,21 +313,15 @@ Common fixtures:
 
 ---
 
-## 10. Decision Checklist
+## 10. Common mistakes
 
-Before implementing:
+| Mistake | Instead |
+|---|---|
+| Blocking calls inside `async def` | Async clients end to end, a `def` route, or `asyncio.to_thread` |
+| Django for a small JSON API with no admin needs | FastAPI (Django is right when you want its admin, auth and ORM) |
+| Business logic in routes or views | A service function or model method |
+| Hand-validated dicts | Pydantic models at the boundary |
+| `requirements.txt` + `setup.py` in a new project | `pyproject.toml` managed by `uv` |
+| N+1 queries | Eager loading (`database-design`) |
 
-- [ ] **Framework chosen for this context** (asked once if it changes the architecture)
-- [ ] **Decided async vs sync?**
-- [ ] **Planned type hint strategy?**
-- [ ] **Defined project structure?**
-- [ ] **Planned error handling?**
-- [ ] **Considered background tasks?**
-
----
-
-## 11. Anti-Patterns to Avoid
-
-Avoid: defaulting to Django for a small API (FastAPI is lighter), calling sync libraries from async code, skipping type hints on public functions, business logic in routes or views, N+1 queries, `requirements.txt` plus `setup.py` when `pyproject.toml` covers both.
-
-Do: choose the framework for the context, use Pydantic v2 for validation at the boundary, separate routes from services from repositories, and test the critical paths with pytest.
+Before building a new service, settle in one line each: framework, async or sync, project layout, error handling, and whether background work needs a real queue.

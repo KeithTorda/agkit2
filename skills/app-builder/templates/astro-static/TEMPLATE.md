@@ -1,6 +1,7 @@
 ---
 name: astro-static
 description: Astro static site template principles. Content-focused websites, blogs, documentation.
+version: 2.5.0
 ---
 
 # Astro Static Site Template
@@ -11,7 +12,7 @@ description: Astro static site template principles. Content-focused websites, bl
 
 | Component | Technology |
 |-----------|------------|
-| Framework | Astro 5+ |
+| Framework | Astro (current major, 5+) |
 | Content | MDX + Content Collections (Content Layer API) |
 | Styling | Tailwind CSS v4 (@tailwindcss/vite) |
 | Integrations | Sitemap, RSS, SEO |
@@ -73,6 +74,6 @@ project-name/
 ## Best Practices
 
 - Use Content Collections for type safety
-- Leverage static generation
+- Prefer static generation
 - Add islands only where needed
 - Optimize images with Astro Image

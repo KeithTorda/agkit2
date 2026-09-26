@@ -1,6 +1,6 @@
 # Project Templates
 
-> Thirteen scaffolding templates for `app-builder` and `/create`. This folder is not a skill; read only the one template that matches the detected project type.
+Thirteen scaffolding templates for `app-builder` and `/create`. This folder is not a skill; read only the one template that matches the detected project type.
 
 | Template | Tech Stack | When to Use |
 |---|---|---|
@@ -18,11 +18,11 @@
 | [monorepo-turborepo](monorepo-turborepo/TEMPLATE.md) | Turborepo + pnpm | Monorepo |
 | [astro-static](astro-static/TEMPLATE.md) | Astro + MDX | Blog / Docs |
 
-No template for Laravel: work in the existing structure, or start a new app with `laravel new` / `composer create-project laravel/laravel` (detection in [project-detection.md](../project-detection.md)).
+No template for Laravel or plain HTML: work in the existing structure, or start a new Laravel app with `laravel new` / `composer create-project laravel/laravel`; a plain static site is `index.html`, one stylesheet with `DESIGN.md` tokens, and a small script file (detection in [project-detection.md](../project-detection.md)).
 
 ## Usage
 
 1. Detect the project type ([project-detection.md](../project-detection.md)).
 2. Read only that template's `TEMPLATE.md`.
-3. Follow its stack and structure; pin versions to the current stable line when scaffolding.
-4. UI templates require `DESIGN.md` before UI code (global `design-rules` gate; format: `@[skills/design-spec]`), created by `frontend-specialist` (web) or `mobile-developer` (mobile-only app).
+3. Follow its stack and structure; pin versions to the current stable line when scaffolding (baseline in `code-rules`).
+4. UI templates: write `DESIGN.md` before UI code (`design-spec`), by `frontend-specialist` (web) or `mobile-developer` (mobile-only app). The template's styling choices are defaults; `DESIGN.md` and the brief override them.

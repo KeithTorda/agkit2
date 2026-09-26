@@ -18,8 +18,10 @@ The motion that matters most is the half-second after a click.
 ## 7. App-page and component work
 Page-level app UI (settings, onboarding, dashboards, forms, tables): app-page dials (SKILL.md §1.A), `DESIGN.md` component tokens, a design system when the brief names one (design-systems.md §2.A). Dense tables: TanStack Table or AG Grid; editors: Monaco / CodeMirror; multi-step forms: form-library patterns. SKILL.md §0.F, §4.0, §4.7 and design-systems.md §4.9 apply everywhere; marketing rules (hero, eyebrows, logo walls: marketing-layout.md) do not.
 
+Dark, dense ops or monitoring screens with a high-contrast look: `style-dark-dashboard.md`.
+
 Hierarchy on an app page (marketing counterpart: marketing-layout.md §4.5):
-- **One primary action per view**, in one fixed place (top-right of the page header, or bottom-right of a form); never the same action twice, never two filled buttons in one region.
+- **One primary action per view**, in one fixed place (top-right of the page header, or bottom-right of a form). Default to one filled button per region and avoid repeating the same action; two filled buttons are fine when both actions are equally primary (Approve / Reject in a review queue, Cash / GCash at a POS checkout) or DESIGN.md says so.
 - **Page header** = title, one line of context, actions. Greetings and stat rows are not headers.
 - **Forms** in groups of ≤ 5 fields under a group heading; single column below `lg`; the field the user fills first is first; helper text only where a field is genuinely ambiguous.
 - **Tables**: numeric columns right-aligned, text left; the column the user scans first is first; row height from the density dial, not padding guesses; a row's primary action visible without hover on touch.

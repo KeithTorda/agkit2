@@ -1,12 +1,12 @@
 ---
 name: nodejs-best-practices
-description: Node.js 24 LTS backend guidance - Hono by default for a standalone API, Fastify when Node-heavy, Express or NestJS only in existing code, ESM and native TypeScript, layered architecture, error handling, async patterns, validation with Zod, security checklist, and testing with node:test or Vitest. Use when building or reviewing a Node.js server, API, worker, or CLI, or choosing a backend framework for a TypeScript project.
-version: 2.0.0
+description: Node.js 24 LTS backend guidance - Hono by default for a standalone API, Fastify when Node-heavy, Express or NestJS in existing code, ESM and native TypeScript, layering, error handling, async and queues, validation with Zod, security and testing. Use when building or reviewing a Node.js server, API, worker or CLI, or choosing a TypeScript backend framework.
+version: 2.5.0
 ---
 
 # Node.js Best Practices
 
-Decision guidance for Node.js 24 LTS services. Choose the framework for the deployment target (ask once if it changes the architecture; otherwise state the default), keep business logic out of HTTP handlers, and validate at every boundary.
+Decision guidance for Node.js 24 LTS services. The project's existing framework and structure win. For new code: choose the framework for the deployment target (ask once if it changes the architecture; otherwise state the default), keep business logic out of HTTP handlers, and validate at every boundary. API contract (status codes, error envelope, pagination): `api-patterns`.
 
 ---
 
@@ -27,14 +27,14 @@ What are you building?
 │   └── Fastify (~5x req/sec of Express in Fastify's own hello-world benchmark; benchmark your own workload)
 │
 └── Existing code
-    └── Express or NestJS stay where they already are; do not start a new API on them
+    └── Express or NestJS stay where they already are
 ```
 
 ### The trade-off, in one line each
 
 - **Hono by default.** One Web-standard (`Request`/`Response`) codebase runs unchanged on Node, Workers, Deno, Bun, and serverless/edge; smallest cold start; native TS end to end. Reach past it only for a concrete reason below.
 - **Fastify when the workload is Node-heavy** and wants its plugin/hooks ecosystem, JSON-Schema-based serialization, or raw throughput on a long-lived Node process. Not portable to edge runtimes.
-- **Express or NestJS only to match existing code.** Largest ecosystem, but a dated middleware and async-error model; Express 5 is a migration path for existing apps, not a reason to start a new one. Never open a greenfield API on Express.
+- **Express or NestJS to match existing code**, or when the team knows them well and the deadline matters more than the framework. Express 5 fixed async error handling and is a reasonable upgrade for existing apps; for a new API, Hono or Fastify is usually the better start. NestJS suits large teams that want its module and DI structure.
 
 If the deployment target is unknown and it flips the choice (edge vs long-lived Node), ask once; otherwise default to Hono and say so.
 
@@ -66,19 +66,13 @@ CommonJS (require)
 └── Existing codebases only; do not start new projects on it
 ```
 
-### Runtime Selection
+### Runtime and built-ins
 
-| Runtime | Best For |
-|---------|----------|
-| **Node.js** | General purpose, largest ecosystem |
-| **Bun** | Performance, built-in bundler |
-| **Deno** | Security-first, built-in TypeScript |
-
----
+Node.js 24 LTS is the default (largest ecosystem, what hosts support). Bun or Deno when the project already uses them. Node 24 built-ins that remove dependencies: `fetch`, `node --watch`, `node --env-file=.env`, `node:test`, `WebSocket` client, `URLPattern`.
 
 ### Tooling
 
-ESLint 9+ flat config (`eslint.config.js`; `.eslintrc*` is legacy), Prettier or Biome for formatting, `tsc --noEmit` in CI, `npm audit` for dependencies. Details and the kit runners: `@[skills/lint-and-validate]`.
+ESLint flat config, Prettier or Biome, `tsc --noEmit`, `npm audit`. Commands and the kit runners: `lint-and-validate`.
 
 ---
 
@@ -140,17 +134,7 @@ app.onError((err, c) => {
 });
 ```
 
-### Status Code Selection
-
-| Situation | Status | When |
-|-----------|--------|------|
-| Bad input | 400 | Client sent invalid data |
-| No auth | 401 | Missing or invalid credentials |
-| No permission | 403 | Valid auth, but not allowed |
-| Not found | 404 | Resource doesn't exist |
-| Conflict | 409 | Duplicate or state conflict |
-| Validation | 422 | Schema valid but business rules fail |
-| Server error | 500 | Our fault, log everything |
+Status codes and the envelope shape: `api-patterns` §2-3.
 
 ---
 
@@ -208,9 +192,9 @@ Validate untrusted input with a schema at the boundary and pass the **typed resu
 
 ### Security
 
-Beyond *parse, don't cast* above, the Node-specific, non-obvious items: hash passwords with argon2 or bcrypt (never a fast/general-purpose hash); verify a JWT's signature **and** expiry on every request, not just decode it; set security headers (Helmet or equivalent); parameterised queries only, never string-built SQL; rate-limit unauthenticated routes; secrets from the environment, never in code or the repo.
+Firm, beyond *parse, don't cast* above: hash passwords with argon2id or bcrypt (never a fast general-purpose hash); verify a JWT's signature **and** expiry on every request, not just decode it; parameterised queries only, never string-built SQL; authorise inside each handler; secrets from the environment, never in code or the repo. Strong defaults: security headers (Hono `secureHeaders`, Fastify `@fastify/helmet`, Helmet for Express), rate limits on unauthenticated and expensive routes, upload size and type limits.
 
-Every input crosses a trust boundary — query params, body, headers, cookies, uploads, and external API responses. Depth on threats, injection, and scanning: `@[skills/vulnerability-scanner]` and `@[skills/red-team-tactics]`.
+Every input crosses a trust boundary — query params, body, headers, cookies, uploads, and external API responses. Depth on threats, injection, and scanning: `vulnerability-scanner`.
 
 ---
 
@@ -222,7 +206,7 @@ Every input crosses a trust boundary — query params, body, headers, cookies, u
 |------|---------|-------|
 | **Unit** | Business logic | `node:test` (built in) or Vitest |
 | **Integration** | API endpoints | `app.inject()` (Fastify), `app.request()` (Hono), or Supertest |
-| **E2E** | Full flows | Playwright (`@[skills/testing-patterns]`) |
+| **E2E** | Full flows | Playwright (`testing-patterns`) |
 
 ### What to Test (Priorities)
 
@@ -243,22 +227,16 @@ node --test --experimental-test-coverage "src/**/*.test.ts"
 
 ---
 
-## 9. Anti-Patterns to Avoid
+## 9. Common mistakes
 
-Avoid: Express for a new API (Hono by default, Fastify when Node-heavy), sync `fs` calls in request paths, business logic in controllers, unvalidated input, hard-coded secrets, trusting external data, CPU-heavy work on the event loop.
+| Mistake | Instead |
+|---|---|
+| Sync `fs` / `execSync` in a request path | Async APIs or streams |
+| CPU-heavy work on the event loop | Worker thread, child process or a queue |
+| Business logic in route handlers, once the service grows | A service function the handler calls |
+| `req.body as T` | Parse with a schema |
+| Secrets in code or committed `.env` | Environment variables, `.env` in `.gitignore` |
+| Trusting external API responses | Validate them like user input |
+| Optimising without a profile | `node --cpu-prof`, clinic, or the APM you have |
 
-Do: choose the framework for the deployment target, use layered architecture once the project grows, validate every input with Zod (or Valibot/ArkType), read secrets from the environment, profile before optimizing.
-
----
-
-## 10. Decision Checklist
-
-Before implementing:
-
-- [ ] **Framework chosen for this context** (asked once if it changes the architecture)
-- [ ] **Considered deployment target?**
-- [ ] **Planned error handling strategy?**
-- [ ] **Identified validation points?**
-- [ ] **Considered security requirements?**
-
-
+Before building a new service, settle in one line each: the framework and deployment target, the error-handling approach, where validation happens, and the auth model.

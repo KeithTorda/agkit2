@@ -1,108 +1,149 @@
 #!/usr/bin/env python3
-"""Generate the `quick-reference` global rule from what is actually on disk.
+"""Generate the `quick-reference` rule (trigger: model_decision) from the kit on disk.
 
-Reads agents/*.md, skills/*/SKILL.md and skills/*/scripts/*.py under this kit and writes a
-catalog rule (agents + triggers, skills + one-line descriptions, slash commands, scripts).
+Reads agents/*.md (native subagent frontmatter: description, kit-skills), skills/*/SKILL.md
+and the scripts, and writes a catalog: agents with triggers and skills, slash commands,
+reference skills, and scripts. Paths are written as KIT/..., never as a user path.
 
 Usage:
-    python build_quick_reference.py                  # prints to stdout
-    python build_quick_reference.py --write          # writes C:/Users/Keith/.gemini/config/rules/quick-reference.md
-    python build_quick_reference.py --out <path>
+  python build_quick_reference.py              # print to stdout
+  python build_quick_reference.py --write      # KIT/rules/quick-reference.md in the source repo,
+                                               # else ~/.gemini/config/rules/quick-reference.md
+  python build_quick_reference.py --out PATH
+  python build_quick_reference.py --check      # exit 1 if the file on disk is out of date
+Exit codes: 0 ok, 1 --check found a stale file, 2 usage.
 """
 from __future__ import annotations
 
 import argparse
 import re
+import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from validate_kit import extract_frontmatter, normalize_list, parse_frontmatter, section  # noqa: E402
+
 KIT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT = Path.home() / ".gemini" / "config" / "rules" / "quick-reference.md"
-KIT_URL = "C:/Users/Keith/.gemini/config/plugins/ag-kit-v2"
+VERSION = "2.5.0"
 
 
-def frontmatter(path: Path) -> dict[str, str]:
-    text = path.read_text("utf-8", errors="replace")
-    match = re.match(r"---\n(.*?)\n---\n", text, re.S)
-    data: dict[str, str] = {}
-    if not match:
-        return data
-    current = None
-    for line in match.group(1).splitlines():
-        field = re.match(r"^([A-Za-z0-9_-]+):\s*(.*)$", line)
-        if field:
-            current, value = field.groups()
-            data[current] = value.strip().strip("\"'")
-        elif current and line.startswith((" ", "\t")):
-            data[current] = (data[current] + " " + line.strip().strip("\"'")).strip()
-    return data
+def default_target(kit: Path = KIT) -> Path:
+    if (kit / "rules").is_dir():
+        return kit / "rules" / "quick-reference.md"
+    return Path.home() / ".gemini" / "config" / "rules" / "quick-reference.md"
 
 
-def one_line(text: str, limit: int = 140) -> str:
-    text = re.sub(r"\s+", " ", text).strip()
-    return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
+def frontmatter(path: Path) -> dict:
+    raw = extract_frontmatter(path.read_text("utf-8", errors="replace"))
+    return parse_frontmatter(raw) if raw is not None else {}
 
 
-def build() -> str:
+def one_line(text: str, limit: int) -> str:
+    text = re.sub(r"\s+", " ", str(text or "")).strip().replace("|", "/")
+    return text if len(text) <= limit else text[: limit - 3].rstrip(" ,;") + "..."
+
+
+def routed_commands(kit: Path) -> list[str]:
+    routing = kit / "rules" / "request-routing.md"
+    if not routing.is_file():
+        return []
+    text = section(routing.read_text("utf-8", errors="replace"), "## Commands")
+    return list(dict.fromkeys(re.findall(r"`/([a-z][\w-]*)", text)))
+
+
+def build(kit: Path = KIT) -> str:
     agents = []
-    for path in sorted((KIT / "agents").glob("*.md")):
+    for path in sorted((kit / "agents").glob("*.md")):
         data = frontmatter(path)
-        desc = data.get("description", "")
+        desc = str(data.get("description") or "")
         trig = re.search(r"Triggers on:\s*(.*)$", desc)
-        agents.append((path.stem, one_line(trig.group(1).rstrip(". "), 90) if trig else one_line(desc, 90)))
+        triggers = one_line(trig.group(1).rstrip(". "), 110) if trig else one_line(desc, 110)
+        skills = normalize_list(data.get("kit-skills"))
+        agents.append((path.stem, triggers, ", ".join(skills[:4]) + (" ..." if len(skills) > 4 else "")))
 
+    routed = set(routed_commands(kit))
     commands, skills = [], []
-    for path in sorted((KIT / "skills").glob("*/SKILL.md")):
-        data = frontmatter(path)
-        desc = data.get("description", "")
-        if desc.startswith("/"):
-            commands.append((path.parent.name, one_line(desc.split("—", 1)[-1].split(" - ", 1)[-1], 110)))
+    for path in sorted((kit / "skills").glob("*/SKILL.md")):
+        name = path.parent.name
+        desc = str(frontmatter(path).get("description") or "")
+        if desc.startswith("/") or name in routed:
+            body = re.sub(r"^/[\w-]+\s*[-—–:]+\s*", "", desc)
+            commands.append((name, one_line(body, 120)))
         else:
-            skills.append((path.parent.name, one_line(desc, 120)))
+            skills.append((name, one_line(desc, 130)))
 
-    scripts = [f"scripts/{p.name}" for p in sorted((KIT / "scripts").glob("*.py"))]
-    scripts += [f"skills/{p.parent.parent.name}/scripts/{p.name}" for p in sorted((KIT / "skills").glob("*/scripts/*.py"))]
+    scripts = [f"scripts/{p.name}" for p in sorted((kit / "scripts").glob("*.py"))]
+    scripts += [f"skills/{p.parent.parent.name}/scripts/{p.name}" for p in sorted((kit / "skills").glob("*/scripts/*.py"))]
 
     lines = [
         "---",
         "name: quick-reference",
-        "version: 2.0.0",
+        f"version: {VERSION}",
         "priority: P2",
         "trigger: model_decision",
-        "description: Catalog of the kit's agents (with trigger keywords), skills, slash commands, and scripts. Apply when deciding which agent or skill fits, or when looking up a script path. Generated by scripts/build_quick_reference.py — do not edit by hand.",
+        "description: Catalog of the kit's agents (triggers and skills), slash commands, reference skills and scripts. "
+        "Apply when choosing an agent, skill or command, or looking up a script path. "
+        "Generated by KIT/scripts/build_quick_reference.py - do not edit by hand.",
         "---",
         "",
         "# Quick Reference (generated)",
         "",
-        f"Kit root: `{KIT_URL}`. Agents are files under `agents/`; skills under `skills/<name>/SKILL.md`; every skill is also the slash command `/<name>`.",
+        "`KIT` is the kit root defined in `core-protocol`. Agents: `KIT/agents/<name>.md` (also native subagents). "
+        "Skills: `KIT/skills/<name>/SKILL.md`. Commands: `/<name>` = `KIT/skills/<name>/SKILL.md`. "
+        "Scripts: `python \"KIT/<path>\" <project>`.",
         "",
         f"## Agents ({len(agents)})",
-        "| Agent | Triggers |",
-        "|---|---|",
+        "| Agent | Triggers | Skills |",
+        "|---|---|---|",
     ]
-    lines += [f"| {name} | {trig} |" for name, trig in agents]
+    lines += [f"| {name} | {trig} | {sk} |" for name, trig, sk in agents]
     lines += ["", f"## Slash commands ({len(commands)})", "| Command | Does |", "|---|---|"]
     lines += [f"| /{name} | {desc} |" for name, desc in commands]
     lines += ["", f"## Skills ({len(skills)})", "| Skill | Use when |", "|---|---|"]
     lines += [f"| {name} | {desc} |" for name, desc in skills]
-    lines += ["", f"## Scripts ({len(scripts)}) — run as `python {KIT_URL}/<path> <project>`"]
-    lines += [f"- `{s}`" for s in scripts]
-    lines += ["", "Required gate scripts (`checklist.py`): security_scan, lint_runner, type_coverage, test_runner. Everything else is advisory.", ""]
+    lines += ["", f"## Scripts ({len(scripts)})"]
+    lines += [f"- `KIT/{s}`" for s in scripts]
+    lines += [
+        "",
+        "Checks follow the `code-rules` tiers: `checklist.py . --quick` (tier 1), `checklist.py . --full` (tier 2), "
+        "`verify_all.py .` (tier 3). Required (checklist.py fails the run): security high+, type errors, "
+        "failing tests. Lint style, naming, CSS audit and UX/SEO/i18n heuristics are advisory. "
+        "checklist.py runs its own lint, type and test steps; `lint_runner.py`, `type_coverage.py` and "
+        "`test_runner.py` are optional helpers for running one check on its own, not gates.",
+        "",
+    ]
     return "\n".join(lines)
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Generate the quick-reference rule from disk")
-    parser.add_argument("--write", action="store_true", help=f"write to {DEFAULT_OUT}")
-    parser.add_argument("--out", type=Path, help="write to this path instead")
-    args = parser.parse_args()
-    content = build()
-    target = args.out or (DEFAULT_OUT if args.write else None)
-    if target is None:
-        print(content)
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Generate the quick-reference rule from the kit on disk.",
+                                     epilog="Exit codes: 0 ok, 1 --check found a stale file, 2 usage.")
+    parser.add_argument("--kit", type=Path, default=KIT, help="kit root (default: the kit this script is in)")
+    target = parser.add_mutually_exclusive_group()
+    target.add_argument("--write", action="store_true", help="write to KIT/rules (repo) or ~/.gemini/config/rules")
+    target.add_argument("--out", type=Path, help="write to this path")
+    target.add_argument("--check", action="store_true", help="exit 1 if the rule on disk differs from a fresh build")
+    args = parser.parse_args(argv)
+    kit = args.kit.resolve()
+    if not (kit / "agents").is_dir() or not (kit / "skills").is_dir():
+        print(f"build_quick_reference: not a kit root: {kit}", file=sys.stderr)
+        return 2
+    content = build(kit)
+    if args.check:
+        path = default_target(kit)
+        current = path.read_text("utf-8").replace("\r\n", "\n") if path.is_file() else ""
+        if current != content:
+            print(f"[STALE] {path} - run build_quick_reference.py --write")
+            return 1
+        print(f"[OK] {path} is current")
         return 0
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(content, encoding="utf-8", newline="\n")
-    print(f"Wrote {target} ({len(content.encode('utf-8'))} bytes)")
+    path = args.out or (default_target(kit) if args.write else None)
+    if path is None:
+        sys.stdout.buffer.write(content.encode("utf-8"))
+        return 0
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8", newline="\n")
+    print(f"Wrote {path} ({len(content.encode('utf-8'))} bytes)")
     return 0
 
 

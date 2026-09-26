@@ -1,56 +1,49 @@
 ---
 name: status
-description: "/status — Summarizes project health without changing anything: stack and file counts, recent changes, required-check state, open plan tasks, memory, and running subagents. Use when the user asks where things stand, what is done, or what is pending."
-version: 2.0.0
+description: "/status - Read-only summary of where a project stands: stack, recent and uncommitted changes, last check result, open /plan tasks, /proplan milestones and task progress, memory, running subagents, dev server. Use when the user asks where things stand, what is done, or what is next."
+version: 2.5.0
 ---
 
 # /status
 
 **Input:** optional path after `/status` (default `.`).
-**Agent:** none; no specialist persona is needed.
-**Skills:** `@[skills/memory-system]` only if the user asks what is remembered.
+**Agent:** none.
 
-Read-only. `/status` reports state; it never edits, deploys, or probes ports, and it does not run the check gate — that is `/verify`.
+Read-only. `/status` reports; it never edits, deploys, probes ports, or runs the check gate (that is `/verify`). Run the independent reads below in parallel.
 
 ## Steps
 
-1. **Project.** Run `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/session_manager.py status .` for name, stack, detected features, and file count (`info` gives the JSON form if a later step needs it).
-2. **Recent changes.** `git log --oneline -10` and `git status --short` for uncommitted work. Skip with a note if the project is not a git repo.
-3. **Checks.** Report the last fast-gate result if `checklist.py` ran this session; otherwise say checks have not run this session and point to `/verify`. Do not run the gate here.
-4. **Open items.** List `docs/plans/*.md` (format: `plan-writing`); for each, count `- [x]` and `- [ ]` tasks and name the next open task.
-5. **Memory.** Report whether `<project>/.agents/memory/MEMORY.md` exists and how many entries it has; do not recite entries unless asked.
-6. **Agents.** List subagents running or waiting in Agent Manager for this workspace, with their current task. When subagents are unavailable in this Antigravity surface (single-session mode, see `parallel-agents`), report `none (single-session mode)`.
-7. **Dev server.** Report its URL only if one was started this session.
+1. **Project.** `python "KIT/scripts/session_manager.py" status .` for name, stack, detected features and file count.
+2. **Changes.** `git log --oneline -10` and `git status --short`. Not a git repo: say so.
+3. **Checks.** Report the last `checklist.py` or test result from this session. Nothing ran: say "not run this session" and point to `/verify`.
+4. **Plans (`/plan`).** For each `docs/plans/*.md`: count `- [x]` and `- [ ]` tasks, name the next open task.
+5. **Proplans (`/proplan`).** For each `docs/proplan/*/10-roadmap.md`:
+   - per milestone: tasks done out of total, and state (done / in progress / not started / blocked);
+   - the next ready T-id (open, all `depends` done) with its owner;
+   - open blockers in that folder's `REVIEW.md`, if any.
+   Read the status marker as the `proplan` skill defines it (checkbox `- [x]`/`- [ ]`, or a `status:` field). Use the milestone state in `00-overview.md` only if the roadmap has none, and say which source you used.
+6. **Memory.** Whether `.agents/memory/MEMORY.md` exists and how many entries it has; do not recite entries unless asked.
+7. **Agents.** Subagents running or waiting for this workspace, with their current task. None or no `invoke_subagent` in this surface: `none`.
+8. **Dev server.** Its URL only if one was started this session.
 
 ## Output
 
 ```
-=== Project ===
-Name: <name> · Path: <path> · Stack: <detected>
-Features: <list> · Files: <total>
+Project   <name> · <stack> · <n> files · <path>
+Changes   <hash> <subject> (last 3) · uncommitted: <n> files | clean | not a git repo
+Checks    pass | fail (<what>) | not run this session → /verify
 
-=== Recent changes ===
-<hash> <subject>   (git log --oneline -10)
-Uncommitted: <n> files   (or: clean | not a git repo)
+Plans
+  docs/plans/<slug>.md          4/7 · next: <task>
 
-=== Checks ===
-Required: pass | fail | not run this session (→ /verify)
+Proplans
+  docs/proplan/<slug>/          M1 done 6/6 · M2 in progress 3/8 · M3 not started 0/5
+    next ready: T-014 <title> (backend-specialist)
+    review blockers: none | <n> open (REVIEW.md)
 
-=== Open items ===
-docs/plans/<slug>.md — 4/7 done · next: <task>
-
-=== Memory ===
-.agents/memory/MEMORY.md — 12 entries   (or: not created; use /remember)
-
-=== Agents ===
-frontend-specialist — dashboard components (running)
-test-engineer — waiting on API   (or: none (single-session mode))
-
-=== Dev server ===
-http://localhost:3000 (started this session) | none
+Memory    .agents/memory/MEMORY.md, 12 entries | not created (/remember)
+Agents    frontend-specialist: dashboard components (running) | none
+Dev       http://localhost:3000 | none
 ```
 
-## Verification
-
-- Every number comes from a command or file read in this session; no estimates.
-- Missing pieces are reported as missing, not skipped; the check gate was not run from here.
+Every number comes from a command or file read in this session. A missing piece is reported as missing, not skipped.

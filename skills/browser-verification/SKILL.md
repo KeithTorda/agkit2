@@ -1,7 +1,7 @@
 ---
 name: browser-verification
-description: "Verifies what actually rendered by opening the running app in the browser: screenshot, real DOM, computed styles against DESIGN.md tokens, console and network errors, one interaction pass, and the breakpoint matrix. Use after any change that affects rendered UI, before reporting done, and for /see."
-version: 1.0.0
+description: "How to check what actually rendered in the running app: screenshot, real DOM, computed styles against DESIGN.md tokens, console and network errors, one interaction, mobile and desktop widths. Use for /see, when UI looks wrong, or when code-rules calls for a visual check of a layout change."
+version: 2.5.0
 ---
 
 # Browser Verification
@@ -10,12 +10,15 @@ version: 1.0.0
 
 Static analysis cannot see a render. Contrast comes from computed CSS, not from the class name;
 focus order comes from the live tree, not the JSX; overflow only exists at a width. This skill is
-how the kit stops guessing about UI.
+how to look when looking is worth it.
 
 ## When this runs
 
-Required for any change that affects rendered UI — the gate and its escape hatch are defined in the
-global `code-rules` rule. This skill is *how* to run it, not *whether*.
+`code-rules` decides whether: a layout change at tier 1 or above with a dev server running, or
+whenever the user asks (`/see`). Non-visual changes, a colour or copy tweak, or no server/browser:
+skip it and say so in one line of the report. This skill is *how* to look, not a gate on every
+UI edit. Match the depth to the change: a new page gets the full pass; a fixed margin gets one
+screenshot at the width that was broken.
 
 **Read when:** a browser step is refused, or a check behaves oddly → `troubleshooting.md`
 (preconditions: Chrome, Enable Browser Tools, actuation rules; and the seven ways this verification
@@ -43,10 +46,9 @@ thing (the §0.F primary action or first-seen item)? Can you name the type-scale
 spacing step of every gap you see? Is there anything on this page the named reference (§0.C)
 would not do? Does the empty state say what to create, does the error say what to do next (§4.7)?
 
-Fix what fails **before** writing the report, then render again. Two passes is normal; a page that
-needs none was probably not looked at. This is your own un-reviewed UI in the same task, so you
-refine it without asking (the carve-out in `code-rules`); only changes that alter scope or a
-user-approved design direction need a question.
+Fix what fails **before** writing the report, then render again. Two passes is normal on a new
+page. This is your own work in the same task, so refine it without asking; only changes that
+alter scope or a user-approved design direction need a question.
 
 ### 3. Read the DOM, not the source
 
@@ -77,11 +79,12 @@ with valid input, then with invalid input, and confirm the error state renders. 
 through the flow catches what no amount of reading finds — a dead button, a handler wired to the
 wrong element, a state update that never re-renders.
 
-### 7. Breakpoint matrix
+### 7. Widths
 
-Render at mobile (~390px), tablet (~768px), and desktop (~1440px). At each width confirm: no
-horizontal overflow, nothing clipped or overlapping, text stays readable, touch targets stay
-tappable on mobile. Most layout bugs live at exactly one width and are invisible at the others.
+Render at mobile (~390px) and desktop (~1440px); add tablet (~768px) when the layout has a
+tablet breakpoint or the bug lives there. At each width confirm: no horizontal overflow, nothing
+clipped or overlapping, text stays readable, touch targets stay tappable on mobile. Most layout
+bugs live at one width and are invisible at the others.
 
 ## What to actually look for
 
@@ -96,12 +99,12 @@ A screenshot teaches nothing if you do not know what you are looking at. Work th
 - **Image aspect** — stretched or squashed media.
 - **Spacing rhythm** — inconsistent gaps between siblings; reads as sloppiness even when nothing is broken.
 
-### These disqualify a pass on their own
+### Must-fix when you see them
 
 Each one is visible in a single screenshot, and each has shipped because nobody looked:
 
 - **Two design languages on one screen.** An existing header, nav, or footer left in the old style
-  beside your new work is an *unfinished redesign*, not a pass. Either restyle the shell to the same
+  beside your new work is an *unfinished redesign*. Either restyle the shell to the same
   tokens, or state in the report that it is out of scope and why. "New dashboard bolted under the old
   chrome" is the most common version of this.
 - **Mutually exclusive states rendered together** — Login and Logout both visible, an empty state
@@ -126,7 +129,7 @@ Each one is visible in a single screenshot, and each has shipped because nobody 
 ```markdown
 ## Visual Verification Report
 ### Target
-- Route: <url> · widths checked: 390 / 768 / 1440
+- Route: <url> · widths checked: <the widths you actually rendered>
 ### Rendered
 - <what you actually observed, per width>
 ### Token conformance
@@ -136,18 +139,18 @@ Each one is visible in a single screenshot, and each has shipped because nobody 
 ### Interaction
 - <action taken → observed result; error path result>
 ### Findings
-- Required: <render/console/network failures that block done>
-- Advisory: <polish, spacing rhythm, non-blocking heuristics>
+- Must fix: <render, console, network, broken interaction, unreadable text>
+- Polish: <spacing rhythm, off-scale values, craft notes>
 ### Not verified
 - <what needs a human eye and why>
 ```
 
-## Leave the evidence on disk
+## Evidence on disk (optional)
 
-A report in the reply is a claim; a file is evidence. Write to `<project>/.agents/verify/<task-slug>/`
-one screenshot **per width you claim to have checked**, named `<before|after>-<cssWidth>.png` —
-`after-390.png`, `after-768.png`, `after-1440.png`, plus `before-<width>.png` on a repair, the only
-proof the defect existed. The name is the claim; the pixel width is the evidence. Then `verdict.json`:
+Useful for tier 2-3 work, client handoff, or when the user asks for proof. Write to
+`<project>/.agents/verify/<task-slug>/` one screenshot per width you checked, named
+`<before|after>-<cssWidth>.png` (`after-390.png`, `after-1440.png`, plus `before-<width>.png` on a
+repair). Then `verdict.json`:
 
 ```json
 { "route": "/dashboard", "widths": [390,768,1440], "consoleErrors": 0, "failedRequests": 0,
@@ -155,20 +158,19 @@ proof the defect existed. The name is the claim; the pixel width is the evidence
 ```
 
 `status` is `pass` only when the route rendered, no uncaught console error, no failed data request on
-this route, and the interaction pass succeeded; otherwise `fail`, or `skipped` with a `reason` naming
-the blocked precondition. If the directory cannot be written, say so in one line and report inline.
+this route, and the interaction succeeded; otherwise `fail`, or `skipped` with a `reason`.
 
-Then prove the evidence is real:
+`ui_verify.py` checks that the files are what they claim:
 
 ```bash
-python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/ui_verify.py \
-  .agents/verify/<task-slug> --widths 390,768,1440 [--require-before]
+python "KIT/scripts/ui_verify.py" .agents/verify/<task-slug> --widths 390,1440 [--require-before]
 ```
 
-It fails when a width has no screenshot, when a file's real pixel width does not match the width its
-name claims, when two "different" views are byte-identical, or when the verdict says `pass` while
-recording console or network errors. **Re-using one capture as several widths is the failure this
-exists to catch** — a narrow viewport must actually have been rendered, not renamed.
+Without `--widths` it checks the widths in `verdict.json`, else 390 and 1440. It fails (exit 1) when
+a width has no screenshot, when a file's real pixel width does not match its name (at a device pixel
+ratio of 1, 1.25, 1.5, 2 or 3), when two "different" views are byte-identical, or when the verdict
+says `pass` while recording console or network errors. A verdict with status `skipped` and a
+`reason` is an honest skip and exits 0. `--json` prints the result; `--report FILE` also writes it. Whether or not you save files, never claim a width you did not render.
 
 ## Boundaries
 

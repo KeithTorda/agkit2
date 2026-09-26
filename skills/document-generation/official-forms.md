@@ -128,7 +128,7 @@ This is what `scripts/doc_verify.py` exists for. It renders the result, checks w
 and diffs against the authority's blank form so misalignment is *visible*:
 
 ```bash
-python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/doc_verify.py \
+python "KIT/scripts/doc_verify.py" \
   out/coe-filled.pdf \
   --reference resources/forms/coe-rev2026.pdf \
   --outdir .agents/verify/coe --page-size folio --glyphs "₱,ñ"

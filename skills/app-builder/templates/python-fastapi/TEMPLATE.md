@@ -1,6 +1,7 @@
 ---
 name: python-fastapi
 description: FastAPI REST API template principles. SQLAlchemy, Pydantic, Alembic.
+version: 2.5.0
 ---
 
 # FastAPI API Template
@@ -12,7 +13,7 @@ description: FastAPI REST API template principles. SQLAlchemy, Pydantic, Alembic
 | Component | Technology |
 |-----------|------------|
 | Framework | FastAPI |
-| Language | Python 3.13+ (3.14 current) |
+| Language | Python 3.13+ (3.14 current), managed with `uv` |
 | Lint / types | Ruff + pyright (or mypy) |
 | ORM | SQLAlchemy 2.0 (async) |
 | Validation | Pydantic v2 |
@@ -44,7 +45,8 @@ project-name/
 │   ├── exceptions.py    # Global exceptions
 │   └── main.py          # FastAPI() + include_router
 ├── tests/
-├── requirements/        # base.txt / dev.txt / prod.txt
+├── pyproject.toml       # dependencies and tool config (uv, ruff, pytest)
+├── uv.lock
 ├── alembic.ini
 └── .env
 ```
@@ -77,12 +79,14 @@ project-name/
 
 ## Setup Steps
 
-1. `python -m venv venv`
-2. `source venv/bin/activate`
-3. `pip install fastapi uvicorn "sqlalchemy[asyncio]" alembic pydantic pydantic-settings` and `pip install -D ruff pyright pytest pytest-asyncio httpx` (or use `uv`)
-4. Create `.env`
-5. `alembic upgrade head`
-6. `uvicorn src.main:app --reload`
+1. `uv init {{name}}; cd {{name}}`
+2. `uv add "fastapi[standard]" "sqlalchemy[asyncio]" asyncpg alembic pydantic-settings "pwdlib[argon2]" pyjwt`
+3. `uv add --dev ruff pyright pytest pytest-asyncio httpx`
+4. Create `.env` (and `.env.example` without secrets); `uv run alembic init -t async alembic`
+5. `uv run alembic upgrade head`
+6. `uv run fastapi dev src/main.py`
+
+Without uv: `python -m venv .venv`, `.venv\Scripts\Activate.ps1` (PowerShell), then `pip install` the same packages.
 
 ---
 

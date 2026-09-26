@@ -1,37 +1,35 @@
 ---
 name: see-doc
-description: "/see-doc — Renders a generated PDF and reports what actually came out: page images to look at, page size, embedded fonts, glyph survival, content near the edge, and a difference image against an official blank form. Use before calling any generated document done, and whenever output must match a government template."
-version: 2.3.0
+description: "/see-doc - Renders a generated PDF and reports what actually came out: page images to look at, page size, embedded fonts, glyph survival, content near the edge, and a difference image against an official blank form. Use when a change affects generated documents (receipts, certificates, reports, government forms) and whenever output must match an official template."
+version: 2.5.0
 ---
 
 # /see-doc
 
 The document equivalent of `/see`. Reading the template tells you what you wrote; only rendering the
 file tells you what the recipient receives. A generated document that was never opened is not
-verified.
+verified, so run this whenever a change touches document output; skip it for changes that do not.
 
 **Input:** the text after `/see-doc` is the path to the generated file, optionally followed by the
 blank official form to compare against (`/see-doc out/coe.pdf resources/forms/coe-rev2026.pdf`). If
 empty, use the file produced by the most recent change; if that is unclear, ask for the path in one
 line.
-**Agent:** `backend-specialist` owns generation; read
-`C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/agents/backend-specialist.md`.
-**Skills:** `@[skills/document-generation]` (core + `pdf.md`; `official-forms.md` when a template is
-involved).
+**Agent:** `backend-specialist` owns generation (`KIT/agents/backend-specialist.md`).
+**Read now:** `KIT/skills/document-generation/SKILL.md` (core + `pdf.md`; `official-forms.md` when a
+template is involved).
 
 ## Steps
 
-1. **Generate with real data.** Not a fixture with "Test Test" — the longest name in the database, a
+1. **Generate with real data.** Not a fixture with "Test Test": the longest name in the database, a
    name containing `ñ`, an amount over a million, and one empty optional field. Most document bugs
    only appear at the awkward values.
 2. **Run the checker.**
-   ```bash
-   python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/doc_verify.py <file.pdf> \
-     --outdir .agents/verify/<task-slug> --page-size <a4|letter|legal|folio> --glyphs "₱,ñ" \
-     [--reference <blank-form.pdf>]
+   ```powershell
+   python "KIT/scripts/doc_verify.py" <file.pdf> --outdir .agents/verify/<task-slug> `
+     --page-size <a4|letter|legal|folio> --glyphs "₱,ñ" [--reference <blank-form.pdf>]
    ```
 3. **Look at the rendered pages.** Open every `page-*.png` it wrote. State what you actually see,
-   per page — not what the template was supposed to produce.
+   per page, not what the template was supposed to produce.
 4. **Look at the diff** (when `--reference` was given). It shows only what you drew on top of the
    authority's form. Your values should be there, in their boxes, and nothing else. Form elements
    appearing in the diff mean you moved or redrew something that was theirs.
@@ -63,13 +61,13 @@ involved).
 
 - **Looking at the images is the point.** The verdict JSON catches what is mechanical; alignment,
   overflow into the next box, and a value one line too low are only caught by opening the PNG.
-- A required failure blocks done: wrong page size, a non-standard font not embedded, `₱` or `ñ`
+- Required failures are defects in the document; fix them before it is delivered: wrong page size, a non-standard font not embedded, `₱` or `ñ`
   absent from the extracted text, no extractable text at all, or content inside the non-printable
   edge.
-- Never "improve" an official form to make a value fit — shrink or truncate the value by the
+- Never "improve" an official form to make a value fit; shrink or truncate the value by the
   agency's rule instead (`official-forms.md` §4).
-- If the checker cannot run (no `pypdfium2` and no poppler), say so in one line and name it as the
-  escape-hatch reason. Never report a document as verified on the strength of the source template.
+- If the checker cannot run (no `pypdfium2` and no poppler), say so in one line and list the document
+  under `Not verified`. Never report a document as verified on the strength of the source template.
 - For a document that will be printed at a counter, one physical print on the real paper is still
   owed; list it under "Not verified" until it has happened.
 

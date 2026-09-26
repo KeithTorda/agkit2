@@ -1,367 +1,75 @@
 # Mobile Color System Reference
 
-> OLED optimization, dark mode, battery-aware colors, and outdoor visibility.
-> **Color on mobile isn't just aesthetics—it's battery life and usability.**
+OLED behaviour, dark mode, outdoor visibility, semantic colour, and colour accessibility. On mobile, colour is also battery and readability, not only aesthetics. `DESIGN.md` and the brief decide the palette; this file is the physics and the accessibility floor those choices have to clear. Hex values below are platform system colours, quoted as examples.
 
----
+## 1. Why mobile colour differs
 
-## 1. Mobile Color Fundamentals
+Phones use OLED often (each pixel emits its own light), are viewed in bright sun, run on a battery, and follow a system-wide light/dark setting. Priorities, in order: readability in variable light, battery on OLED, system dark/light integration, clear semantics (error/success/warning), then brand.
 
-### Why Mobile Color is Different
+## 2. OLED and battery
 
-```
-DESKTOP:                           MOBILE:
-├── LCD screens (backlit)          ├── OLED common (self-emissive)
-├── Controlled lighting            ├── Outdoor, bright sun
-├── Stable power                   ├── Battery matters
-├── Personal preference            ├── System-wide dark mode
-└── Static viewing                 └── Variable angles, motion
-```
+On OLED a black pixel is off and draws no power, so darker UIs save battery; brighter and more saturated pixels cost more (blue is cheapest, red dearest). On LCD, dark mode saves nothing. This is why a dark theme matters on mobile beyond taste.
 
-### Mobile Color Priorities
+There is a real trade-off at the dark end, and `DESIGN.md` should pick the point on it:
 
-| Priority | Why |
-|----------|-----|
-| **1. Readability** | Outdoor, variable lighting |
-| **2. Battery efficiency** | OLED = dark mode saves power |
-| **3. System integration** | Dark/light mode support |
-| **4. Semantics** | Error, success, warning colors |
-| **5. Brand** | After functional requirements |
+- A true-black background (`#000000`) gives maximum battery saving and the deepest contrast, but can show "black smear" on scroll and can feel harsh. It fits OLED-focused media apps.
+- A near-black background (around `#121212` on Android) keeps most of the saving, scrolls more smoothly, and is easier on the eyes. It is the common default.
 
----
+Neither is banned. State which the design uses and why; raised surfaces sit a step lighter (`#1E1E1E`-`#2C2C2C`) to convey elevation.
 
-## 2. OLED Considerations
+## 3. Dark mode
 
-### How OLED Differs
+Dark mode is a distinct palette, not an inversion of the light one. Inverting makes saturated colours glow and breaks semantic meaning and contrast.
 
-```
-LCD (Liquid Crystal Display):
-├── Backlight always on
-├── Black = backlight through dark filter
-├── Energy use = constant
-└── Dark mode = no battery savings
+Typical mapping (Material-style, as an example — take real values from `DESIGN.md`):
 
-OLED (Organic LED):
-├── Each pixel emits own light
-├── Black = pixel OFF (zero power)
-├── Energy use = brighter pixels use more
-└── Dark mode = significant battery savings
-```
+| Role | Light | Dark |
+|------|-------|------|
+| Background | `#FFFFFF` | `#121212` (true black for OLED media UIs) |
+| Surface / raised | `#F5F5F5` / `#EEEEEE` | `#1E1E1E` / `#2C2C2C` |
+| Primary | a mid tone | a lighter, desaturated tint |
+| Text primary / secondary | `#212121` / `#757575` | a light grey / a mid grey |
 
-### Battery Savings with OLED
+Rules that hold regardless of palette: desaturate colours for dark mode, use lighter tints for emphasis, keep semantic meanings, convey elevation with a lighter surface overlay rather than shadows, and re-check every contrast pair — light-mode ratios do not carry over.
 
-```
-Color energy consumption (relative):
+## 4. Outdoor visibility
 
-#000000 (True Black)  ████░░░░░░  0%
-#1A1A1A (Near Black)  █████░░░░░  ~15%
-#333333 (Dark Gray)   ██████░░░░  ~30%
-#666666 (Medium Gray) ███████░░░  ~50%
-#FFFFFF (White)       ██████████  100%
+Bright sun washes out low contrast, glare, and pale colours; users end up shading the screen. The fix is contrast, not brightness: meet WCAG AA (4.5:1 normal text, 3:1 large text and UI outlines), aim for 7:1 on anything critical, use solid colours rather than subtle gradients for important information, and test in a genuinely bright environment. A pale grey on white that passes in the office fails on the street.
 
-Saturated colors also use significant power:
-├── Blue pixels: Most efficient
-├── Green pixels: Medium
-├── Red pixels: Least efficient
-└── Desaturated colors save more
-```
+## 5. Semantic colours
 
-### True Black vs Near Black
+Keep error/success/warning/info consistent across the app and both themes, and never repurpose them for branding or decoration. Platform system values (examples):
 
-```
-#000000 (True Black):
-├── Maximum battery savings
-├── Can cause "black smear" on scroll
-├── Sharp contrast (may be harsh)
-└── Used by Apple in pure dark mode
+| Semantic | iOS (light / dark) | Android (light / dark on container) |
+|----------|--------------------|-------------------------------------|
+| Error | `#FF3B30` / `#FF453A` | `#B3261E` / `#F2B8B5` |
+| Success | `#34C759` / `#30D158` | `#4CAF50` |
+| Warning | `#FF9500` | `#FFC107` |
+| Info | `#007AFF` / `#0A84FF` | `#2196F3` |
 
-#121212 or #1A1A1A (Near Black):
-├── Still good battery savings
-├── Smoother scrolling (no smear)
-├── Slightly softer on eyes
-└── Material Design recommendation
+Always pair a semantic colour with an icon or text so colourblind users get the meaning too.
 
-Rule: true black only for OLED-focused media UIs; otherwise near-black per platform guidance (#121212 Android), #1E1E1E-#2C2C2C for raised surfaces
-```
+## 6. Dynamic colour (Android, Material You)
 
----
-
-## 3. Dark Mode Design
-
-### Dark Mode Benefits
-
-```
-Users enable dark mode for:
-├── Battery savings (OLED)
-├── Reduced eye strain (low light)
-├── Personal preference
-├── AMOLED aesthetic
-└── Accessibility (light sensitivity)
-```
-
-### Dark Mode Color Strategy
-
-```
-LIGHT MODE                      DARK MODE
-──────────                      ─────────
-Background: #FFFFFF      →      #121212 (true black only for OLED-focused media UIs)
-Surface:    #F5F5F5      →      #1E1E1E
-Surface 2:  #EEEEEE      →      #2C2C2C
-
-Primary:    #1976D2      →      #90CAF9 (lighter)
-Text:       #212121      →      #E0E0E0 (not pure white)
-Secondary:  #757575      →      #9E9E9E
-
-Elevation in dark mode:
-├── Higher = slightly lighter surface
-├── 0dp →  0% overlay
-├── 4dp →  9% overlay
-├── 8dp →  12% overlay
-└── Creates depth without shadows
-```
-
-### Text Colors in Dark Mode
-
-| Role | Light Mode | Dark Mode |
-|------|------------|-----------|
-| Primary | #000000 (Black) | #E8E8E8 (Not pure white) |
-| Secondary | #666666 | #B0B0B0 |
-| Disabled | #9E9E9E | #6E6E6E |
-| Links | #1976D2 | #8AB4F8 |
-
-### Color Inversion Rules
-
-```
-DON'T just invert colors:
-├── Saturated colors become eye-burning
-├── Semantic colors lose meaning
-├── Brand colors may break
-└── Contrast ratios change unpredictably
-
-DO create intentional dark palette:
-├── Desaturate primary colors
-├── Use lighter tints for emphasis
-├── Maintain semantic color meanings
-├── Check contrast ratios independently
-```
-
----
-
-## 4. Outdoor Visibility
-
-### The Sunlight Problem
-
-```
-Screen visibility outdoors:
-├── Bright sun washes out low contrast
-├── Glare reduces readability
-├── Polarized sunglasses affect
-└── Users shield screen with hand
-
-Affected elements:
-├── Light gray text on white
-├── Subtle color differences
-├── Low opacity overlays
-└── Pastel colors
-```
-
-### High Contrast Strategies
-
-```
-For outdoor visibility:
-
-MINIMUM CONTRAST RATIOS:
-├── Normal text: 4.5:1 (WCAG AA)
-├── Large text: 3:1 (WCAG AA)
-├── Recommended: 7:1+ (AAA)
-
-AVOID:
-├── #999 on #FFF (fails AA)
-├── #BBB on #FFF (fails)
-├── Pale colors on light backgrounds
-└── Subtle gradients for critical info
-
-DO:
-├── Use system semantic colors
-├── Test in bright environment
-├── Provide high contrast mode
-└── Use solid colors for critical UI
-```
-
----
-
-## 5. Semantic Colors
-
-### Consistent Meaning
-
-| Semantic | Meaning | iOS Default | Android Default |
-|----------|---------|-------------|-----------------|
-| Error | Problems, destruction | #FF3B30 | #B3261E |
-| Success | Completion, positive | #34C759 | #4CAF50 |
-| Warning | Attention, caution | #FF9500 | #FFC107 |
-| Info | Information | #007AFF | #2196F3 |
-
-### Semantic Color Rules
-
-```
-NEVER use semantic colors for:
-├── Branding (confuses meaning)
-├── Decoration (reduces impact)
-├── Arbitrary styling
-└── Status indicators (use icons too)
-
-ALWAYS:
-├── Pair with icons (colorblind users)
-├── Maintain across light/dark modes
-├── Keep consistent throughout app
-└── Follow platform conventions
-```
-
-### Error State Colors
-
-```
-Error states need:
-├── Red-ish color (semantic)
-├── High contrast against background
-├── Icon reinforcement
-├── Clear text explanation
-
-iOS:
-├── Light: #FF3B30
-├── Dark: #FF453A
-
-Android:
-├── Light: #B3261E
-├── Dark: #F2B8B5 (on error container)
-```
-
----
-
-## 6. Dynamic Color (Android)
-
-### Material You
-
-```
-Android 12+ Dynamic Color:
-
-User's wallpaper → Color extraction → App theme
-
-Your app automatically gets:
-├── Primary (from wallpaper dominant)
-├── Secondary (complementary)
-├── Tertiary (accent)
-├── Surface colors (neutral, derived)
-├── On-colors (text on each)
-```
-
-### Supporting Dynamic Color
+Android 12+ derives primary/secondary/tertiary/surface roles from the user's wallpaper. Support it and provide a static scheme as fallback for older versions or when the user disables it.
 
 ```kotlin
-// Jetpack Compose
-MaterialTheme(
-    colorScheme = dynamicColorScheme()
-        ?: staticColorScheme() // Fallback for older Android
-)
-
-// React Native
-// Limited support - consider react-native-material-you
+MaterialTheme(colorScheme = dynamicColorScheme() ?: staticColorScheme())
 ```
 
-### Fallback Colors
+React Native support is limited; use a library or ship a static scheme.
 
-```
-When dynamic color unavailable:
-├── Android < 12
-├── User disabled
-├── Non-supporting launchers
+## 7. Colour accessibility
 
-Provide static color scheme:
-├── Define your brand colors
-├── Test in both modes
-├── Match dynamic color roles
-└── Support light + dark
-```
+About 8% of men and 0.5% of women have some colour blindness (red, green, or blue weakness most commonly). So: never carry meaning in colour alone — add icons, patterns, or text; avoid distinguishing states only by red vs green; and simulate the common types during design. Verify contrast with the platform inspectors (Xcode Accessibility Inspector, Android Accessibility Scanner) and a real device in sunlight.
 
----
+Contrast floor: AA (4.5:1 normal, 3:1 large and UI components) is the minimum; AAA (7:1 / 4.5:1) is the target on critical text.
 
-## 7. Color Accessibility
+## 8. Common mistakes
 
-### Colorblind Considerations
-
-```
-~8% of men, ~0.5% of women are colorblind
-
-Types:
-├── Protanopia (red weakness)
-├── Deuteranopia (green weakness)
-├── Tritanopia (blue weakness)
-├── Monochromacy (rare, no color)
-
-Design rules:
-├── Never rely on color alone
-├── Use patterns, icons, text
-├── Test with simulation tools
-├── Avoid red/green distinctions only
-```
-
-### Contrast Testing Tools
-
-```
-Use these to verify:
-├── Built-in accessibility inspector (Xcode)
-├── Accessibility Scanner (Android)
-├── Contrast ratio calculators
-├── Colorblind simulation
-└── Test on actual devices in sunlight
-```
-
-### Sufficient Contrast
-
-```
-WCAG Guidelines:
-
-AA (Minimum)
-├── Normal text: 4.5:1
-├── Large text (18pt+): 3:1
-├── UI components: 3:1
-
-AAA (Enhanced)
-├── Normal text: 7:1
-├── Large text: 4.5:1
-
-Mobile recommendation: Meet AA, aim for AAA
-```
-
----
-
-## 8. Color Anti-Patterns
-
-### ❌ Common Mistakes
-
-| Mistake | Problem | Fix |
-|---------|---------|-----|
-| **Light gray on white** | Invisible outdoors | Min 4.5:1 contrast |
-| **Pure white in dark mode** | Eye strain | Use #E0E0E0-#F0F0F0 |
-| **Same saturation dark mode** | Garish, glowing | Desaturate colors |
-| **Red/green only indicator** | Colorblind users can't see | Add icons |
-| **Semantic colors for brand** | Confusing meaning | Use neutral for brand |
-| **Ignoring system dark mode** | Jarring experience | Support both modes |
-
-### ❌ AI Color Mistakes
-
-```
-AI tends to:
-├── Use same colors for light/dark
-├── Ignore OLED battery implications
-├── Skip contrast calculations
-├── Default to purple/violet without a brand reason
-├── Use low contrast "aesthetic" grays
-├── Not test in outdoor conditions
-└── Forget colorblind users
-
-RULE: Design for the worst case.
-Test in bright sunlight, with colorblindness simulation.
-```
-
----
-> Color on mobile must work in bright sun, with tired eyes, colorblindness, and low battery. Colors that fail those tests are useless.
+- Pale grey text on white — fails outdoors; meet 4.5:1.
+- Reusing the light palette in dark mode — garish and low-contrast; build a real dark palette.
+- Same saturation in dark mode — colours glow; desaturate.
+- Colour as the only signal for a state — invisible to colourblind users; add an icon.
+- Semantic colours used for brand — muddies meaning; keep brand neutral.
+- Defaulting to a purple/violet accent with no brand reason — a generated-app tell; let `DESIGN.md` choose.

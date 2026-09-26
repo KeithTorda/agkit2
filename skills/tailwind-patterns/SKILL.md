@@ -1,7 +1,7 @@
 ---
 name: tailwind-patterns
 description: Tailwind CSS v4 mechanics - CSS-first configuration with @theme tokens, the @custom-variant dark setup, container queries, responsive and layout utilities, component extraction, and v3-to-v4 differences. Use when writing or reviewing Tailwind v4 code, wiring DESIGN.md tokens into @theme, setting up dark mode, or migrating a v3 config. Visual decisions live in frontend-design; this skill covers how Tailwind expresses them.
-version: 2.0.0
+version: 2.5.0
 ---
 
 # Tailwind CSS v4 Patterns
@@ -23,6 +23,8 @@ Tailwind v4 is CSS-first: configuration lives in the CSS entry file, tokens are 
 - Content detection is automatic; `@source` adds paths, `@source not` excludes them.
 
 ## 2. Tokens with `@theme`
+
+Values below are examples; the real ones come from `DESIGN.md`.
 
 ```css
 @theme {
@@ -87,7 +89,7 @@ Default behaviour without any setup: `dark:` follows `prefers-color-scheme`. For
 ## 6. Component extraction
 
 - Same class combination 3+ times, complex state variants, or a design-system atom → extract a component (React / Vue), not a CSS class.
-- `@apply` still works and is the last resort (framework-less projects, third-party markup you cannot template). `@utility` defines a real utility with variant support: `@utility scrollbar-hidden { scrollbar-width: none; }`.
+- Shared classes that markup cannot express as a component (a status badge used from Blade and React, a card skin, third-party markup) go in `@layer components` in the CSS entry file, so utilities still win by layer order. `@apply` works there; keep it to short, stable combinations. `@utility` defines a real utility with variant support: `@utility scrollbar-hidden { scrollbar-width: none; }`.
 - Class lists: merge conditionally with `cn()` / `clsx`; never build class names at runtime (`bg-${color}-500` is invisible to the compiler; map to full class names). `cva` / `tailwind-variants` for size and intent props.
 
 ## 7. Migrating from v3
@@ -99,7 +101,7 @@ Default behaviour without any setup: `dark:` follows `prefers-color-scheme`. For
 | Avoid | Do instead |
 |---|---|
 | Arbitrary values everywhere (`p-[13px]`) | The `@theme` scale; add a token if one is missing |
-| `!important` / `!` modifiers | Fix the layer order; the one allowed case (a `!` utility on a third-party widget) is in `css-architecture` |
+| `!important` / `!` modifiers as a habit | Fix the layer order; a `!` utility is a last resort for third-party CSS you cannot configure, with a comment (`css-architecture`) |
 | Inline `style=` for static values | Utilities; inline only for runtime values (`style={{ '--index': i }}`) |
 | Two token sources (JS config + `@theme`) | `@theme` only, generated from `DESIGN.md` |
 | `h-screen` heroes | `min-h-dvh` |

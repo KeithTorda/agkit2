@@ -16,7 +16,7 @@ Seven rules for server-side performance in the App Router. For `use cache`, `cac
 **Impact:** CRITICAL  
 **Tags:** server, server-actions, authentication, security, authorization  
 
-Server Actions (functions with `"use server"`) are exposed as public endpoints, just like API routes. Always verify authentication and authorization **inside** each Server Action—do not rely solely on middleware, layout guards, or page-level checks, as Server Actions can be invoked directly.
+Server Actions (functions with `"use server"`) are exposed as public endpoints, just like API routes. Always verify authentication and authorization **inside** each Server Action. Do not rely only on `proxy.ts` (formerly `middleware.ts`), layout guards or page-level checks: an action can be invoked directly with a crafted request.
 
 Next.js documentation explicitly states: "Treat Server Actions with the same security considerations as public-facing API endpoints, and verify if the user is allowed to perform a mutation."
 
@@ -38,19 +38,19 @@ export async function deleteUser(userId: string) {
 'use server'
 
 import { verifySession } from '@/lib/auth'
-import { unauthorized } from '@/lib/errors'
+import { AuthError } from '@/lib/errors'
 
 export async function deleteUser(userId: string) {
   // Always check auth inside the action
   const session = await verifySession()
   
   if (!session) {
-    throw unauthorized('Must be logged in')
+    throw new AuthError('Must be logged in')
   }
   
   // Check authorization too
   if (session.user.role !== 'admin' && session.user.id !== userId) {
-    throw unauthorized('Cannot delete other users')
+    throw new AuthError('Cannot delete other users')
   }
   
   await db.user.delete({ where: { id: userId } })
@@ -112,11 +112,11 @@ users={[{id:1},{id:2}]} sorted={users.toSorted()} // sends 2 arrays + 2 unique o
 **More examples:**
 
 ```tsx
-// ❌ Bad
+// Avoid
 <C users={users} active={users.filter(u => u.active)} />
 <C product={product} productName={product.name} />
 
-// ✅ Good
+// Prefer
 <C users={users} />
 <C product={product} />
 // Do filtering/destructuring in client
@@ -429,6 +429,7 @@ The response is sent immediately while logging happens in the background.
 
 - `after()` runs even if the response fails or redirects
 - Works in Server Actions, Route Handlers, and Server Components
+- Records that must exist for data integrity (a payment ledger row, a stock movement) belong in the main transaction, not in `after()`
 
 Reference: [https://nextjs.org/docs/app/api-reference/functions/after](https://nextjs.org/docs/app/api-reference/functions/after)
 

@@ -1,58 +1,63 @@
 ---
 name: lint-and-validate
-description: Static checks after every code change - ESLint 9 flat config, TypeScript type checks, Ruff and mypy or pyright for Python, plus the kit's lint and type-coverage runners. Use after editing code, before declaring a task done, when setting up linting for a project, or when a lint or type error needs fixing.
-version: 2.0.0
+description: Static checks - ESLint flat config and TypeScript for JS/TS, Ruff and mypy or pyright for Python, Pint and Larastan for Laravel, what "clean" means, and the kit's lint and type-coverage runners. Use when running checks for a change per the code-rules tier, setting up linting for a project, or fixing a lint or type error.
+version: 2.5.0
 ---
 
 # Lint and Validate
 
-Lint and type errors are required-check failures: fix them automatically before reporting a task as done (auto-fix policy: global `code-rules` rule). Run the project's own tools first; the kit scripts wrap them for the checklist.
+Run the project's own tools first; the kit scripts wrap them. How much to run follows the `code-rules` tier: nothing for tier 0, the project's lint and types on touched files for tier 1, the full set for tier 2-3. Type errors are required failures at tier 2-3; lint style findings are advisory unless the project's CI treats them as errors. Either way, fix errors your change introduced.
 
-Run only the tools the project actually has: Ruff, mypy, pyright, Pint, and Larastan run only when installed (mypy also needs a `[tool.mypy]` block); ESLint 9 needs a flat `eslint.config.*`. A missing tool is a note, not a failure — and not a pass either: do not call an unlinted project "clean".
+Run only the tools the project has. A missing tool is a note, not a failure, and not a pass: do not call an unlinted project "clean"; write it under `Not verified:`.
 
 ## Commands by ecosystem
 
-| Ecosystem | Lint | Types | Notes |
+| Ecosystem | Lint / format | Types | Notes |
 |-----------|------|-------|-------|
-| Node / TypeScript | `npm run lint` if the script exists, else `npx eslint . --fix` | `npx tsc --noEmit` | ESLint 9+ uses flat config (`eslint.config.js` / `.mjs` / `.ts`); `.eslintrc*` is legacy and ignored by ESLint 9. Next.js 16 has no `next lint`; use `eslint-config-next` in the flat config |
-| Python | `ruff check . --fix` and `ruff format .` | `mypy .` (when `[tool.mypy]` or `mypy.ini` exists) or `pyright` | Configure both in `pyproject.toml` |
-| PHP / Laravel | `vendor/bin/pint --test` (fix: `vendor/bin/pint`) | `vendor/bin/phpstan analyse` (Larastan) | Config in `pint.json` and `phpstan.neon`; both installed as dev dependencies through Composer |
-| Security (optional) | `npm audit --audit-level=high`; `bandit -r src -ll` and `pip-audit` for Python | | Bandit is optional; the required security gate is `@[skills/vulnerability-scanner]` |
+| Node / TypeScript | `npm run lint` if the script exists, else `npx eslint .` (add `--fix` for safe fixes); Prettier or Biome for formatting | `npx tsc --noEmit` | ESLint flat config (`eslint.config.js` / `.mjs` / `.ts`); `.eslintrc*` is legacy and not read by current ESLint. Next.js 16 has no `next lint`; use `eslint-config-next` in the flat config. Biome projects: `npx biome check .` |
+| Python | `ruff check . --fix` and `ruff format .` (or `uv run ruff ...`) | `mypy .` when configured (`[tool.mypy]` or `mypy.ini`), else `pyright` | Configure both in `pyproject.toml` |
+| PHP / Laravel | `vendor/bin/pint --test` (fix: `vendor/bin/pint`) | `vendor/bin/phpstan analyse` (Larastan) | Config in `pint.json` and `phpstan.neon`; Composer dev dependencies |
+| Dependencies and security | `npm audit --audit-level=high`; `pip-audit`; `composer audit` | | Security review and scanning: `vulnerability-scanner` |
 
-Setting up a project that has none: add `eslint.config.js` with `@eslint/js` recommended, `typescript-eslint`, and the framework preset (`eslint-config-next`, `eslint-plugin-react-hooks` for the compiler rules); for Python add `[tool.ruff]` with `select = ["E", "F", "I", "UP", "B"]` and `[tool.mypy]` to `pyproject.toml`.
+TypeScript: 5.9+ is the baseline. The native compiler preview (`tsgo`, TypeScript 7) is much faster; use it only when the project has adopted it, and keep `tsc` as the reference when results differ.
+
+Setting up a project that has none (ask or state it, since it adds files): `eslint.config.js` with `@eslint/js` recommended, `typescript-eslint`, and the framework preset (`eslint-config-next`; current `eslint-plugin-react-hooks` with its `recommended` preset, which carries the React Compiler diagnostics). Python: `[tool.ruff]` with `lint.select = ["E", "F", "I", "UP", "B"]` and `[tool.mypy]` in `pyproject.toml`. Laravel: `laravel/pint` ships with new apps; add `larastan/larastan` for types.
 
 ## The loop
 
 1. Edit code.
-2. Run lint and types for the touched ecosystem.
-3. Fix every error at the source (see "What 'lint clean' means" below).
-4. Re-run until clean, then run tests (`@[skills/testing-patterns]`).
+2. Run lint and types for the touched ecosystem (scope to changed files when the tool allows).
+3. Fix what your change broke at the source.
+4. Re-run; then run tests if the tier asks for them (`testing-patterns`).
 
-## What "lint clean" means
+Pre-existing errors in files you did not touch: mention the count, do not silently fix a hundred unrelated lines in the same change unless asked.
 
-Clean means the check passes because the code is right, not because the check was silenced. `as any` to dodge a type error, a file-level `/* eslint-disable */`, `# type: ignore` with no message, or a blanket `# noqa` are suppressions — they hide the finding from the next reader and from CI.
+## What "clean" means
+
+Clean means the check passes because the code is right, not because the check was silenced. `as any` to dodge a type error, a file-level `/* eslint-disable */`, a bare `# type: ignore`, or a blanket `# noqa` hide the finding from the next reader and from CI.
 
 ```ts
-// Wrong — suppresses the check; the real bug (wrong shape) still ships.
-const data = res.body as any;
-data.usr.name;                 // typo survives
+// Hides the problem: the typo still ships
+const data = res.body as any
+data.usr.name
 
-// Right — fix the type so the check protects you.
-const data = res.body as UserResponse;
-data.user.name;                // typo caught at compile time
+// Fixes it: parse (or at least type) the response so the checker protects you
+const data = UserResponse.parse(res.body)
+data.user.name                 // a typo here is caught at compile time
 ```
 
-The one legitimate disable is a single line a rule is genuinely wrong about, with the rule named and the reason inline: `// eslint-disable-next-line <rule> -- <why it is safe here>`. Warnings the project treats as errors count as errors.
+A justified disable is fine: one line, the rule named, the reason inline — `// eslint-disable-next-line <rule> -- <why it is safe here>`, `# type: ignore[<code>]  # <why>`.
 
 ## Kit scripts
 
-`./scripts/lint_runner.py <project>` detects the project and runs what is configured: `npm run lint` (or `npx eslint .` when only the dependency exists) and `npx tsc --noEmit` when TypeScript is present; for Python, `ruff check .` only if Ruff is installed, then `mypy .` if mypy is installed and configured, otherwise `pyright` if installed. A missing tool is reported as a note, not a failure. Exit code 1 only when a linter that ran reported errors. Output is a per-check pass/fail summary plus JSON.
+`python "KIT/scripts/checklist.py" .` is the normal entry point: it runs its own lint, type and test steps (`--quick`, tier 1, scoped to git-changed files; `--full`, tier 2, whole project plus security and advisory audits). It does not call the two scripts below. In checklist.py, type errors and failing tests are required failures; lint style is advisory unless `--strict`.
 
-`./scripts/type_coverage.py <project>` uses real compiler output: it runs the project-local `tsc --noEmit` for every `tsconfig.json` it finds and fails when the compiler reports errors (skipped, not failed, when no local `tsc` is installed). Alongside that it counts explicit escape hatches (`: any`, `as any`, `@ts-ignore`, `@ts-nocheck`) and fails only above a project-size threshold; inferred return types are never counted against you. For Python it parses files with `ast` and reports functions missing parameter or return annotations.
+The two scripts here are optional helpers for running one check on its own. Neither downloads anything (no bare `npx`): binaries come from `node_modules/.bin` or `vendor/bin`, then `PATH`. A missing tool, `node_modules` or `vendor` is a SKIP with a note, never a failure.
+
+- `lint_runner.py` runs the linters the project has: Node - `npm run lint` when the script exists, else local ESLint or Biome, plus local `tsc --noEmit` when TypeScript is present; PHP - `vendor/bin/pint --test` and `vendor/bin/phpstan`, else `php -l`; Python - `ruff check`, then mypy when configured, else pyright. Flags: `--json`, `--no-types` (skip tsc/mypy/pyright), `--timeout SECONDS` (per linter, default 300). Exit 1 when a linter reports errors or times out.
+- `type_coverage.py` runs the project-local `tsc --noEmit` for every `tsconfig.json` (solution-style configs run their references; skipped when `node_modules/.bin/tsc` is missing) and counts escape hatches (`: any`, `as any`, `<any>`, `@ts-ignore`, `@ts-nocheck`); above a project-size threshold they fail, below it they are warnings. Python: syntax errors fail; annotation coverage and `Any` use are warnings only. Flags: `--json`, `--skip-compiler` (source scan only), `--timeout SECONDS` (per tsc run, default 300). Exit 1 on compiler or syntax errors or escape hatches above the threshold.
 
 ```powershell
-python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/lint-and-validate/scripts/lint_runner.py .
-python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/skills/lint-and-validate/scripts/type_coverage.py .
+python "KIT/skills/lint-and-validate/scripts/lint_runner.py" . --no-types
+python "KIT/skills/lint-and-validate/scripts/type_coverage.py" .
 ```
-
-Both run inside the fast gate `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/checklist.py .` as required checks.

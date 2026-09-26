@@ -3,7 +3,7 @@
 Read when: `MOTION_INTENSITY` ≥ 6, or the brief asks for scroll, pinned, or animated sections. SKILL.md core comes first (§1 dials, §5 motivated-or-absent rule, §5.E feedback on action).
 
 ## 5. Motion principles
-- Perpetual loops (pulse, typewriter, shimmer, float) only where "live" means something (status, feeds, AI-feel), never on every card. Spring physics (`type: "spring", stiffness: 100, damping: 20`), not linear easing.
+- Perpetual loops (pulse, typewriter, shimmer, float) where they mean something (live status, feeds, AI activity) or where the direction is playful or expressive; one looping element per view reads as intent, one per card reads as noise. Spring physics (`type: "spring", stiffness: 100, damping: 20`), not linear easing.
 - Magnetic / pointer physics only at `MOTION_INTENSITY > 5` for premium / playful / agency briefs, via motion values (design-systems.md §3.B). One marquee per page at most.
 - **One animation library per component.** A component imports `motion/react` or `gsap`, never both; they fight over the same frames. GSAP and Three.js live in dedicated client leaves with cleanup. Reduced motion is handled by the library in use: `useReducedMotion()` for Motion, `gsap.matchMedia()` for GSAP, `@media (prefers-reduced-motion)` for CSS; every animation above `MOTION_INTENSITY 3` degrades under it and cleans up on unmount.
 
@@ -49,7 +49,7 @@ export function RevealStagger({ items }: { items: string[] }) {
 }
 ```
 
-### 5.D Forbidden patterns
+### 5.D Performance pitfalls (avoid)
 - `window.addEventListener("scroll", ...)` and `window.scrollY` in React state: runs every frame, re-renders the tree (`grep -rn "addEventListener(.scroll"` before delivering). Use `useScroll()` from `motion/react`, GSAP ScrollTrigger, `IntersectionObserver`, or CSS scroll-driven animations (`animation-timeline: view()`).
 - `requestAnimationFrame` loops that set React state: use motion values.
 - Animating `top / left / width / height`: animate `transform` and `opacity` only; `will-change` only on elements that actually animate.

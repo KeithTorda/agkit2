@@ -11,7 +11,12 @@ misalignment against an official template is visible rather than assumed.
 Usage:
   python doc_verify.py out.pdf --outdir .agents/verify/sales-report
   python doc_verify.py filled.pdf --reference blank-form.pdf --outdir .agents/verify/coe
-  python doc_verify.py out.pdf --page-size legal --glyphs "₱,ñ" --margin-mm 10
+  python doc_verify.py out.pdf --page-size legal --glyphs "₱,ñ" --margin-mm 10 --json
+
+Needs: pypdf and pdfplumber for the checks (pip install pypdf pdfplumber); pypdfium2 + Pillow or
+poppler's pdftoppm for rendering; Pillow for --reference diffs. A missing library skips its
+check with a note instead of crashing.
+Exit codes: 0 pass, 1 issues found, 2 usage or nothing could be checked.
 """
 from __future__ import annotations
 
@@ -51,6 +56,11 @@ def _strip_subset(base_font: str) -> str:
 def render_pages(pdf: Path, outdir: Path, dpi: int, prefix: str) -> list[Path]:
     """Render each page to PNG. pypdfium2 first; poppler's pdftoppm as fallback."""
     outdir.mkdir(parents=True, exist_ok=True)
+    for stale in outdir.glob(f"{prefix}-*.png"):   # never report last run's pages as this run's
+        try:
+            stale.unlink()
+        except OSError:
+            pass
     try:
         import pypdfium2 as pdfium
 
@@ -58,7 +68,7 @@ def render_pages(pdf: Path, outdir: Path, dpi: int, prefix: str) -> list[Path]:
         out = []
         for i in range(len(doc)):
             img = doc[i].render(scale=dpi / 72).to_pil()
-            path = outdir / f"{prefix}-p{i + 1}.png"
+            path = outdir / f"{prefix}-p{i + 1:02d}.png"
             img.save(path)
             out.append(path)
         return out
@@ -67,18 +77,23 @@ def render_pages(pdf: Path, outdir: Path, dpi: int, prefix: str) -> list[Path]:
     import shutil
     import subprocess
 
-    if not shutil.which("pdftoppm"):
+    exe = shutil.which("pdftoppm")
+    if not exe:
         return []
-    subprocess.run(
-        ["pdftoppm", "-png", "-r", str(dpi), str(pdf), str(outdir / prefix)],
-        check=True, capture_output=True,
-    )
+    try:
+        subprocess.run([exe, "-png", "-r", str(dpi), str(pdf), str(outdir / prefix)],
+                       check=True, capture_output=True, timeout=300)
+    except (OSError, subprocess.SubprocessError):
+        return []
     return sorted(outdir.glob(f"{prefix}-*.png"))
 
 
 def diff_pages(generated: list[Path], reference: list[Path], outdir: Path) -> list[dict]:
     """Difference image per page: how far the generated document sits off the template."""
-    from PIL import Image, ImageChops
+    try:
+        from PIL import Image, ImageChops
+    except ImportError:
+        return []
 
     findings = []
     for i, (g, r) in enumerate(zip(generated, reference), start=1):
@@ -99,21 +114,30 @@ def diff_pages(generated: list[Path], reference: list[Path], outdir: Path) -> li
 
 
 def inspect(pdf: Path, expect_size: str | None, glyphs: list[str], margin_mm: float) -> dict:
-    import pdfplumber
-    from pypdf import PdfReader
-
-    report: dict = {"pages": [], "issues": []}
-    reader = PdfReader(str(pdf))
+    report: dict = {"pages": [], "issues": [], "notes": [], "pageCount": None}
+    try:
+        import pdfplumber
+        from pypdf import PdfReader
+    except ImportError as exc:
+        report["notes"].append(f"structural checks skipped: {exc.name} is not installed "
+                               "(pip install pypdf pdfplumber)")
+        report["checked"] = False
+        return report
+    report["checked"] = True
+    try:
+        reader = PdfReader(str(pdf))
+    except Exception as exc:  # noqa: BLE001 - any parse failure is the finding
+        report["issues"].append(f"not a readable PDF: {exc}")
+        return report
     report["pageCount"] = len(reader.pages)
 
     # --- embedded fonts: a font the PDF only names is a font the recipient may not have
     named, embedded = set(), set()
     for page in reader.pages:
-        fonts = (page.get("/Resources") or {}).get("/Font") or {}
-        try:
-            fonts = fonts.get_object()
-        except AttributeError:
-            pass
+        resources = page.get("/Resources")
+        resources = resources.get_object() if hasattr(resources, "get_object") else (resources or {})
+        fonts = resources.get("/Font") or {}
+        fonts = fonts.get_object() if hasattr(fonts, "get_object") else fonts
         for ref in (fonts or {}).values():
             try:
                 f = ref.get_object()
@@ -149,7 +173,7 @@ def inspect(pdf: Path, expect_size: str | None, glyphs: list[str], margin_mm: fl
             f"fonts not embedded: {', '.join(sorted(missing_embed))} — these substitute on "
             "another machine and shift the layout")
     if standard_used:
-        report.setdefault("notes", []).append(
+        report["notes"].append(
             f"standard PDF font(s) not embedded (fine, but they have no ₱ and metrics vary "
             f"slightly between viewers): {', '.join(standard_used)}")
 
@@ -216,20 +240,30 @@ def inspect(pdf: Path, expect_size: str | None, glyphs: list[str], margin_mm: fl
     return report
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser(description="Render and check a generated PDF")
+def main(argv: list[str] | None = None) -> int:
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
+        except (AttributeError, ValueError):
+            pass
+    ap = argparse.ArgumentParser(description="Render and check a generated PDF.",
+                                 epilog="Exit codes: 0 pass, 1 issues, 2 usage or nothing could be checked.")
     ap.add_argument("pdf", type=Path)
     ap.add_argument("--reference", type=Path, help="the authority's blank form, to diff against")
     ap.add_argument("--outdir", type=Path, default=Path("doc-verify"))
     ap.add_argument("--dpi", type=int, default=150)
-    ap.add_argument("--page-size", help="a4 | letter | legal | folio | a5")
+    ap.add_argument("--page-size", choices=sorted(PAGE_SIZES_MM), type=str.lower)
     ap.add_argument("--glyphs", default="", help='comma-separated, e.g. "₱,ñ"')
     ap.add_argument("--margin-mm", type=float, default=8.0)
-    ap.add_argument("--report", type=Path, help="write the JSON verdict here")
-    args = ap.parse_args()
+    ap.add_argument("--report", type=Path, help="write the JSON verdict here (default: <outdir>/doc-verdict.json)")
+    ap.add_argument("--json", action="store_true", help="print the JSON verdict to stdout")
+    args = ap.parse_args(argv)
 
     if not args.pdf.is_file():
-        print(f"[FAIL] no such file: {args.pdf}", file=sys.stderr)
+        print(f"doc_verify: no such file: {args.pdf}", file=sys.stderr)
+        return 2
+    if args.reference and not args.reference.is_file():
+        print(f"doc_verify: no such reference file: {args.reference}", file=sys.stderr)
         return 2
 
     args.outdir.mkdir(parents=True, exist_ok=True)
@@ -239,29 +273,41 @@ def main() -> int:
     pages = render_pages(args.pdf, args.outdir, args.dpi, "page")
     report["renderedPages"] = [str(p) for p in pages]
     if not pages:
-        report["issues"].append("could not render pages (install pypdfium2 or poppler-utils) — "
-                                "the visual check could not run")
+        report["notes"].append("could not render pages (pip install pypdfium2 pillow, or install poppler) - "
+                               "the visual check did not run")
 
     if args.reference:
         ref = render_pages(args.reference, args.outdir, args.dpi, "reference")
         if ref and pages:
             report["templateDiff"] = diff_pages(pages, ref, args.outdir)
+            if not report["templateDiff"]:
+                report["notes"].append("template diff skipped: Pillow is not installed")
             if len(ref) != len(pages):
-                report["issues"].append(
-                    f"page count differs from the template: {len(pages)} vs {len(ref)}")
+                report["issues"].append(f"page count differs from the template: {len(pages)} vs {len(ref)}")
 
-    report["status"] = "fail" if report["issues"] else "pass"
+    nothing_checked = not report.get("checked") and not pages
+    report["status"] = "fail" if report["issues"] else ("not-verified" if nothing_checked else "pass")
 
     out = args.report or (args.outdir / "doc-verdict.json")
+    out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
 
-    print(f"{'[PASS]' if report['status'] == 'pass' else '[FAIL]'} {args.pdf.name} — "
-          f"{report['pageCount']} page(s), {len(report['issues'])} issue(s)")
-    for issue in report["issues"]:
-        print(f"  - {issue}")
-    print(f"  rendered: {len(pages)} PNG(s) in {args.outdir}  ->  LOOK AT THEM")
-    print(f"  verdict:  {out}")
-    return 1 if report["status"] == "fail" else 0
+    if args.json:
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+    else:
+        label = {"pass": "[PASS]", "fail": "[FAIL]"}.get(report["status"], "[NOT VERIFIED]")
+        print(f"{label} {args.pdf.name} - {report['pageCount'] if report['pageCount'] is not None else '?'} page(s), "
+              f"{len(report['issues'])} issue(s)")
+        for issue in report["issues"]:
+            print(f"  - {issue}")
+        for note in report["notes"]:
+            print(f"  . {note}")
+        if pages:
+            print(f"  rendered: {len(pages)} PNG(s) in {args.outdir} - look at them")
+        print(f"  verdict:  {out}")
+    if report["status"] == "fail":
+        return 1
+    return 2 if nothing_checked else 0
 
 
 if __name__ == "__main__":

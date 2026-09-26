@@ -1,60 +1,59 @@
 ---
 name: frontend-architecture
-description: Organizes frontend code by responsibility (UI, logic, data, types, validation) for React/Next and Vue - feature folders, the React 19 / Next.js 16 data-layer default (Server Components for reads, Server Actions for mutations, TanStack Query only for client-interactive state), state tiers, the "use client" boundary, when to add a package, naming, and god-component splitting. Use when structuring a frontend codebase, deciding where fetching, state, types, or validation live, or reviewing code organization. Not for visual design (frontend-design), Tailwind mechanics (tailwind-patterns), or React performance (nextjs-react-expert).
-version: 2.1.0
+description: Where frontend code lives - feature folders, the UI / logic / data / type / validation split, the Next.js 16 data-layer default, state tiers, the "use client" boundary, when to extract or add a package, and splitting god components; for React/Next, Vue, Laravel Blade and plain HTML. Use when structuring a frontend codebase, deciding where fetching, state, types or validation go, or reviewing code organisation. Not for visual design (frontend-design), Tailwind (tailwind-patterns) or React performance (nextjs-react-expert).
+version: 2.5.0
 ---
 
 # Frontend Architecture
 
-Separation of concerns over file-type folders, for React/Next and Vue: which layer code belongs to and where it lives. Server/client boundaries and stack defaults: `frontend-design` §3. Tailwind hygiene and component extraction: `tailwind-patterns` §6. Performance: `nextjs-react-expert`.
+Which layer code belongs to and where it lives. The project's existing structure wins: extend it consistently rather than introducing a second convention. These are defaults for new code and for restructuring when asked.
 
 | File | Read when |
 |---|---|
-| [structure-reference.md](./structure-reference.md) | Scaffolding a new app or restructuring folders: layer / state / naming tables, feature tree, size ranges, data-layer detail, forms, Vue, god-component tells, TypeScript, tests |
+| `structure-reference.md` | Scaffolding or restructuring: layer and state tables, feature tree, data-layer detail, forms, Vue, Laravel Blade, plain HTML, god-component seams, TypeScript, tests |
 
-## 1. Decisions
+## Decisions
 
-- **Feature folders, not one bucket per file type.** Code is UI, logic, data, type, or validation (reference §1). Past a few features, group by feature — `features/booking/{components,hooks,booking.api.ts,booking.schema.ts}` — and keep only genuinely shared code in top-level `components/ui`, `lib/`, `hooks/`.
-- **Hoist on the second consumer.** A file graduates to a shared folder when a second feature imports it, not in anticipation. Dependencies point one way: route files (`app/**`) compose features; features never import from `app/**`.
-- **A package on the second app.** Move code to `packages/*` (Turborepo + pnpm; `app-builder` `monorepo-turborepo` template) when a second deployable app consumes it. One app keeps a plain feature folder; no monorepo on day one.
-- **Abstract on the third use.** Duplicate freely twice; extract a shared component, hook, or util when a third caller appears and the shape has stopped changing — the third confirms what actually varies, and that variance becomes the props. Never grow a config-driven mega-component to serve two screens.
-- **Data layer, in this order.** Reads: Server Components. Mutations: Server Actions + `useActionState`. Client-interactive server state only: TanStack Query. Real-time: a subscription. No SWR; no server state in a global store. Detail: reference §4.
-- **State starts local and escalates only when needed.** `useState` / `ref` → custom hook / composable → URL `searchParams` for shareable UI state → Zustand or Jotai (Pinia in Vue) for shared client state → Context only for rarely-changing values. No global store on day one. Tier table: reference §3.
-- **`"use client"` stays at the leaf.** The directive is transitive — every module imported below a client component becomes client code — so it is a structural seam, not a per-file flag. Mark the smallest interactive piece; pass server content in through `children` or props rather than importing it. Getting this wrong ships server-only code to the browser (cost: `nextjs-react-expert`).
-- **Components render; logic lives elsewhere.** Custom hooks start with `use`; service files (`*.api.ts`) are the only place raw `fetch` / axios lives; a component calling an API directly is acceptable only for the smallest one-off cases. Compiler-first when the React Compiler is enabled; the memo rule is in `nextjs-react-expert`.
-- **Names say what, not which kind.** `UserProfileCard.tsx`, `useCreateBooking.ts`, `booking.api.ts`; never bare `Card.tsx`, `handle.ts`, `api.ts` (reference §7). Type props explicitly; pass the object, not a scatter of primitives.
+- **Feature folders once the app grows.** Code is UI, logic, data, type or validation (reference §1). A small app can stay flat; past a few features, group by feature — `features/booking/{components,hooks,booking.api.ts,booking.schema.ts}` — and keep only genuinely shared code in `components/ui`, `lib/`, `hooks/`.
+- **Hoist on the second consumer.** A file moves to a shared folder when a second feature imports it. Dependencies point one way: route files (`app/**`) compose features; features do not import from `app/**`.
+- **A package on the second app.** Move code to `packages/*` (Turborepo + pnpm; `app-builder` monorepo template) when a second deployable app consumes it. One app keeps a plain feature folder.
+- **Abstract on the third use.** Duplicate twice; extract a shared component, hook or util when a third caller appears and the shape has settled. Avoid a config-driven mega-component built to serve two screens.
+- **Data layer (Next.js App Router default).** Reads: Server Components. Mutations: Server Actions + `useActionState`. Client-interactive server state (polling, infinite lists, optimistic UI): TanStack Query. Real-time: a subscription. Keep server state out of global client stores. A project already on SWR, Redux Toolkit Query or Inertia keeps its tool. Detail: reference §4.
+- **State starts local.** `useState` / `ref` → custom hook / composable → URL `searchParams` for shareable UI state → Zustand or Jotai (Pinia in Vue) for shared client state → Context for rarely-changing values. Tier table: reference §3.
+- **`"use client"` at the leaf.** The directive is transitive — everything a client module imports becomes client code — so mark the smallest interactive piece and pass server content through `children` or props. **Firm:** never import server-only code (DB clients, secrets, `server-only` modules) into a client module; use `import 'server-only'` in files that must stay on the server.
+- **Components render; logic lives elsewhere** once it grows past a few lines: custom hooks (`use*`), service files (`*.api.ts`) for raw `fetch` / axios, actions for mutations. A one-off component calling an API directly is fine in a small app. Memoisation: the memo rule in `nextjs-react-expert`.
+- **Names say what it is.** Prefer `UserProfileCard.tsx`, `useCreateBooking.ts`, `booking.api.ts` over `Card.tsx`, `handle.ts`, `api.ts` in new code (reference §7); follow the project's existing naming. Type props explicitly; pass the domain object rather than a scatter of primitives.
 
-## 2. Procedure
+## Procedure
 
-1. List the features the task touches; place each new file by kind inside its feature folder (reference §1-§2).
-2. Reads in the Server Component; mutations in a `"use server"` action with a `*.schema.ts` next to the form; TanStack Query only for the client-interactive cases.
+1. List the features the task touches; place each new file by kind inside its feature (or the project's equivalent).
+2. Reads in the Server Component; mutations in a `"use server"` action with a `*.schema.ts` next to the form; TanStack Query only for the client-interactive cases. (Laravel, Vue, plain HTML: reference §5-§6, §11-§12.)
 3. Mark the smallest interactive leaf `"use client"`; pass server content through `children` / props.
 4. Pick the lowest state tier that works; shareable UI state goes to the URL.
-5. Split any god component along the page seams (tells and seam tree: reference §8); keep client islands small.
-6. Add the minimum tests (reference §9); run the gates.
+5. Split a god component along its page seams (reference §8).
+6. Verify per the `code-rules` tier; add the tests reference §9 suggests where logic warrants them.
 
-## 3. Exemplar
+## Exemplar
 
 ```tsx
-// Component owns the data layer: avoid
+// Component owns the data layer: harder to test and reuse
 function ProductList() {
   const [products, setProducts] = useState([])
   useEffect(() => { fetch('/api/products').then(r => r.json()).then(setProducts) }, [])
   return <ul>{/* render */}</ul>
 }
 
-// Component renders; a hook (or a Server Component, reference §4) owns the data
-function ProductList() {
-  const { data, isPending } = useProducts()
-  if (isPending) return <ProductListSkeleton />
-  return <ul>{/* render */}</ul>
+// Component renders; a Server Component (or a hook, for client-interactive data) owns the data
+export default async function ProductsPage() {
+  const products = await getProducts()        // products.api.ts or a DB query
+  return <ProductList products={products} />
 }
 ```
 
-## 4. Done
+## What good looks like
 
-- [ ] Every data-bound view handles loading, error, and empty explicitly.
-- [ ] `"use client"` sits on leaves; `app/**` composes features; no feature imports from `app/**`.
-- [ ] Forms validate against a `*.schema.ts` shared with the server action; errors render inline.
-- [ ] `strict: true`; no `any`; explicit types (reference §10); schemas for external data.
-- [ ] One responsibility per file (reference §2).
+- Data-bound views handle loading, error and empty states.
+- `"use client"` sits on leaves; routes compose features; no server-only code in client bundles.
+- Forms validate against a schema shared with the server action or controller, and errors render next to the field.
+- TypeScript `strict: true`; `any` only with a reason; schemas for external data (reference §10).
+- A new developer can find a feature's code in one folder.

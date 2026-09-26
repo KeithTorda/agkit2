@@ -1,6 +1,6 @@
 # Feature Building
 
-> Adding a feature to an existing project (`/enhance`).
+Adding a feature to an existing project (`/enhance`).
 
 ## Analysis
 
@@ -9,28 +9,28 @@ Request: "add payment system"
 
 Required changes:
   Database: orders, payments tables
-  Backend:  /api/checkout, /api/webhooks/stripe (or server actions)
+  Backend:  checkout action, /api/webhooks/stripe
   Frontend: CheckoutForm, PaymentSuccess
   Config:   Stripe keys in .env.example
 Dependencies: stripe package; existing authentication
-Scope: DB + 2 routes + 2 components + config → multi-file → plan file
+Scope: DB + 2 routes + 2 components + config, touches money → multi-file, tier 2
 ```
 
 ## Process
 
-1. Read the existing architecture: `docs/plans/*.md`, `DESIGN.md`, the modules the change touches, project memory if loaded.
-2. Scope per the plan-file rule (global `core-protocol`): multi-file or structural → `docs/plans/{task-slug}.md` in the `@[skills/plan-writing]` format; simple → a 1–3 line plan in the response.
-3. UI added or changed → align with `DESIGN.md` (global `design-rules` gate). If it is missing: new page-level UI → create `DESIGN.md` first (`@[skills/design-spec]`, by `frontend-specialist` or, for a mobile-only app, `mobile-developer`); component-level change → infer from existing styles, say so, offer to create it; bug fixes and trivial tweaks skip the gate.
-4. Apply with the owning specialist(s); edit dependents in the same task (`@[skills/clean-code]`).
-5. Verify: affected tests, `python C:/Users/Keith/.gemini/config/plugins/ag-kit-v2/scripts/checklist.py .`, then confirm in the running dev server (hot reload) when one is up.
+1. Read the existing architecture: the modules the change touches, `DESIGN.md`, `docs/plans/`, `.agents/memory/MEMORY.md`.
+2. Size it (`core-protocol`): obvious change → do it; a few files → 3-6 line plan in the reply; big → `docs/plans/<slug>.md` (`plan-writing`).
+3. UI follows `DESIGN.md`. Missing: new page-level UI → write a short one (`design-spec`); a component change → match existing styles and say so.
+4. Apply with the owning specialist(s); update importers and callers in the same task.
+5. Verify by tier (`code-rules`); when a dev server is running and layout changed, look at it.
 
 ## Error handling
 
 | Error | Strategy |
 |---|---|
-| TypeScript error | Fix the type or add the missing import |
+| TypeScript error | Fix the type or add the missing import; no `any` or `@ts-ignore` to silence it |
 | Missing dependency | Install it with the project's package manager |
-| Port conflict | Suggest an alternative port |
+| Port conflict | Use the next free port and say which |
 | Database error | Check migration state and the connection string |
 
 Recovery: detect → attempt the fix → if it fails, report the exact error and offer an alternative → roll back only when the change left the project broken.

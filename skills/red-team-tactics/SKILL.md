@@ -1,7 +1,7 @@
 ---
 name: red-team-tactics
 description: "Adversary-simulation reference for authorised security engagements - MITRE ATT&CK phases, reconnaissance, privilege escalation, lateral movement, Active Directory attack paths, and reporting with detection-gap analysis. Use only for penetration testing and red-team exercises the user is authorised to run; not loaded for application development. Triggers on: red team, adversary simulation, threat emulation, MITRE ATT&CK, pentest tactics, offensive security."
-version: 2.0.0
+version: 2.5.0
 ---
 
 # Red Team Tactics

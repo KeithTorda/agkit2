@@ -22,12 +22,12 @@ Read when: the brief names a design system, you choose fonts or icons for a new 
 **Honesty rule.** If the brief reads as one of these systems, install and use the official package. Do not recreate its CSS by hand, and do not import its tokens and then override 90% of them. **One system per project**: no Fluent next to Carbon, no shadcn/ui inside a Material app.
 
 ### 2.B Aesthetics without an official package
-Glassmorphism, bento, brutalism, editorial, dark-tech, aurora/mesh gradients, kinetic type: native CSS + Tailwind, with comments saying what is borrowed inspiration.
-- **Glass**: `backdrop-filter: blur(24px) saturate(180%)`, 1px `border-white/20`, inset top highlight (`shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]`), solid-fill fallback under `@media (prefers-reduced-transparency: reduce)` (support is uneven; keep contrast without blur). Right for premium consumer, Apple-adjacent, media overlays; wrong for dashboards, public sector, plain B2B. Apple Liquid Glass is an Apple-platform feature with no official web CSS; this recipe is the web approximation, labeled as one.
+Glassmorphism, bento, brutalism, editorial, dark-tech, aurora/mesh gradients, kinetic type: native CSS + Tailwind, with comments saying what is borrowed inspiration. Style files: `style-glass-aurora.md`, `style-brutalist.md`, `style-minimalist.md`, `style-dark-dashboard.md`; the menu is in `directions.md`.
+- **Glass**: `backdrop-filter: blur(24px) saturate(180%)`, 1px `border-white/20`, inset top highlight (`shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]`), solid-fill fallback under `@media (prefers-reduced-transparency: reduce)` (support is uneven; keep contrast without blur). Strongest on premium consumer, Apple-adjacent, media overlays, launches; on dashboards and public-sector services, keep it to the nav or a hero and put data and forms on solid surfaces. Full recipe with fallbacks and contrast checks: `style-glass-aurora.md`. Apple Liquid Glass is an Apple-platform feature with no official web CSS; this recipe is the web approximation, labeled as one.
 
 ## 3. Stack defaults
 
-Unless §2.A picks a system, build on the tech baseline: Next.js 16 App Router, React 19, TypeScript, Tailwind CSS v4, `motion/react`. React Compiler is on by default in the kit's templates; details and the memo rule: nextjs-react-expert.
+The project's existing stack wins. For a new project, unless §2.A picks a system, build on the baseline (`code-rules`): Next.js 16 App Router, React 19, TypeScript, Tailwind CSS v4, `motion/react`. React Compiler is on by default in the kit's templates; details and the memo rule: nextjs-react-expert.
 
 ### 3.A Framework and styling
 - Server Components by default. Anything using motion, pointer physics, `IntersectionObserver`, or browser APIs is an isolated leaf with `"use client"` at the top; providers live in a client wrapper.
@@ -41,7 +41,7 @@ Unless §2.A picks a system, build on the tech baseline: Next.js 16 App Router, 
 - Never track continuous input-driven values (mouse position, scroll progress, magnetic hover) in `useState`: they re-render the tree every frame. Use motion values instead (motion.md §5.C, §5.D).
 
 ### 3.C Icons
-Allowed: `lucide-react`, `@phosphor-icons/react`, `@radix-ui/react-icons`, `@tabler/icons-react`; `@heroicons/react` is fine for Tailwind-UI-style projects. One family per project, one `strokeWidth` (`1.5` or `2`). Do not hand-draw icon paths; if a glyph is missing, compose from primitives or add one more family deliberately.
+Good defaults: `lucide-react`, `@phosphor-icons/react`, `@radix-ui/react-icons`, `@tabler/icons-react`; `@heroicons/react` is fine for Tailwind-UI-style projects. One family per project, one `strokeWidth` (`1.5` or `2`). Do not hand-draw icon paths; if a glyph is missing, compose from primitives or add one more family deliberately.
 
 ### 3.D Emoji
 Not in markup, headings, or alt text by default; use icon glyphs. Allowed sparingly when the brief asks for a playful, chat-style, or social-native tone.

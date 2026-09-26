@@ -1,6 +1,6 @@
 # API Security Testing
 
-Test the API the way an attacker would. Map each check to the OWASP API Security Top 10 and fix findings in `@[skills/vulnerability-scanner]` severity order.
+Test the API the way an attacker would, on systems you own or are authorised to test. Map each check to the OWASP API Security Top 10 and fix findings in `vulnerability-scanner` severity order (critical and high first). Offensive work beyond this checklist belongs to `penetration-tester` with written authorisation.
 
 ## OWASP API Top 10 focus
 

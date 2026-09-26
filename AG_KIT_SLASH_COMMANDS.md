@@ -1,97 +1,73 @@
-# AG Kit v2 — Slash Commands & Skills Master Reference
+# AG Kit v2.5 — Commands and Skills
 
-A comprehensive guide to all slash commands, specialist skills, and IDE automation tools available in **AG Kit v2**.
+Generated from each skill's frontmatter. Every command is `KIT/skills/<command>/SKILL.md`; the agent reads it and follows it.
 
----
+## Slash commands
 
-## 1. Primary Workflow Commands (15 Commands)
+| Command | What it does |
+|---|---|
+| `/proplan` | /proplan - Professional system planning: business and development goals, requirements, architecture with an ADR checkpoint, data, API, UX, security, quality, operations, roadmap and documentation plan, written by native planning subagents into docs/proplan/<slug>/ and checked end to end by proplan_check.py. Use for a new client system or a large feature; --lite for small systems; '/proplan update <slug>' to change an existing plan. |
+| `/plan` | /plan - Writes a task-list plan to docs/plans/<slug>.md without writing code: goal, assumptions, scope, tasks with owner and verify line. Use when the user wants a plan, breakdown or estimate before building a feature or a multi-file change. For a whole system with full documentation, use /proplan. |
+| `/create` | /create - Builds a new application end to end: up to 3 questions with defaults, a /proplan --lite offer for anything beyond a small site, DESIGN.md, template-based build, verification by risk tier, and a running dev server. Use when the user asks for a new app, site, API or project from scratch. |
+| `/orchestrate` | /orchestrate - Coordinates specialist subagents on a multi-domain task, or executes one milestone of a /proplan roadmap (/orchestrate docs/proplan/<slug> M1): settle shared decisions, delegate by file ownership, verify each task with evidence, integrate, report. Use when work spans backend, frontend, database, tests or security, or to build a planned milestone. |
+| `/enhance` | /enhance - Adds or changes a feature in an existing application: read the current state, scope the change, apply it with the owning specialist, verify by risk tier. Use when the user asks to add, update, extend or improve something in a project that already exists. |
+| `/brainstorm` | /brainstorm - Explores 2-4 genuinely different approaches with trade-offs and recommends one before any code is written. Use when the user wants options, is unsure how to build something, or wants to compare architectures, libraries or data models. |
+| `/debug` | /debug - Investigates a bug systematically: reproduce, isolate, find the root cause, fix, verify, add a regression test. Use when something errors, crashes, misbehaves or a test fails and the cause is not obvious. |
+| `/fix-ui` | /fix-ui - Diagnoses and fixes existing web UI that renders wrong (misplaced, overlapping, clipped, collapsed, unresponsive): locates the parent's layout mode and computed box model, names the root cause, fixes the container at the source, and checks the result in proportion to risk. Use when a page or component that exists looks broken. |
+| `/see` | /see - Opens the running app in the browser and reports what actually rendered: screenshot, DOM, computed styles against DESIGN.md tokens, console and network errors, one interaction, and mobile and desktop widths. Use when asked, when a page looks wrong, or at code-rules tier 1+ for a layout change while a dev server is running. |
+| `/see-doc` | /see-doc - Renders a generated PDF and reports what actually came out: page images to look at, page size, embedded fonts, glyph survival, content near the edge, and a difference image against an official blank form. Use when a change affects generated documents (receipts, certificates, reports, government forms) and whenever output must match an official template. |
+| `/test` | /test - Runs the project's tests, writes tests for a file or feature, reports coverage, or fixes failing tests. Use when the user asks to test, add tests, check coverage or make the suite pass, and for logic that money, auth, permissions or data integrity depend on. |
+| `/verify` | /verify - Proves a change works by running it: build, tests, the checklist script, a request or render, one error path, reported with real output. On-demand deep check; use when the user asks whether something works, for tier 2-3 changes, or before a release. |
+| `/review` | /review - Attacks a diff as a hostile reviewer and reports concrete defects (untested edge, unhandled error path, race, security hole, silent wrong answer) ranked by consequence. On-demand deep check; part of tier 2 verification (auth, payments, permissions, migrations, shared code) and before a PR. |
+| `/deploy` | /deploy - Pre-flight checks, build, deploy to preview or production, health verification, and rollback on failure. Tier 3 in code-rules: production needs the user's approval. Use when the user asks to deploy, release, ship, publish or roll back. |
+| `/status` | /status - Read-only summary of where a project stands: stack, recent and uncommitted changes, last check result, open /plan tasks, /proplan milestones and task progress, memory, running subagents, dev server. Use when the user asks where things stand, what is done, or what is next. |
+| `/remember` | /remember - Saves a preference, convention, decision, reference note or failed approach to the project's memory at .agents/memory/MEMORY.md so later sessions reuse it. Use when the user says remember, save this or don't forget, and after a decision or dead end worth keeping. |
 
-These are your core commands covering the complete software engineering lifecycle:
+## Reference skills (read by agents when a task needs them)
 
-| Command | Purpose | When to Use & Example Scenario |
-| :--- | :--- | :--- |
-| `/create` | End-to-End Project Scaffolding | **Starting a new project from scratch.** Conducts a brief requirements interview, builds a structured plan (`docs/plans/`), sets up `DESIGN.md` tokens, generates code via specialist agents, and boots a running dev server.<br>*Example: `"/create full-stack voter registration portal using Vite + React and Node.js"`* |
-| `/plan` | Architecture & Implementation Blueprints | **Before touching code on complex or multi-file features.** Writes a verifiable breakdown to `docs/plans/{task-slug}.md` complete with task checkboxes, file ownership, and risk mitigations.<br>*Example: `"/plan integrate biometric authentication and offline voter caching"`* |
-| `/brainstorm` | Trade-Off & Approach Exploration | **When deciding between competing technical paths.** Explores 2–4 concrete architectures, libraries, or data models with honest trade-offs and recommendations before writing code.<br>*Example: `"/brainstorm WebSockets vs Server-Sent Events (SSE) for live election precinct counts"`* |
-| `/debug` | Systematic 4-Phase Debugging | **Investigating bugs, crashes, regressions, or failing tests.** Strictly follows the scientific method: Reproduce → Isolate → Root Cause → Regression Test & Fix (eliminates guess-and-check edits).<br>*Example: `"/debug map container crashes on mobile when tapping a barangay pin"`* |
-| `/fix-ui` | Container-First UI Layout Repair | **Diagnosing and fixing existing web UI that renders wrong.** Locates parent layout mode and computed box model, names 1 of 8 root causes, fixes container at source without layout overrides (`!important` or hack wrappers).<br>*Example: `"/fix-ui sidebar overlaps main content area on tablet breakpoint"`* |
-| `/verify` | Automated Quality & Pre-Commit Gate | **Proving code works with hard evidence.** Executes the automated gate suite: security scans, linter, TypeScript compiler, automated tests, and production build check.<br>*Example: `"/verify ensure all changes compile and pass security gates"`* |
-| `/see` | Live Browser UI & Visual Render Verification | **Verifying UI before declaring done.** Opens the live application in a headless browser to inspect rendered DOM, computed CSS tokens against `DESIGN.md`, console errors, and interaction responsive states.<br>*Example: `"/see verify the login card and student roster table in dark mode"`* |
-| `/see-doc` | Visual Document & PDF Inspection | **Verifying generated downloadable documents before declaring done.** Renders PDFs, checks embedded fonts, glyph integrity, form bounds, margin clearances, and visual diffs against official templates.<br>*Example: `"/see-doc verify voter certificate PDF and official ballot margin bounds"`* |
-| `/review` | Adversarial Diff & Blast Radius Review | **Hostile code review before PR or deployment.** Attacks the current diff hunting for untested edges, unhandled errors, race conditions, security vulnerabilities, and logic flaws.<br>*Example: `"/review check the authentication middleware refactor for security holes"`* |
-| `/deploy` | Release & Production Shipping | **Shipping code to staging or production servers.** Runs pre-flight checks, generates optimized bundles, uploads via SFTP/SSH, verifies live HTTP status, and handles rollbacks.<br>*Example: `"/deploy ship the latest build to VPS on port 8095"`* |
-| `/enhance` | Safe Brownfield Feature Expansion | **Adding or improving features in an existing codebase.** Analyzes existing architecture, conventions, and dependencies so the update integrates seamlessly without breaking legacy behavior.<br>*Example: `"/enhance add an export-to-PDF button for the precinct list"`* |
-| `/orchestrate` | Multi-Agent Subagent Coordination | **Large full-stack tasks spanning multiple domains.** Coordinates specialist subagents in parallel (Frontend, Backend, Database, Security) under single file-ownership isolation.<br>*Example: `"/orchestrate build voter registration with schema, API endpoints, and UI"`* |
-| `/test` | Automated Test Engineering | **Generating, running, or fixing test suites.** Generates unit tests (Vitest/Jest/Pest), integration tests, and Playwright end-to-end browser automation suites with coverage reports.<br>*Example: `"/test write regression tests for the mobile dropdown selection"`* |
-| `/status` | Repository Health & Diff Assessment | **Checking project progress without altering code.** Summarizes git status, recent file changes, required checklist health, open plan tasks, and active subagents.<br>*Example: `"/status give me a summary of all changes made this session"`* |
-| `/remember` | Persistent Project Memory Index | **Saving conventions, preferences, or technical decisions.** Records notes directly into `.agents/memory/MEMORY.md` so the assistant retains context across future chat sessions.<br>*Example: `"/remember always serve COMELEC Flora through Nginx on Port 8095"`* |
+| Skill | Covers |
+|---|---|
+| `adversarial-review` | Method for attacking a diff to find real defects - the untested edge, the unhandled error path, the race, the security hole, the silent wrong answer - reported with concrete failure scenarios ranked by consequence. Use for /review, for tier 2 changes (auth, money, permissions, migrations, shared code), and before a PR. |
+| `anti-template` | Reference of defaults that make copy, UI and code look generated, with what to write instead - 35 parts by topic. Use when writing visible text, designing or reviewing a page, or checking a project for template tells; read only the parts the task needs. |
+| `api-patterns` | API design decisions - REST, GraphQL or tRPC, resource naming and status codes, one error envelope, pagination, idempotency for mutations and webhooks, versioning, auth choices, rate limiting and OpenAPI. Use when designing or reviewing an HTTP API (Next.js Route Handlers, Hono, Laravel, FastAPI), a GraphQL schema or a tRPC router. |
+| `app-builder` | Builds a new application from a request - detects the project type, picks the template and stack, sets the structure, and coordinates specialists through build and verification. Use for /create and any "new app / from scratch" request; for a change to an existing app read feature-building.md only. |
+| `architecture` | Architecture decisions - context discovery, pattern selection (monolith, modular monolith, services, event-driven), trade-off analysis and ADRs. Use when choosing a system structure, comparing patterns, documenting a hard-to-reverse decision, or writing the architecture part of a /proplan; not for writing code. |
+| `brainstorming` | Clarifies requirements and explores options before building. Covers how to write a question that changes the implementation, and how to diverge to several real approaches then converge on one with stated trade-offs. Use for new apps, multi-file features, vague requests, design discussions, and /brainstorm. |
+| `browser-verification` | How to check what actually rendered in the running app: screenshot, real DOM, computed styles against DESIGN.md tokens, console and network errors, one interaction, mobile and desktop widths. Use for /see, when UI looks wrong, or when code-rules calls for a visual check of a layout change. |
+| `clean-code` | Pragmatic coding conventions - follow the project first, readable names, small focused functions, no speculative abstraction, update every dependent, and how to simplify existing code safely. Use when writing, editing, refactoring or simplifying code, or when reviewing code for readability. |
+| `css-architecture` | How styles are organised so a change lands in one place: one token source, cascade layers, co-located component styles, fixing the owning rule instead of overriding it, naming, dead-CSS removal; Tailwind v4 and a plain CSS/SCSS mode for Laravel Blade. Use when adding, moving or fixing CSS, creating a stylesheet, or when a fix is about to become an override. |
+| `database-design` | Database decisions and schema design - Postgres, MySQL, SQLite or a serverless option, Prisma 7, Drizzle or Eloquent, keys, money and timestamps, relationships, indexing, transactions, N+1 fixes and zero-downtime migrations. Use when designing or reviewing a schema, choosing a database or ORM, writing migrations, fixing slow queries, or writing a /proplan data model. |
+| `design-spec` | Owns the DESIGN.md format - the project-root file holding machine-readable design tokens (YAML front matter) plus the chosen direction and its rationale. Use when creating or updating a project's DESIGN.md, when a new app or page needs a design source of truth, or when extracting tokens from an existing site. |
+| `document-generation` | Generating files people download or receive: spreadsheet exports (CSV, XLSX), PDFs (reports, receipts, invoices, certificates, official forms), and editable Word documents. Covers which format to produce, where generation runs, streaming large exports, and the correctness rules money and official documents require. Use for: export, download, generate report, invoice, receipt, certificate, payslip, printable, print view. |
+| `frontend-architecture` | Where frontend code lives - feature folders, the UI / logic / data / type / validation split, the Next.js 16 data-layer default, state tiers, the "use client" boundary, when to extract or add a package, and splitting god components; for React/Next, Vue, Laravel Blade and plain HTML. Use when structuring a frontend codebase, deciding where fetching, state, types or validation go, or reviewing code organisation. Not for visual design (frontend-design), Tailwind (tailwind-patterns) or React performance (nextjs-react-expert). |
+| `frontend-design` | Designing and building web UI with taste and range - landing pages, marketing sites, portfolios, app screens, dashboards, redesigns. Direction comes from the brief, the audience, named references and DESIGN.md; offers 2-3 distinct directions when the brief is open. Use for any web UI design, build or design review; not for mobile (mobile-design) or DESIGN.md authoring (design-spec). |
+| `i18n-localization` | Internationalisation and localisation - translation keys and locale files, next-intl (Next.js 16) and react-i18next, Laravel lang files, ICU plurals, Intl date, number and peso formatting, Filipino/English bilingual sites, RTL with logical CSS, and the kit's hard-coded-string checker. Use when adding a language, building a bilingual Philippine site, reviewing UI text for hard-coded strings, or handling locale formatting. |
+| `lint-and-validate` | Static checks - ESLint flat config and TypeScript for JS/TS, Ruff and mypy or pyright for Python, Pint and Larastan for Laravel, what "clean" means, and the kit's lint and type-coverage runners. Use when running checks for a change per the code-rules tier, setting up linting for a project, or fixing a lint or type error. |
+| `mcp-builder` | Building MCP (Model Context Protocol) servers and clients against the 2026-07-28 spec - stateless request design, server/discover, JSON Schema tool contracts, transports and auth, extensions (Tasks, Skills, Apps), security, and migration from 2025-era implementations. Use when writing or reviewing an MCP server or client, designing tools, resources, or prompts, or upgrading a protocol version. |
+| `memory-system` | Per-project persistent memory in <project>/.agents/memory/MEMORY.md — what belongs there (decisions, conventions, gotchas, and failed approaches), the index format, optional topic files, and how to recall without reciting. Use when the user says remember, save this, or don't forget, for /remember, when an approach fails and the cause is durable, and at session start when the file exists. |
+| `mobile-design` | Mobile-first design and engineering for iOS and Android apps built with React Native (Expo) or Flutter - touch targets and thumb zones, list and animation performance, navigation, platform conventions, offline, and mobile testing. Use when building or reviewing a mobile app's UI, native layer, or mobile-specific backend; not for web apps. |
+| `nextjs-react-expert` | React 19.2 and Next.js 16 guidance (App Router, React Compiler, Cache Components, proxy.ts) with performance rules for waterfalls, bundle size, server work, re-renders and rendering. Use when building React components or Next.js pages, fixing slow loads or excess re-renders, upgrading to Next.js 16, or reviewing a React/Next.js codebase for performance. |
+| `nodejs-best-practices` | Node.js 24 LTS backend guidance - Hono by default for a standalone API, Fastify when Node-heavy, Express or NestJS in existing code, ESM and native TypeScript, layering, error handling, async and queues, validation with Zod, security and testing. Use when building or reviewing a Node.js server, API, worker or CLI, or choosing a TypeScript backend framework. |
+| `parallel-agents` | How to delegate work to Antigravity 2.0 native subagents with invoke_subagent - when to parallelize or sequence, workspace isolation, full briefs, budgets, stop conditions, and one synthesis report. Use with /orchestrate, /proplan, /review, or whenever independent research or disjoint builds can run side by side. |
+| `performance-profiling` | Measuring and fixing web performance - Core Web Vitals targets (LCP, INP, CLS), the baseline-identify-fix-validate loop, Lighthouse audits, bundle size analysis, and DevTools runtime and memory profiling. Use when a page or app is slow, before a release, when Core Web Vitals or Lighthouse scores drop, or when deciding what to optimise first. |
+| `plan-writing` | The kit's task-list plan format, docs/plans/<slug>.md - goal, assumptions, scope, and 5-12 checkbox tasks each with an owner and a verify line that can fail. Use for /plan, for big features or multi-session work that needs a breakdown, and whenever a plan is longer than a few lines. |
+| `python-patterns` | Python 3.13+ backend patterns - FastAPI, Django or Flask, async versus sync, type hints and Pydantic v2, project structure, background tasks, error handling, and pytest with httpx; tooling with uv and Ruff. Use when writing or reviewing Python services, scripts or APIs, or setting up a Python project's tooling. |
+| `red-team-tactics` | Adversary-simulation reference for authorised security engagements - MITRE ATT&CK phases, reconnaissance, privilege escalation, lateral movement, Active Directory attack paths, and reporting with detection-gap analysis. Use only for penetration testing and red-team exercises the user is authorised to run; not loaded for application development. Triggers on: red team, adversary simulation, threat emulation, MITRE ATT&CK, pentest tactics, offensive security. |
+| `seo-fundamentals` | Search and AI-answer visibility for web pages - technical SEO, E-E-A-T, Core Web Vitals (LCP, INP, CLS), structured data, and generative engine optimisation (GEO) for ChatGPT, Claude, Perplexity, and Gemini, plus AI-crawler access rules. Use when adding meta tags, sitemaps, or schema, fixing Core Web Vitals, writing content meant to rank or be cited, or configuring robots.txt for AI bots. |
+| `shell-ops` | Shell and server cheat sheet - Bash and PowerShell 7 equivalents, safe defaults for scripts and process handling, Windows 11 host notes (PowerShell 7, PortableGit), and Linux server basics (systemd, nginx, ufw, SSH keys, backups). Use when writing or translating shell commands and scripts, running commands on the user's Windows host or a Linux server, or setting up and operating a small server. |
+| `systematic-debugging` | Four-phase debugging method - reproduce, isolate, understand the root cause, fix and verify with a regression test. Use for any bug, crash, failing test or unexpected behaviour whose cause is not obvious, and for /debug. |
+| `tailwind-patterns` | Tailwind CSS v4 mechanics - CSS-first configuration with @theme tokens, the @custom-variant dark setup, container queries, responsive and layout utilities, component extraction, and v3-to-v4 differences. Use when writing or reviewing Tailwind v4 code, wiring DESIGN.md tokens into @theme, setting up dark mode, or migrating a v3 config. Visual decisions live in frontend-design; this skill covers how Tailwind expresses them. |
+| `testing-patterns` | Testing strategy and practice - which changes need tests, the test pyramid, AAA, the TDD loop, mocking at boundaries, Vitest and node:test, pytest, Pest for Laravel, and Playwright end-to-end tests, with the kit's test and smoke runners. Use when writing or reviewing tests, choosing a framework, practising red-green-refactor, or deciding whether a change needs tests. |
+| `ui-repair` | Diagnoses and fixes existing web UI that renders wrong (misplaced, overlapping, clipped, collapsed, unresponsive) by reading the parent's layout mode and computed box model, naming one of eight root causes, and fixing the container at the source. Use when UI that exists is wrong, and for /fix-ui. |
+| `verify-changes` | How to prove a change works by executing it (build, tests, checklist script, a request or render, an error path) and report evidence, sized to the change's risk tier. Use for /verify, for tier 2-3 changes, and whenever you are about to say "works" or "fixed". |
+| `vulnerability-scanner` | Security review mapped to the OWASP Top 10:2025 - attack-surface mapping, supply-chain and dependency risk, secret and dangerous-pattern detection, risk prioritisation by exploitability, and the kit's local security and dependency scanners. Use when auditing a codebase for vulnerabilities, reviewing dependencies, checking OWASP compliance, or triaging security findings. |
+| `web-design-guidelines` | Reviews built web UI code against Vercel's Web Interface Guidelines (accessibility, interaction, forms, performance, copy) by fetching the current rule set live, with a local fallback floor when the fetch is unavailable, and reporting file:line findings. Use after UI code exists, when asked to review UI, check accessibility, audit design or UX, or check a site against best practices. Not for designing new UI (frontend-design). |
 
----
+## Verification tiers (from `code-rules`)
 
-## 2. Specialist Domain Skills (34 Skills)
-
-Every skill in the kit can be referenced directly during conversation or invoked via prompt context:
-
-### Frontend, UI & Ergonomics
-- **`frontend-design`**: Bespoke, non-templated UI. Typographic pairings, curated palettes, visual density dials, and micro-interactions.
-- **`ui-repair`**: Root-cause UI layout diagnosis (8 structural causes, container constraints, never overrides).
-- **`css-architecture`**: Single token source, cascade layers, co-located component styles, override ban as a method.
-- **`browser-verification`**: Headless browser verification engine backing the `/see` command.
-- **`design-spec`**: Generates and synchronizes design tokens in `DESIGN.md` (colors, radius, shadows, spacing) mapped directly to Tailwind v4 `@theme`.
-- **`mobile-design`**: Audits touch target sizes, bottom sheets, thumb-zone layout, and React Native / Flutter apps.
-- **`tailwind-patterns`**: Tailwind CSS v4 mechanics, CSS-first configuration, `@theme` token wiring, container queries, and dark variants.
-- **`nextjs-react-expert`**: React 19 & Next.js 16 performance, waterfall fetch elimination, React Compiler integration, and re-rendering optimization.
-- **`web-design-guidelines`**: Audits UI code against Vercel Web Interface Guidelines for accessibility, keyboard navigation, and form UX.
-- **`frontend-architecture`**: Organizes frontend code by responsibility (UI, logic, data, types, validation) with React 19 / Next.js Server Components.
-
-### Backend, Database & Security
-- **`api-patterns`**: REST, tRPC, or GraphQL APIs with proper HTTP status codes, pagination, rate limiting, and idempotency headers.
-- **`database-design`**: PostgreSQL / SQLite schema modeling, indexing strategies, UUIDv7 keys, and zero-downtime migrations (Prisma/Drizzle/Eloquent).
-- **`document-generation`**: Standards for downloadable files: spreadsheet exports (CSV, XLSX), official PDFs (receipts, certificates, invoices, official forms), and editable Word documents (DOCX).
-- **`nodejs-best-practices`**: Node.js 24 LTS layered Hono/Fastify architecture, Zod schema validations, and async error handling.
-- **`python-patterns`**: Python 3.14 async endpoints, type annotations, Pydantic v2 schemas, and background worker queues.
-- **`vulnerability-scanner`**: Scans for leaked secrets, SQL injection, XSS vulnerabilities, and supply-chain dependency risks against OWASP Top 10:2025.
-- **`red-team-tactics`**: Threat modeling, penetration testing tactics, and defense posture assessment on authorized environments.
-- **`mcp-builder`**: Model Context Protocol (MCP) servers and clients under the 2026 spec.
-
-### Performance, SEO, Reliability & Infrastructure
-- **`clean-code`**: Pragmatic coding standards: functions under 30 lines, nesting depth max 3, no dead code, self-documenting identifiers.
-- **`performance-profiling`**: Audits Core Web Vitals (LCP, INP, CLS), bundle size analysis, and runtime memory profiling.
-- **`seo-fundamentals`**: JSON-LD structured data, metadata tags, sitemaps, and Generative Engine Optimization (GEO) for AI search engines.
-- **`i18n-localization`**: Locale translation files, ICU plurals, and RTL layouts without hardcoded UI strings.
-- **`shell-ops`**: Cross-platform PowerShell 7 scripts, Nginx configurations, Systemd services, and SSH administration.
-- **`testing-patterns`**: AAA unit tests, mocking conventions, Pest/PHPUnit, and Playwright E2E suites.
-- **`systematic-debugging`**: Scientific 4-phase debugging method backing the `/debug` command.
-- **`verify-changes`**: Underlying runtime verification logic backing the `/verify` command.
-- **`adversarial-review`**: Hostile diff analysis backing the `/review` command.
-- **`parallel-agents`**: Subagent coordination mechanics backing the `/orchestrate` command.
-- **`architecture`**: Architecture decision records (ADRs) and pattern trade-off matrices.
-- **`plan-writing`**: Implementation plan format and verification checklist generation.
-- **`memory-system`**: Persistent repository memory structure and recall algorithms.
-- **`app-builder`**: Application scaffolding engine backing `/create`.
-- **`brainstorming`**: Divergence and convergence methodology backing `/brainstorm`.
-
----
-
-## 3. Native Platform Automation Commands
-
-Platform-level commands provided by the Antigravity engine:
-
-- **`/goal`**: Autonomous Goal Mode. Instructs the assistant to work continuously without stopping until a complex, long-running goal is 100% verified.
-- **`/grill-me`**: Interactive Interview Mode. Thoroughly interrogates you with targeted technical questions to resolve ambiguities before coding begins.
-- **`/schedule`**: Timers & Recurring Schedules. Sets up one-time timers or recurring background checks.
-- **`/learn`**: Habit & Pattern Retention. Captures a solution or manual workflow correction to permanently persist as an assistant guideline.
-
----
-
-## 4. The 7 Core Global Rules
-
-The kit ships with 7 invariant rules located in `~/.gemini/config/rules/` that govern every response:
-
-1. **`core-protocol.md`**: The ordered 9-step execution procedure required on every code request.
-2. **`code-rules.md`**: The definition of "Done", blocking gates (security high+, lint, types, tests), and the UI-render gate (`/see`).
-3. **`design-rules.md`**: The Ultra High-Contrast Typography & Badges standard (Anti-Blur Invariant) and project `DESIGN.md` gate.
-4. **`engineering-excellence.md`**: The principal-engineer bar: solve the problem behind the words, anticipate failure, and prove before claiming.
-5. **`request-routing.md`**: Classifies prompts into 7 types and routes to the owning specialist agent.
-6. **`universal-rules.md`**: Direct, professional communication, memory recall, host environment conventions, and safety boundaries.
-7. **`quick-reference.md`**: Auto-generated catalog mapping keywords to agents, skills, and audit scripts.
+| Tier | Examples | Runs |
+|---|---|---|
+| 0 | copy, a style value, a comment | nothing |
+| 1 | a component, an endpoint | `checklist.py . --quick` (project lint/types/tests on changed files) |
+| 2 | auth, payments, migrations, public API | `checklist.py . --full`, tests, `/review` |
+| 3 | release | `verify_all.py`, `/deploy`, user approval |

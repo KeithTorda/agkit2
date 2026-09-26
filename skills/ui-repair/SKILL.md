@@ -1,7 +1,7 @@
 ---
 name: ui-repair
-description: "Diagnoses and fixes existing web UI that renders wrong — misplaced, overlapping, clipped, collapsed, or unresponsive layout — by locating the parent's layout mode and computed box model, naming one of eight root causes, and fixing the container at the source; never an override. Use when UI that exists is wrong, and for /fix-ui."
-version: 1.0.0
+description: "Diagnoses and fixes existing web UI that renders wrong (misplaced, overlapping, clipped, collapsed, unresponsive) by reading the parent's layout mode and computed box model, naming one of eight root causes, and fixing the container at the source. Use when UI that exists is wrong, and for /fix-ui."
+version: 2.5.0
 ---
 
 # UI Repair
@@ -15,15 +15,17 @@ Diagnose upward before editing.
 
 ### 1. Reproduce
 
-Open the route in the browser at the width the user reported (`browser-verification` §1–2).
-Screenshot it. State the defect in one sentence of observation: "the sidebar renders below the
-header instead of beside it". If it does not reproduce there, check the other two widths first.
+With a dev server running, open the route at the width the user reported (`browser-verification`
+§1-2) and screenshot it. Without one, work from the user's screenshot or description and the code,
+and say so. State the defect in one sentence of observation: "the sidebar renders below the header
+instead of beside it". If it does not reproduce at that width, try ~390 and ~1440.
 
 ### 2. Locate
 
 Find the misplaced element **and its parent** in the rendered DOM, not the JSX. Read computed
 values, not class names, for the element and every ancestor up to `<main>` (or the root when it
-sits outside `main`):
+sits outside `main`). No browser: read the same chain in the source (component, its parent
+layout, the shell) and reason about each ancestor's `display`, height and overflow.
 
 ```js
 // Computed layout facts: the element and its ancestors up to <main> (or the root)
@@ -40,7 +42,11 @@ while (el && el.tagName !== 'MAIN') {
 console.table(out);
 ```
 
-### 3. Root cause — name ONE of the eight before touching code
+### 3. Root cause: name one of the eight before touching code
+
+Naming the cause first is what stops a fix from becoming a pile of tweaks. If none of the eight
+fits, name the cause you did find in one line (a provider mounted in the wrong place, a script
+setting inline styles) and continue.
 
 1. **Broken height chain** — a `100%` or `flex-1` child needs every ancestor to have a height.
    Symptom: `h-full` collapses to content height; a sticky sidebar does not fill; the footer floats mid-page.
@@ -71,16 +77,22 @@ console.table(out);
 
 - Change the container's constraint or the token that owns the behaviour, in the file that owns it.
 - Delete the CSS your fix made dead: the old rule, the old variant, the old wrapper.
-- Never: a margin or `absolute` hack on the child, `!important`, an inline style, a wrapper div, a
-  more specific selector, a platform or width hack that hides the cause. Each one moves the bug
-  (`code-rules` "Fix at the source"; where CSS lives: `css-architecture`).
+- Avoid patching the symptom: a margin or `absolute` hack on the child, `!important`, an inline
+  style, a wrapper added only to win, a more specific selector, a width hack. Each one usually moves
+  the bug (`code-rules` "Fix at the source"; where CSS lives: `css-architecture`).
+- Overrides are a last resort, not a crime: when the source really is outside your control
+  (third-party CSS you cannot configure, a vendor script setting inline styles), override as
+  narrowly as possible and leave a one-line comment naming the source and why.
 - When the cause is in a shared shell or layout file, fix it there and say so: every route has it.
 
 ### 5. Verify
 
-Re-render at 390 / 768 / 1440 through `/see` (`browser-verification` §7). Keep before and after
-screenshots. Click the region's primary action and confirm it still works. Record a durable
-cause as `[failure]` (`memory-system`) — say, a library wrapper that opens a stacking context.
+In proportion to the `code-rules` tier. With a dev server running, look at the fixed region with
+`/see` at the width that was broken plus one other (~390 and ~1440 cover most bugs; add ~768 for
+breakpoint-gap bugs, cause 8), and click the region's primary action once. Before and after
+screenshots are useful evidence on a repair; keep them when you took them. No server or browser:
+say what you did not see under `Not verified`. Record a cause the next session could repeat with
+`/remember` as a `[failure]` (for example, a library wrapper that opens a stacking context).
 
 ## Exemplar: the sidebar pushed below the header
 
@@ -107,8 +119,8 @@ RIGHT (the shell owns the layout)
 
 - **Fixing the child, not the parent** — a negative margin or `absolute` on the sidebar hides the
   symptom at one width and leaves the shell wrong for everything else in it.
-- **Stopping at the first change that "looks fixed" at one width** — the width you edited at is the
-  one least likely to be broken; the cause is still there at 768.
+- **Stopping at the first change that "looks fixed" at one width**: the width you edited at is the
+  one least likely to be broken; check a second width.
 - **Leaving the old rule in place** — dead CSS and two sources of truth; the next edit lands on the
   wrong one and the bug returns.
 - **Adding a wrapper div to create the layout mode** — set `grid` or `flex` on the existing parent;
