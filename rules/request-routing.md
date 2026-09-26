@@ -15,6 +15,7 @@ description: Which agent or command handles a request. Agents are KIT/agents/<na
 | `/plan <task>` | Task list with owners and verify lines in `docs/plans/<slug>.md`. No code |
 | `/create <app>` | New app end to end |
 | `/orchestrate <task or plan path>` | Multi-domain build with subagents; can execute a `/proplan` milestone |
+| `/updatekit` | Fetches the latest release of AG Kit from GitHub and syncs Antigravity |
 | `/enhance` `/brainstorm` `/debug` `/test` `/verify` `/see` `/see-doc` `/fix-ui` `/review` `/deploy` `/status` `/remember` | As named; each skill states its steps |
 
 ## Agents
