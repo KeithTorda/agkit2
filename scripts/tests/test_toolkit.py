@@ -882,5 +882,60 @@ class ProplanCheckTests(unittest.TestCase):
         self.assertEqual(1, code)
 
 
+MOTIONV = TOOLKIT / "skills" / "motionv" / "scripts"
+
+
+@unittest.skipUnless(shutil.which("ffmpeg") and shutil.which("ffprobe"), "ffmpeg not installed")
+class MotionvTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = Path(tempfile.mkdtemp(prefix="motionv-test-"))
+        cls.video = cls.tmp / "clip.mp4"
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "testsrc2=size=1080x1920:rate=30:duration=3",
+                        "-f", "lavfi", "-i", "sine=frequency=440:duration=3", "-shortest",
+                        "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", str(cls.video)], check=True)
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.tmp, ignore_errors=True)
+
+    def run_verify(self, *args):
+        return subprocess.run([sys.executable, str(MOTIONV / "motionv_verify.py"), str(self.video), *args, "--json"],
+                              capture_output=True, text=True)
+
+    def test_matching_preset_passes_and_writes_contact_sheet(self):
+        r = self.run_verify("--preset", "reels", "--duration", "3", "--audio", "required", "--frames", "4")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        data = json.loads(r.stdout)
+        self.assertTrue(data["ok"])
+        self.assertTrue(Path(data["facts"]["contact_sheet"]).is_file())
+        self.assertEqual(len(data["facts"]["frames"]), 4)
+
+    def test_wrong_preset_fails(self):
+        r = self.run_verify("--preset", "youtube", "--no-scan")
+        self.assertEqual(r.returncode, 1)
+        names = {c["name"] for c in json.loads(r.stdout)["checks"] if not c["ok"]}
+        self.assertIn("resolution", names)
+
+    def test_missing_file_is_usage_error(self):
+        r = subprocess.run([sys.executable, str(MOTIONV / "motionv_verify.py"), str(self.tmp / "nope.mp4")],
+                           capture_output=True, text=True)
+        self.assertEqual(r.returncode, 2)
+
+
+class MotionvDoctorTests(unittest.TestCase):
+    def test_help_and_skill_detection(self):
+        doctor = load_module("agkit_motionv_doctor", MOTIONV / "motionv_doctor.py")
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            self.assertFalse(doctor.skill_installed(root, doctor.HYPERFRAMES_MARKER))
+            (root / "hyperframes").mkdir()
+            (root / "hyperframes" / "SKILL.md").write_text("---\nname: hyperframes\n---\n", encoding="utf-8")
+            self.assertTrue(doctor.skill_installed(root, doctor.HYPERFRAMES_MARKER))
+        r = subprocess.run([sys.executable, str(MOTIONV / "motionv_doctor.py"), "--help"], capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0)
+        self.assertIn("--install", r.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()

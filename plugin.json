@@ -1,5 +1,5 @@
 {
   "name": "ag-kit-v2",
-  "version": "2.5.0",
-  "description": "AG Kit v2.5 for Google Antigravity - 20 specialist agents (native subagents), 51 skills including /proplan, risk-tiered verification, design guidance instead of bans. Rules install to ~/.gemini/config/rules."
+  "version": "2.6.0",
+  "description": "AG Kit v2.6 for Google Antigravity - 20 specialist agents (native subagents), 53 skills including /proplan and /motionv, risk-tiered verification, design guidance instead of bans. Rules install to ~/.gemini/config/rules."
 }

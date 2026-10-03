@@ -1,4 +1,4 @@
-# AG Kit v2.5 — Commands and Skills
+# AG Kit — Commands and Skills
 
 Generated from each skill's frontmatter. Every command is `KIT/skills/<command>/SKILL.md`; the agent reads it and follows it.
 
@@ -10,6 +10,7 @@ Generated from each skill's frontmatter. Every command is `KIT/skills/<command>/
 | `/plan` | /plan - Writes a task-list plan to docs/plans/<slug>.md without writing code: goal, assumptions, scope, tasks with owner and verify line. Use when the user wants a plan, breakdown or estimate before building a feature or a multi-file change. For a whole system with full documentation, use /proplan. |
 | `/create` | /create - Builds a new application end to end: up to 3 questions with defaults, a /proplan --lite offer for anything beyond a small site, DESIGN.md, template-based build, verification by risk tier, and a running dev server. Use when the user asks for a new app, site, API or project from scratch. |
 | `/orchestrate` | /orchestrate - Coordinates specialist subagents on a multi-domain task, or executes one milestone of a /proplan roadmap (/orchestrate docs/proplan/<slug> M1): settle shared decisions, delegate by file ownership, verify each task with evidence, integrate, report. Use when work spans backend, frontend, database, tests or security, or to build a planned milestone. |
+| `/motionv` | /motionv - Makes motion videos as code and renders them to MP4/WebM/GIF: promos, explainers, product and website showcases, social reels, title cards, logo stings, lower thirds, data/stat animations, captioned clips, website hero loops. Brief, storyboard, build with HyperFrames (HTML + GSAP, default) or Remotion (React), render, then check the actual frames. Use for any request to make, animate, edit or render a video or motion graphic. |
 | `/enhance` | /enhance - Adds or changes a feature in an existing application: read the current state, scope the change, apply it with the owning specialist, verify by risk tier. Use when the user asks to add, update, extend or improve something in a project that already exists. |
 | `/brainstorm` | /brainstorm - Explores 2-4 genuinely different approaches with trade-offs and recommends one before any code is written. Use when the user wants options, is unsure how to build something, or wants to compare architectures, libraries or data models. |
 | `/debug` | /debug - Investigates a bug systematically: reproduce, isolate, find the root cause, fix, verify, add a regression test. Use when something errors, crashes, misbehaves or a test fails and the cause is not obvious. |
@@ -22,6 +23,7 @@ Generated from each skill's frontmatter. Every command is `KIT/skills/<command>/
 | `/deploy` | /deploy - Pre-flight checks, build, deploy to preview or production, health verification, and rollback on failure. Tier 3 in code-rules: production needs the user's approval. Use when the user asks to deploy, release, ship, publish or roll back. |
 | `/status` | /status - Read-only summary of where a project stands: stack, recent and uncommitted changes, last check result, open /plan tasks, /proplan milestones and task progress, memory, running subagents, dev server. Use when the user asks where things stand, what is done, or what is next. |
 | `/remember` | /remember - Saves a preference, convention, decision, reference note or failed approach to the project's memory at .agents/memory/MEMORY.md so later sessions reuse it. Use when the user says remember, save this or don't forget, and after a decision or dead end worth keeping. |
+| `/updatekit` | /updatekit - Fetches the latest AG Kit release from GitHub (KeithTorda/agkit2), updates local repository and plugins, installs rules, and verifies validity. |
 
 ## Reference skills (read by agents when a task needs them)
 

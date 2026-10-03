@@ -1,5 +1,20 @@
 # AG Kit v2 — Changelog
 
+## v2.6.0 (2026-10-02) — /motionv motion video skill
+
+- **New `/motionv`** (`skills/motionv/`). It makes motion videos as code: brief, storyboard, build, render to MP4, WebM, MOV or GIF, then a frame check.
+  - **Engines:** HyperFrames (HTML + GSAP, Apache-2.0) is the default. Remotion is used for React projects, with a note on its license.
+  - **FFmpeg recipes:** join, trim, music bed, subtitles, loudness, website hero and GIF.
+  - **Presets:** YouTube, Reels/Shorts/TikTok, square and 4:5 feed, website hero.
+  - `craft.md` covers storyboard format, timing, easing, on-screen type, captions, sound, and common PH client briefs.
+- **`motionv_doctor.py`** checks Node 22+, git, FFmpeg/FFprobe, the HyperFrames CLI and the render browser.
+  - With `--install` it adds FFmpeg (winget), the render browser, and the engine skills (21 HyperFrames, and 12 Remotion with `--engine all`) to `~/.gemini/config/skills`.
+- **`motionv_verify.py`** checks a render against its target: resolution, fps, duration and platform length limit.
+  - Audio checks: presence and loudness (LUFS). It also flags black or frozen stretches.
+  - It writes a contact sheet and frames for the agent to look at.
+- `/updatekit` is listed in the README and in request-routing.
+- Tested by rendering a HyperFrames 0.8.111 composition to MP4 and running both scripts on Linux. The installer was also tested on Linux. Neither was run on Windows.
+
 ## v2.5.0 (2026-09-27) — Working model rewrite, /proplan, native subagents
 
 ### Why

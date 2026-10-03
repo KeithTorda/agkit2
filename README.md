@@ -1,8 +1,8 @@
-# AG Kit v2.5
+# AG Kit v2.6
 
-An agent kit for Google Antigravity. 20 specialist agents that also run as native subagents, 51 skills and slash commands, 29 helper scripts, and 6 always-on rules (about 12 KB). Built for web apps, admin systems, POS and inventory, and LGU, school and election portals.
+An agent kit for Google Antigravity. 20 specialist agents that also run as native subagents, 53 skills and slash commands, 31 helper scripts, and 6 always-on rules (about 12 KB). Built for web apps, admin systems, POS and inventory, and LGU, school and election portals.
 
-Version 2.5.0 (2026-09-27). Maintained by Keith Torda. Based on `vudovn/ag-kit`.
+Version 2.6.0 (2026-10-02). Maintained by Keith Torda. Based on `vudovn/ag-kit`.
 
 ## What changed in 2.5
 - **It thinks instead of running a checklist.** The agent works in a loop: understand, choose a process that fits the task size, build, verify according to risk, report. There is no mandatory plan line and no full gate on every edit.
@@ -42,6 +42,7 @@ It asks questions only when the answer changes what gets built: at most 3 (5 for
 | Command | Does |
 |---|---|
 | `/proplan <system>` | Full professional plan in `docs/proplan/<slug>/`, written with planning subagents. Use `--lite` for small systems and `update <slug>` for change requests |
+| `/motionv <brief>` | Motion video as code (promos, explainers, reels, title cards, website hero loops): brief, storyboard, HyperFrames or Remotion build, render, frame check. `/motionv doctor` checks and installs FFmpeg, the render browser and the engine skills |
 | `/plan <task>` | Task list with an owner and a verify line per task, in `docs/plans/<slug>.md` |
 | `/create <app>` | New app: questions, optional `/proplan --lite`, DESIGN.md, build, dev server |
 | `/orchestrate <task>` | Multi-agent build. `/orchestrate docs/proplan/<slug> M1` runs milestone 1 |
@@ -56,6 +57,7 @@ It asks questions only when the answer changes what gets built: at most 3 (5 for
 | `/review` | Hostile review of the current diff |
 | `/deploy` | Pre-flight, deploy, health check, rollback plan |
 | `/status` | Stack, git changes, plan and proplan progress |
+| `/updatekit` | Pulls the latest kit from GitHub, reinstalls, validates |
 | `/remember <note>` | Saves a fact or `[failure]` to `.agents/memory/MEMORY.md` |
 
 `@agent-name` in a message forces that agent.
@@ -86,7 +88,7 @@ Example: `skills/proplan/example/pos-lite/` (a small cafe POS).
 rules/     always-on: core-protocol, engineering-excellence, code-rules, universal-rules, request-routing
            on UI files: design-rules · on demand: quick-reference (generated)
 agents/    20 agent files (Antigravity native subagent format)
-skills/    51 skills; each command is skills/<command>/SKILL.md
+skills/    53 skills; each command is skills/<command>/SKILL.md
            anti-template/parts/  35-part design and copy reference (guidance)
            proplan/templates/    the plan document templates
 scripts/   checklist.py (risk tiers), verify_all.py, proplan_check.py, css_audit.py, naming_check.py,

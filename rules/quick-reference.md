@@ -34,7 +34,7 @@ description: Catalog of the kit's agents (triggers and skills), slash commands, 
 | test-engineer | test, tests, spec, coverage, unit test, integration test, e2e, playwright, vitest, jest, pytest, pest, phpu... | testing-patterns, adversarial-review, verify-changes, test ... |
 | ux-architect | user flow, journey, sitemap, information architecture, screen list, wireframe, navigation, onboarding flow... | proplan, design-spec, frontend-design |
 
-## Slash commands (16)
+## Slash commands (18)
 | Command | Does |
 |---|---|
 | /brainstorm | Explores 2-4 genuinely different approaches with trade-offs and recommends one before any code is written. Use when t... |
@@ -43,6 +43,7 @@ description: Catalog of the kit's agents (triggers and skills), slash commands, 
 | /deploy | Pre-flight checks, build, deploy to preview or production, health verification, and rollback on failure. Tier 3 in co... |
 | /enhance | Adds or changes a feature in an existing application: read the current state, scope the change, apply it with the own... |
 | /fix-ui | Diagnoses and fixes existing web UI that renders wrong (misplaced, overlapping, clipped, collapsed, unresponsive): lo... |
+| /motionv | Makes motion videos as code and renders them to MP4/WebM/GIF: promos, explainers, product and website showcases, soci... |
 | /orchestrate | Coordinates specialist subagents on a multi-domain task, or executes one milestone of a /proplan roadmap (/orchestrat... |
 | /plan | Writes a task-list plan to docs/plans/<slug>.md without writing code: goal, assumptions, scope, tasks with owner and... |
 | /proplan | Professional system planning: business and development goals, requirements, architecture with an ADR checkpoint, data... |
@@ -52,6 +53,7 @@ description: Catalog of the kit's agents (triggers and skills), slash commands, 
 | /see-doc | Renders a generated PDF and reports what actually came out: page images to look at, page size, embedded fonts, glyph... |
 | /status | Read-only summary of where a project stands: stack, recent and uncommitted changes, last check result, open /plan tas... |
 | /test | Runs the project's tests, writes tests for a file or feature, reports coverage, or fixes failing tests. Use when the... |
+| /updatekit | Fetches the latest AG Kit release from GitHub (KeithTorda/agkit2), updates local repository and plugins, installs rul... |
 | /verify | Proves a change works by running it: build, tests, the checklist script, a request or render, one error path, reporte... |
 
 ## Skills (35)
@@ -93,7 +95,7 @@ description: Catalog of the kit's agents (triggers and skills), slash commands, 
 | vulnerability-scanner | Security review mapped to the OWASP Top 10:2025 - attack-surface mapping, supply-chain and dependency risk, secret and dangerou... |
 | web-design-guidelines | Reviews built web UI code against Vercel's Web Interface Guidelines (accessibility, interaction, forms, performance, copy) by f... |
 
-## Scripts (28)
+## Scripts (30)
 - `KIT/scripts/build_quick_reference.py`
 - `KIT/scripts/checklist.py`
 - `KIT/scripts/css_audit.py`
@@ -113,6 +115,8 @@ description: Catalog of the kit's agents (triggers and skills), slash commands, 
 - `KIT/skills/lint-and-validate/scripts/lint_runner.py`
 - `KIT/skills/lint-and-validate/scripts/type_coverage.py`
 - `KIT/skills/mobile-design/scripts/mobile_audit.py`
+- `KIT/skills/motionv/scripts/motionv_doctor.py`
+- `KIT/skills/motionv/scripts/motionv_verify.py`
 - `KIT/skills/nextjs-react-expert/scripts/react_performance_checker.py`
 - `KIT/skills/performance-profiling/scripts/bundle_analyzer.py`
 - `KIT/skills/performance-profiling/scripts/lighthouse_audit.py`
