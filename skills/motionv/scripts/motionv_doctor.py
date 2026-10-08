@@ -40,6 +40,10 @@ REMOTION_MARKER = "remotion-best-practices"  # folder name of a core Remotion sk
 
 def run(cmd: list[str], timeout: int = 600, env: dict | None = None) -> tuple[int, str]:
     exe = shutil.which(cmd[0])
+    if not exe and IS_WIN:
+        candidate = Path.home() / "AppData" / "Local" / "Microsoft" / "WinGet" / "Links" / f"{cmd[0]}.exe"
+        if candidate.is_file():
+            exe = str(candidate)
     if not exe:
         return 127, f"{cmd[0]} not found"
     try:
@@ -112,7 +116,9 @@ def check_hyperframes(rep: Report) -> None:
     # Optional extras reported by `hyperframes doctor`
     for label, key in (("TTS voice (Kokoro, optional)", "TTS"), ("Transcription (whisper, optional)", "whisper")):
         line = next((l for l in clean.splitlines() if key.lower() in l.lower()), "")
-        rep.add(label, "✓" in line, line.strip()[:120] or "not reported", required=False,
+        has_ok = "✓" in line or "[ok" in line.lower()
+        detail = line.replace("✓", "[ok]").replace("✗", "[x]").replace("\u2717", "[x]").strip()[:120] or "not reported"
+        rep.add(label, has_ok, detail, required=False,
                 fix="See `npx hyperframes doctor` for the install line")
 
 
