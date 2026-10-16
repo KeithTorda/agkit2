@@ -1,49 +1,31 @@
-# Style: High-contrast dark dashboard
+# Style: Dark operations and data UI
 
-Variant of [SKILL.md](./SKILL.md). Use only when this direction is chosen: the brief or `DESIGN.md` asks for a dark dashboard, ops console, monitoring screen, POS back office used in low light, or "high contrast dark". It is one option, not a kit default. If `DESIGN.md` says no pure white, no neon or no saturated colours, `DESIGN.md` wins and this file does not apply.
+Use for an approved dark dashboard, monitoring view, trading/operations console, or low-light interface. This is one direction, not a kit default. [SKILL.md](./SKILL.md) and the user's actual `DESIGN.md` take precedence.
 
-## The problem it solves
-The common generated dark UI puts mid-grey text (slate-400 class of values) on navy cards. It passes AA on paper in some pairs, but reads as washed out on real screens, at small sizes, and under glare. This style pushes text luminance up and gives status colour a luminous foreground so state reads at a glance.
+## Surface and text hierarchy
+Choose a base, surface, raised layer, border, foreground, and supporting-text roles that remain distinct on actual screens. Example palette: base `#070B14`, surface `#0B132B`, raised `#111C3A`, foreground `#F1F5F9`. The examples are not mandatory; neutral, warm, or brand-tinted dark canvases can work.
 
-## Dials
-`DESIGN_VARIANCE 3`, `MOTION_INTENSITY 2`, `VISUAL_DENSITY 7-8` unless the design read says otherwise.
+Text needs enough luminance for its size, weight, and context without making every cell equally bright. Pure white can emphasize a headline; softer bright text can make dense reading more comfortable. Aim above minimum contrast where useful, but do not force every secondary label to a particular 7:1 or 10:1 target without considering hierarchy.
 
-## Colour recipe
-All hex values here are labelled examples; put the real values in `DESIGN.md` as tokens.
-- **Surfaces**: a deep, slightly tinted base and 2-3 surface steps above it (example: base `#070B14`, card `#0B132B`, raised `#111C3A`). Elevation comes from the surface step plus a 1px border at 8-12% white, not from shadows.
-- **Primary text**: pure white (example `#FFFFFF`). Secondary and table body text: high-luminance neutrals (examples `#F1F5F9`, `#E2E8F0`). Aim for 10:1 or better on the card surface for body text; muted text still 7:1 or better.
-- **Status badges**: luminous foreground on a translucent tint of the same hue, with a matching border.
-  Example: success text `#34D399` on `rgba(16,185,129,0.15)` with border `rgba(52,211,153,0.4)`; warning `#FBBF24` family; danger `#F87171` family; info `#60A5FA` family. Weight 600-700.
-- **Accent**: one brand accent for the primary action and focus ring. Status colours are not brand accents.
-- Colour always encodes state (ok, warning, error, info, selected). Never decorate with a status hue. State never by colour alone: pair it with a word or icon.
-- Light mode, if the project ships both: primary text near-black to black (example `#020617` or `#000000`), the same badge logic with darker foregrounds on pale tints, checked for AA separately.
+Measure normal text against each actual surface; check transparency and overlays in the rendered result. Do not assume a named Tailwind shade always passes or fails.
+
+## State and accent
+Use status hues consistently and pair them with words, icons, shapes, or positions. Example success foreground `#34D399` may work on a deep green tint; verify the composited background. Primary action and focus colors can use the real brand palette. Decorative color is allowed when the direction includes it; do not make decoration look like an operational alarm.
+
+A subtle glow may emphasize a live or selected element when useful. Glow does not replace focus or text contrast. Static indicators should not pulse merely to make the screen feel active.
 
 ## Components
-Shared classes live in one place. In Tailwind projects put them in `@layer components` in the CSS entry file (`css-architecture`); in plain CSS or Blade projects, one component partial per block in the components layer (`css-architecture/plain-css.md`).
+- Tables: consistent columns, aligned comparable numbers, tabular figures, readable density, and touch/keyboard-accessible actions.
+- Charts: a distinguishable palette, labels, usable gridlines, and an alternative to color-only series identification. Use the [chart and data-visualization guidance](../anti-template/parts/20-charts-dataviz.md) when the actual chart needs it.
+- Panels: group by task and information relationship. Avoid adding an identical stat-card row where a queue, exception list, or chart is more useful.
+- Controls: visible focus on each surface, clear selected/disabled/pending states, and comfortable target spacing.
 
-```css
-/* Tailwind v4 project; token names come from DESIGN.md. Hex shown only as example values of those tokens. */
-@layer components {
-  .ui-card {
-    background-color: var(--color-surface);        /* example #0B132B */
-    border: 1px solid var(--color-border-subtle);  /* example rgba(255,255,255,0.12) */
-    color: var(--color-on-surface);                /* example #FFFFFF */
-  }
-  .status-badge--success {
-    background-color: var(--color-success-tint);   /* example rgba(16,185,129,0.15) */
-    border: 1px solid var(--color-success-border); /* example rgba(52,211,153,0.4) */
-    color: var(--color-success-fg);                /* example #34D399 */
-    font-weight: 700;
-  }
-}
-```
+Reuse the project's component classes/tokens rather than scattering palette literals. Do not install a dashboard package solely for this look.
 
-- Tables: numeric columns right-aligned with `tabular-nums`; zebra rows by a 2-4% surface step, not by colour.
-- Charts: a small categorical palette tuned for dark backgrounds; gridlines at 6-10% white; see the `dataviz` skill if present.
-- Focus ring: 2px in the accent, 2px offset, visible on every surface step.
-- A soft glow (`box-shadow` in the status hue at low alpha) is fine on a live or selected item. On every card it stops meaning anything.
+## Theme and motion scope
+Dark-only is valid; both themes ship only when requested or already supported. If both ship, design and verify the light counterpart deliberately. Contrasting light sections may be used for emphasis when the page composition supports them.
 
-## Check before delivering
-- Computed contrast for body, muted text and every badge pair on each surface step (`browser-verification` computed styles, or `css_audit.py` for declared pairs).
-- Badges over images or translucent layers: check the real rendered pair, not the declared one.
-- Read the screen in grayscale: state must still be clear from words and icons.
+Quiet operational UI commonly needs feedback-only motion. Do not auto-add reveal effects, looping grids, or animated charts. Richer behavior follows the agreed intent and reduced-motion preference.
+
+## Review
+Inspect real narrow and wide layouts, long values, low-emphasis labels, badge contrast, grayscale state comprehension, focus, and important interactions. A screenshot establishes composition; it does not prove live data correctness or keyboard behavior.

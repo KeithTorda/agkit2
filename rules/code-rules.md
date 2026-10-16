@@ -1,36 +1,41 @@
 ---
 name: code-rules
-version: 2.5.0
+version: 2.8.2
 priority: P0
 trigger: always_on
-description: Code conventions and risk-tiered verification - which checks to run for which change, fixing at the source, naming, security basics, stack baseline.
+description: Implementation and evidence policy for any stack. Distinguishes defects, missing evidence and optional heuristics without style gates.
 ---
 
-# Code Rules
+# Implementation and Evidence
 
-## Verification by risk tier
-| Tier | Examples | Run | Then |
-|---|---|---|---|
-| 0 - trivial | copy, a style value, a comment, config value | nothing | report; offer a check in one line if useful |
-| 1 - normal | a component, an endpoint, a few files | the project's own lint/type/test for touched files, if they exist and are fast (`python "KIT/scripts/checklist.py" . --quick`) | fix failures you caused |
-| 2 - risky | auth, payments, permissions, migrations, data deletion, public API, shared utilities | `checklist.py . --full`; add or update tests for the logic; `/review` on the diff | no "done" with a failing required check |
-| 3 - release | deploy, production data | `KIT/scripts/verify_all.py` + the `/deploy` steps | user approval before production |
+## Establish the implementation contract
 
-Visual changes: when a dev server is running and the change affects layout, look at it (`/see`) at one mobile and one desktop width. No server, no browser, or a non-visual change: skip and say so.
-Required failures (block done at tier 2-3): security high+, type errors, failing tests. Everything else (lint style, naming, CSS audit, UX/SEO heuristics) is advisory.
-The user can always ask for more: `/verify`, `/see`, `/review`, `/test`.
+Inspect the actual manifest, lockfile, entrypoints, tests and neighboring code. Preserve existing stack and behavior unless the request changes them. Select new dependencies for a concrete capability and verify their supported API/version from primary documentation; examples in the kit are not an instruction to upgrade.
 
-## Fix at the source
-Change the thing that owns the behaviour: the container's layout, the token, the function, the query. Overrides move the bug: `!important`, an inline style to win the cascade, a wrapper added only to beat a selector, a margin hack on a child to cover its parent, a `catch` that hides an error. Use them only when the source is outside your control (third-party CSS you cannot configure) and leave a one-line comment saying why. Method: `ui-repair`, `css-architecture`.
+Fix the layer that owns the defect. A local adapter, vendor override, dynamic inline value or wrapper can be appropriate when its purpose is explicit. Avoid accumulating overrides or suppressions that hide a broken contract. Update necessary callers, remove code made obsolete and keep unrelated rewrites out of the change.
 
-## Names
-Follow the project's naming. In new code prefer searchable, domain-specific names (`invoice-table.tsx`, `formatInvoiceTotal`, `.invoice-table__row`) over `utils.ts`, `helpers.js`, `styles.css`, `data`, `handleClick2`. `naming_check.py` reports; it does not block.
+Use names that communicate domain meaning, while preserving valid framework conventions. Keep cohesive code together rather than splitting it to satisfy arbitrary function/file lengths. Validate untrusted input and server-side authorization; preserve data integrity with appropriate transaction/retry boundaries and parameterized queries. Do not expose secrets in clients, logs or generated artifacts.
 
-## Security basics (always)
-Validate input at the boundary. Parameterised queries or the ORM. Secrets from environment variables only; never print or commit them. Authorisation checked on the server for every protected action. Escape output.
+## Match evidence to consequence
 
-## Tests
-Write or update tests for logic that money, auth, permissions or data integrity depends on, and when the user asks. Otherwise judge: a test that would catch a real regression is worth it; a test of a static component usually is not.
+| What changed | Useful verification |
+|---|---|
+| A harmless nonvisual edit | Read the immediate effect and affected references |
+| Appearance or content layout, even one value | Inspect the affected render, wrapping, contrast and responsive state at relevant widths |
+| Ordinary code behavior | Existing focused checks, types/build or meaningful behavior tests for the changed contract |
+| Money, access, permissions, deletion, migration or critical shared logic | Relevant regression and integration/error paths, review of the consequential diff and appropriate project checks |
+| Release or production state | Project release/build checks, authorized deployment, health and rollback evidence appropriate to the environment |
 
-## Stack baseline (September 2026, use when the project has no preference)
-Next.js 16 · React 19.2 (React Compiler aware) · TypeScript 5.9+ · Tailwind v4 · Node 24 LTS, Hono for standalone APIs · Python 3.13 + Ruff · PHP 8.4 / Laravel 12 + Pest · Postgres 17/18 · Prisma 7 / Drizzle / Eloquent · Expo SDK 54+. The project's existing stack always wins.
+`python "KIT/scripts/checklist.py" . --quick` runs configured project checks; `--full` broadens scope and adds advisory scans. `verify_all.py` supports release evidence. Use the project commands directly when that is clearer. Labels tier 0–3 in references map to harmless, normal, consequential and release work; the table above controls actual depth.
+
+Reuse a local server, or start its documented preview when useful and practical. Confirm the route/build being inspected. Without browser/runtime access, use available evidence and name the unverified behavior. Do not download a large toolchain simply to tick a box for a low-impact edit.
+
+## Interpret the evidence honestly
+
+Actual compiler errors, failing relevant tests, broken interactions or confirmed security/data defects need repair or an explicit unresolved report. Naming, stylistic lint and source regex heuristics are investigation leads; inspect their consequence before treating them as defects. Never change accepted aesthetics merely to satisfy a scan.
+
+Report `PASS`, `FAIL`, `INCOMPLETE` or `SKIPPED` according to what ran. Exit zero and legacy `success: true` alone can accompany missing evidence. `verified` does not establish untested features, full coverage or production readiness. A configured test command can pass while covering little; make the scope clear.
+
+Report kit health, working behavior and rendered craft separately. Tests or a version number cannot supply a design score. Requested comparisons use equal inputs, a stated rubric and preserved outcomes; see `browser-verification/comparison-testing.md`. Check test setup and targets before blaming the app.
+
+Test stable observable behavior and important failure paths. Do not mirror implementation details or static wording to inflate counts. Re-run focused checks after changes that can affect them, then move toward delivery instead of repeatedly testing unchanged work.

@@ -1,58 +1,43 @@
-# Design systems and stack (frontend-design §2-§3, §4.9)
+# Design systems, stack, and themes
 
-Read when: the brief names a design system, you choose fonts or icons for a new project, or you set up the light/dark color scheme. SKILL.md core comes first (§0.A DESIGN.md gate, §0.E anti-defaults, §1 dials).
+Read when selecting or extending components, fonts, icons, or theme support. Start with [SKILL.md](./SKILL.md) and inspect the project's real dependency manifest and styling system.
 
-## 2. Brief → design system map
+## 2.A Existing systems and named references
+Use and extend the system already installed. If the user explicitly requests a particular component system or a platform contract requires it, use its supported implementation and verify compatibility. Do not infer an installation requirement from "Microsoft-like", "Google feel", "Linear-style", or another visual reference. Ask what quality matters only when unclear; typography and layout inspiration often need no package.
 
-### 2.A Real design systems (use the official package)
-| Brief reads as | Reach for | Install |
-|---|---|---|
-| Microsoft / enterprise SaaS / dashboards | Fluent UI React v9 | `@fluentui/react-components` |
-| Google-ish, Material-flavored product | MUI or Material Tailwind with Material 3 tokens (`@material/web` is in maintenance mode: only when the project already uses it) | `@mui/material` / `@material-tailwind/react` |
-| IBM-style B2B / enterprise analytics | Carbon | `@carbon/react @carbon/styles` |
-| Shopify app surfaces | Polaris web components (required for admin UI) | `cdn.shopify.com/shopifycloud/polaris.js` |
-| Atlassian / Jira-style product | Atlassian Design System | `@atlaskit/tokens` + components |
-| GitHub-style devtool / community page | Primer React (product) / Primer Brand (marketing) | `@primer/react` / `@primer/react-brand` |
-| UK public-sector service | GOV.UK Frontend (regulatorily expected) | `govuk-frontend` |
-| US public-sector / trust-first | USWDS v3 | `@uswds/uswds` |
-| Fast local-business / agency MVP | Bootstrap 5.3 | `bootstrap` |
-| Accessible React foundation you own | Radix Themes, or shadcn/ui on Radix (customize; never the default look) | `@radix-ui/themes` / `npx shadcn@latest init` |
-| Tailwind-based SaaS / marketing (default for indie and small teams) | Tailwind v4 utilities + `DESIGN.md` tokens | `tailwindcss @tailwindcss/postcss` |
+Examples of systems one may deliberately select include Fluent, Material, Carbon, Polaris, Atlassian, Primer, GOV.UK Frontend, USWDS, Bootstrap, Radix, and shadcn. These are choices, not a brief-to-package lookup table. A public-service site outside a mandated system does not automatically require GOV.UK or USWDS.
 
-**Honesty rule.** If the brief reads as one of these systems, install and use the official package. Do not recreate its CSS by hand, and do not import its tokens and then override 90% of them. **One system per project**: no Fluent next to Carbon, no shadcn/ui inside a Material app.
+Prefer one coherent component foundation. A focused utility or specialized widget may coexist when it solves a real need without introducing competing resets, themes, or interaction models. Do not install a second full system just for one visual effect.
 
-### 2.B Aesthetics without an official package
-Glassmorphism, bento, brutalism, editorial, dark-tech, aurora/mesh gradients, kinetic type: native CSS + Tailwind, with comments saying what is borrowed inspiration. Style files: `style-glass-aurora.md`, `style-brutalist.md`, `style-minimalist.md`, `style-dark-dashboard.md`; the menu is in `directions.md`.
-- **Glass**: `backdrop-filter: blur(24px) saturate(180%)`, 1px `border-white/20`, inset top highlight (`shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]`), solid-fill fallback under `@media (prefers-reduced-transparency: reduce)` (support is uneven; keep contrast without blur). Strongest on premium consumer, Apple-adjacent, media overlays, launches; on dashboards and public-sector services, keep it to the nav or a hero and put data and forms on solid surfaces. Full recipe with fallbacks and contrast checks: `style-glass-aurora.md`. Apple Liquid Glass is an Apple-platform feature with no official web CSS; this recipe is the web approximation, labeled as one.
+Custom-styled web components should extend that foundation and the approved project identity. Native semantics and custom appearance are compatible. For open surfaces, fallback decisions and the complete interaction contract, read [components.md](components.md); a styled trigger does not prove its browser-owned popup is custom-styled.
 
-## 3. Stack defaults
+## 2.B Visual aesthetics
+Glass, bento, brutalism, editorial type, dark surfaces, aurora fields, and kinetic text are visual techniques; none requires a particular framework. Use project-native CSS, SVG, canvas, or existing animation tools where appropriate. Read the matching style reference as a palette of techniques, then adapt to the approved direction.
 
-The project's existing stack wins. For a new project, unless §2.A picks a system, build on the baseline (`code-rules`): Next.js 16 App Router, React 19, TypeScript, Tailwind CSS v4, `motion/react`. React Compiler is on by default in the kit's templates; details and the memo rule: nextjs-react-expert.
+## 3.A Implementation choices
+- Keep the existing framework, router, styling version, token pipeline, state approach, and font setup. Check real versions before editing configuration.
+- For a new project, honor the user's stack or project instructions; otherwise choose a suitable small foundation. Static HTML/CSS may suit a simple page; an interactive product may justify an application framework. A visual design skill must not force Next.js, Tailwind, a state store, or an animation library.
+- In React server/client frameworks, isolate browser APIs and interactive state at the appropriate client boundary. Do not make the whole page client-only merely for one effect.
+- Reuse existing form/data mechanisms. Styled native inputs and local state may suffice; include open choice popups in the custom treatment by default while preserving intentional platform/system exceptions from components.md. Introduce a form library, state store, or schema package only for a concrete requirement.
+- For animation use CSS/native APIs or the installed library first. Motion and GSAP are optional tools for their respective needs; inspect package versions and actual exports before importing them.
 
-### 3.A Framework and styling
-- Server Components by default. Anything using motion, pointer physics, `IntersectionObserver`, or browser APIs is an isolated leaf with `"use client"` at the top; providers live in a client wrapper.
-- Tailwind v4, tokens in `@theme` (mechanics: `tailwind-patterns`). Tailwind v3 only when the existing project demands it (check the version before touching config).
-- Animation: `import { motion } from "motion/react"`; `framer-motion` is the legacy alias, not for new code. GSAP + ScrollTrigger only for pin/scrub work (motion.md §5.A-§5.B).
-- Fonts: `next/font` or self-hosted `@font-face` with `font-display: swap`; no Google Fonts `<link>` in production; family per `DESIGN.md`.
-- Data and forms: Server Actions + `useActionState` for mutations, `react-hook-form` + `zod` for complex forms; data layer in `frontend-architecture`.
+## 3.B State and continuous input
+Keep transient local state local. Shared state should follow the existing architecture. Avoid rerendering an entire tree for every pointer/scroll frame; use animation values, refs, CSS scroll timelines, or an appropriately scoped event handler. Use passive listeners where suitable and clean up listeners/observers on teardown.
 
-### 3.B State
-- `useState` / `useReducer` for isolated UI; Zustand or Jotai for shared client state; React Context only for rarely-changing values (theme, session).
-- Never track continuous input-driven values (mouse position, scroll progress, magnetic hover) in `useState`: they re-render the tree every frame. Use motion values instead (motion.md §5.C, §5.D).
+## 3.C Type and icons
+Use brand or project fonts first. Check language coverage, license, available weights, fallback metrics, and transfer size. A display/body pairing is an option; a mono face for actual code or numeric data is a purposeful third role when useful. Do not add a face just because a style recipe lists one. Use the framework's font loader or the existing self-hosted pipeline when appropriate.
 
-### 3.C Icons
-Good defaults: `lucide-react`, `@phosphor-icons/react`, `@radix-ui/react-icons`, `@tabler/icons-react`; `@heroicons/react` is fine for Tailwind-UI-style projects. One family per project, one `strokeWidth` (`1.5` or `2`). Do not hand-draw icon paths; if a glyph is missing, compose from primitives or add one more family deliberately.
+Reuse the project's icon family and consistent optical weight. New icons may use an installed library, simple SVG, or an original mark when needed. Do not add an entire icon package for one easily drawn shape. Icon-only controls need accessible names; decorative icons should not add redundant screen-reader output. Emoji can suit playful, chat, or social content when the brief supports them.
 
-### 3.D Emoji
-Not in markup, headings, or alt text by default; use icon glyphs. Allowed sparingly when the brief asks for a playful, chat-style, or social-native tone.
+## 3.D Responsive mechanics
+Choose widths and breakpoints from the content instead of forcing one `max-width` or a collapse at `md`. Use fluid grids, `minmax()`, container queries, and wrapping where supported. Preserve usable reading order at all sizes. Full-height scenes may use `min-height: 100svh` or `100dvh` as suitable, with fallbacks; avoid fixed viewport heights that clip real content. Test long labels, zoom, and intermediate widths when affected.
 
-### 3.E Responsiveness and layout mechanics
-Breakpoints, container queries, grid-over-flex, and `min-h-dvh` heroes are `tailwind-patterns` §4. The design-side rules: page container `max-w-7xl mx-auto` (or `max-w-[1400px]`); full-height hero `min-h-[100dvh]`, never `h-screen` (`grep -rn "h-screen"` before delivering); every multi-column section declares its `< md` collapse in the same component.
+## 3.E Dependencies
+Check the manifest and lockfile before imports. If a dependency is necessary and within the authorized implementation scope, add it using the project's package manager and compatibility constraints, then run the relevant build/check. Do not report an install command as if installation succeeded. Avoid opportunistic migrations or upgrades while doing visual work.
 
-### 3.F Dependency check
-Before importing any third-party package, check `package.json`; if it is missing, output the install command first. Never assume a library exists.
-
-## 4.9 Color scheme (light / dark)
-- Ship the scheme `DESIGN.md` or the brief specifies (light-only, dark-only, both); unspecified means both. One mechanism per project: semantic token values swapped under `.dark` (`@custom-variant dark`, `.dark` on `<html>` from `prefers-color-scheme`; a manual toggle only when one mode would lose brand expression); `dark:` utilities for one-off exceptions only. Setup: `tailwind-patterns` §3.
-- **Page theme lock**: one scheme per page, sections never flip light/dark mid-scroll; tints within the family are fine (`bg-zinc-900` inside `bg-zinc-950`), `bg-amber-50` inside a `bg-zinc-950` page is broken. One deliberate color-block switch is allowed when the brief asks. Design-system themes (Radix `<Theme>`, shadcn) are set once at the root.
-- Both modes keep WCAG AA contrast, the same hierarchy (a CTA that pops in light pops in dark), and a recognizable brand color. Test both before finishing when both ship.
+## 4.9 Color scheme
+- Ship the requested or existing scheme(s). For a new unspecified design, choose one appropriate scheme after intake and state it in `DESIGN.md`. Do not default to both or add a toggle without a user need.
+- Section-level light/dark contrast is allowed for composition and visual rhythm. Define section foreground/background roles and verify contrast, focus, media, and controls locally. It does not require a second site-wide theme.
+- When both themes ship, use the project's single theme mechanism and semantic tokens. Preserve system preference/manual choice behavior and avoid hydration flashes. Test both; do not merely invert every color.
+- A named style does not force light-only or dark-only operation. Brand direction, usability, and the brief choose theme scope.
+- Check contrast on the actual rendered background, especially transparent panels and gradients. Keep selected, success, warning, and error states understandable without color alone.

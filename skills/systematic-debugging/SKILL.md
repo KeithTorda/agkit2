@@ -1,71 +1,37 @@
 ---
 name: systematic-debugging
-description: Four-phase debugging method - reproduce, isolate, understand the root cause, fix and verify with a regression test. Use for any bug, crash, failing test or unexpected behaviour whose cause is not obvious, and for /debug.
-version: 2.5.0
+description: Diagnose bugs, crashes and inconsistent behavior through reproduction, competing hypotheses and causal evidence, then verify a bounded repair. Use when a failure's cause is unclear or a proposed fix needs validation.
+version: 2.8.2
 ---
 
 # Systematic Debugging
 
-Understand the problem before changing code. Every edit follows a confirmed hypothesis.
+Reduce uncertainty until a change has a defensible causal link to the failure. A fixed number of phases or repeated speculative edits is less useful than one observation that distinguishes hypotheses.
 
-## Phase 1: Reproduce
+## Establish the failure
 
-Trigger the issue reliably before fixing anything. Gather what you cannot find yourself (exact error text, file:line, expected vs actual, when it started), then run the failing path and capture its output.
+Capture expected versus observed behavior, a concrete input/action, environment/version and relevant error. Use the smallest repeatable case available. Preserve useful logs and the current state before changing dependencies, deleting caches or rewriting code.
 
-```markdown
-Steps: 1. <exact step> 2. <next step> → expected: <x>, actual: <y>
-Rate: always | often | sometimes | rare
-```
+If reproduction is unavailable, use production traces, a user-provided artifact, code-path reasoning or a controlled simulation. Label the limitation; lack of reproduction does not justify pretending a diagnosis is confirmed or abandoning all useful investigation.
 
-It will not reproduce: gather more data (logs, inputs, environment, data state) before proposing a fix. Never fix a symptom you cannot trigger.
+## Locate the broken boundary
 
-## Phase 2: Isolate
+Trace the value/event across input, state, service and output. Ask where it first differs from the contract. Compare a working/failing case, inspect callers/configuration and check recent relevant changes. Binary search or `git bisect` can isolate a regression when the workspace and test support it; protect unrelated work.
 
-- When did it start, and what changed? (`git log --oneline -20`, `git diff HEAD~5`, `git bisect` for a known-good commit)
-- Every environment, every input, every user? Or only production, only one role, only large data?
-- What is the smallest input and smallest code that still triggers it?
-- List candidate causes by probability, each with the evidence that would confirm or rule it out. Independent hypotheses in a large codebase can be checked in parallel with `research` subagents (`parallel-agents`).
+List materially different hypotheses with evidence for/against them and a discriminating check. Example: a blank result may be a failed request, wrong filter, unauthorized response or stale UI state. Inspect status/body and state before changing CSS or adding retries.
 
-## Phase 3: Understand
+Use narrow instrumentation with redacted values, correlation IDs and timestamps where they help. Avoid dumping secrets or large datasets. A cache-clear fixing symptoms does not establish the root cause of stale data.
 
-Ask "why" until the answer is a decision or a line of code, not another symptom:
+## Repair the cause within scope
 
-```markdown
-1. Why does the page crash?    → `user` is undefined
-2. Why is it undefined?        → the fetch returned 401
-3. Why 401?                    → the token expired exactly at the boundary
-4. Why does the boundary fail? → the expiry check uses `<` instead of `<=`   ← root cause
-```
+State why the observed path fails and which invariant the change restores. Apply the smallest coherent fix, updating relevant consumers/configuration. Expected boundary errors may need handling, but a broad catch returning fake success hides the defect. Retry only when failure semantics make it safe.
 
-Confirm the root cause with evidence (a log line, a failing test, a value in the debugger) before changing anything.
+For intermittent/concurrent failures, consider stale closures, duplicate work, ordering, clocks, resources and transaction isolation. Test relevant timing explicitly rather than replacing the entire subsystem.
 
-## Phase 4: Fix and verify
+## Verify and stop with evidence
 
-- Smallest change that removes the root cause; update the callers of anything you changed.
-- The Phase 1 reproduction now passes; related behaviour still works.
-- Add a regression test that fails without the fix, when the code has a test setup. If not, say how you verified instead.
-- Search for the same mistake elsewhere.
-- Run the checks the change's tier calls for (`code-rules`); prove it per `verify-changes`.
-- A durable cause the next session could repeat goes to memory as a `[failure]`.
+Re-run the original reproduction or its best available substitute. Check a meaningful neighboring success/error path and add regression coverage when it will prevent a real recurrence. Verify shared callers when the contract changed. Do not write a test that only asserts the new implementation shape.
 
-## Useful commands
+Review the final diff for leftover instrumentation, accidental changes and weakened validation. Report cause, fix, evidence and any unverified condition. Once the relevant checks pass, further repeated testing needs a new concern, failure or change.
 
-```powershell
-git log --oneline -20; git diff HEAD~5                 # recent changes
-git bisect start; git bisect bad; git bisect good <sha> # find the breaking commit
-rg -n "errorPattern" src                                # locate the pattern (Select-String without ripgrep)
-npx vitest run path/to/failing.test.ts                  # one test
-php artisan test --filter=OrderTest                     # one Laravel test
-Get-Content storage/logs/laravel.log -Tail 100          # Laravel log
-pm2 logs app-name --err --lines 100                     # Node server logs
-```
-
-## Anti-patterns
-
-| Avoid | Because |
-|---|---|
-| "Maybe if I change this..." | Random edits hide the cause and add bugs |
-| "That can't be it" | Evidence beats intuition |
-| Fixing before reproducing | The fix cannot be proven |
-| Stopping at the first symptom | It returns in another form |
-| Wrapping it in try/catch | Hides the error instead of fixing it (`code-rules`: fix at the source) |
+Use `testing-patterns` for regression design, `performance-profiling` for measured slowness, and `shell-ops` for safe environment/process diagnosis.

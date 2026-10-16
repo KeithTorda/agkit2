@@ -1,36 +1,28 @@
-# Patterns Reference
+# Pattern trade-offs reference
 
-Side-by-side comparison. API styles (REST, GraphQL, tRPC, gRPC, WebSocket) are compared in `api-patterns`.
+Patterns describe responsibilities and trade-offs; they do not certify scalability or code quality. Choose relevant rows and test the important failure boundary.
 
-## Data access
+| Pattern | Useful when | Costs and failure questions |
+|---|---|---|
+| Direct ORM/query builder | Access patterns are clear and framework integration helps | Where do transactions, tenant filters and complex reads live? |
+| Query object/repository | A meaningful data contract needs isolation or several implementations | Does the abstraction hide necessary query/isolation behavior? |
+| Transaction script/action | A use case has a coherent sequence of operations | Are shared invariants duplicated or effects partially committed? |
+| Domain model/state machine | Multiple paths share rules and allowed transitions | Is the model clearer than the underlying use cases? |
+| Monolith | A unified deployment and data boundary fit | Can modules retain ownership; which workloads contend? |
+| Modular monolith | Domains need clearer contracts within one deployment | Are imports/data writes actually constrained across modules? |
+| Independently deployed services | Isolation, release/runtime or workload needs justify network boundaries | Who owns each fact, failure, contract, retry and operation? |
+| Events/durable jobs | Work outlives requests or consumers are independent | Are delivery, duplicates, poison work and schema changes handled? |
+| CQRS/read model | Read shape/cost materially differs from authoritative writes | What lag is acceptable and how is the view rebuilt? |
+| Event sourcing | Event history is authoritative and replay semantics are required | Can schemas evolve and past bugs be corrected safely? |
+| Saga/compensating workflow | A business operation spans independent commit boundaries | Is compensation possible, visible and idempotent? |
+| Local-first with sync | Useful work must continue without connectivity | What conflicts are allowed and which source wins? |
 
-| Pattern | Use when | Avoid when | Complexity |
-|---|---|---|---|
-| Active Record (Eloquent, Django ORM) | CRUD-heavy apps, fast delivery | Rules must be tested without a database | Low |
-| ORM / query builder direct (Prisma, Drizzle, Kysely) | Most TypeScript apps | Several unrelated data sources | Low |
-| Repository | Tests need a seam, or data comes from several sources | Simple CRUD on one database | Medium |
-| Unit of Work | Many aggregates change in one business transaction | Single-row operations | High |
-| Data Mapper | Domain objects must not know about persistence | Simple CRUD | High |
+## Avoid misleading substitutions
 
-## Domain logic
+An audit log is not necessarily event sourcing. A background callback is not necessarily durable. A shared database transaction is not a distributed transaction. A type shared between services is not a deployed compatibility strategy. A queue does not guarantee exactly-once business effects.
 
-| Pattern | Use when | Avoid when | Complexity |
-|---|---|---|---|
-| Transaction script / action class | Clear use cases, modest rules | Rules interact heavily | Low |
-| Table module | Record-based logic, reporting | Rich behaviour per entity | Low |
-| Domain model | Rules with invariants (stock never negative, a ballot counted once) | Simple CRUD | Medium |
-| Full DDD | Complex domain with experts involved | Small domain, no experts | High |
+## Evaluate the change cost
 
-## System structure
+Some patterns are inexpensive to introduce later; others require substantial data, API or operating migrations. Estimate from this repository and deployment rather than asserting all complexity is cheap to add. Prefer boundaries that improve the current problem and preserve realistic options.
 
-| Pattern | Use when | Avoid when | Complexity |
-|---|---|---|---|
-| Monolith | Solo or small team, one product | - | Low |
-| Modular monolith | Several domains, one deploy | Truly independent scaling needs | Medium |
-| Services / microservices | Separate teams, scaling or release needs | Small team, shared database | Very high |
-| Event-driven | Loose coupling, several consumers of one event | Strong consistency needed | High |
-| CQRS | Read and write models diverge sharply | Same shape for both | High |
-| Saga | A transaction spans services | One database (use a DB transaction) | High |
-| Local-first + sync | Offline use at the point of work | Always-online admin tools | High |
-
-Start simple and add complexity when it is proven necessary: adding a pattern later is cheap, removing one is expensive.
+API style comparisons belong in `api-patterns`; schema/isolation detail belongs in `database-design`.

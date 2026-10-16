@@ -14,8 +14,9 @@ SKIP with a note, never a failure.
 Usage:
     python lint_runner.py <project> [--json] [--no-types] [--timeout SECONDS]
 
-Exit codes: 0 every linter that ran passed (or none ran), 1 a linter reported
-errors or timed out, 2 usage error.
+Exit codes: 0 no executed check failed (including skipped/incomplete runs),
+1 an executed check failed, timed out or could not start, 2 usage error.
+Read outcome/verified rather than the exit code to make a verification claim.
 """
 from __future__ import annotations
 
@@ -162,7 +163,7 @@ def plan_checks(project: Path, include_types: bool) -> tuple[list[dict[str, Any]
         else:
             if pint:
                 checks.append({"name": "pint --test", "cmd": [php, pint, "--test"] if not IS_WINDOWS else [pint, "--test"]})
-            if phpstan:
+            if phpstan and include_types:
                 cmd = [phpstan, "analyse", "--no-progress", "--memory-limit=1G"]
                 checks.append({"name": "phpstan", "cmd": [php, *cmd] if not IS_WINDOWS else cmd})
             if not pint and not phpstan:
@@ -236,8 +237,16 @@ def main() -> int:
         results.append({"name": check["name"], **result})
     failed = [r for r in results if r["status"] != "passed"]
 
+    not_verified = list(notes) + [f"{r['name']}: {r['output']}" for r in results if r["status"] == "error"]
+    if any(r["status"] in {"failed", "timeout"} for r in results):
+        outcome = "FAIL"
+    elif not_verified:
+        outcome = "INCOMPLETE"
+    else:
+        outcome = "PASS" if results else "SKIPPED"
     if args.json:
-        print(json.dumps({"script": "lint_runner", "project": str(project), "passed": not failed,
+        print(json.dumps({"script": "lint_runner", "project": str(project), "passed": outcome == "PASS",
+                          "outcome": outcome, "verified": outcome == "PASS", "not_verified": not_verified,
                           "notes": notes, "checks": results}, indent=2, ensure_ascii=False))
     else:
         print(f"Lint: {project}")
@@ -249,8 +258,7 @@ def main() -> int:
             print(f"  {r['status'].upper():<7} {r['name']} ({r['seconds']}s)")
             if r["status"] != "passed" and r["output"]:
                 print("    " + tail(r["output"], 15).replace("\n", "\n    "))
-        if results:
-            print(f"\nResult: {'FAIL' if failed else 'PASS'} ({len(results) - len(failed)}/{len(results)} passed)")
+        print(f"\nResult: {outcome} ({len(results) - len(failed)}/{len(results)} passed)")
     return 1 if failed else 0
 
 

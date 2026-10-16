@@ -1,148 +1,65 @@
-# Structure reference
+# Frontend ownership and structure reference
 
-Read when: scaffolding a new app or restructuring folders; core first.
+Use the project's conventions and framework capabilities. These layouts illustrate useful seams; create only folders/layers that have a real responsibility.
 
-## 1. Layers and where they live
+## A feature-oriented example
 
-A unit of code does one of these:
-
-| Layer | Holds | Lives in |
-|---|---|---|
-| UI | Rendering, markup, presentational state | `components/` |
-| Logic | State, effects, transforms, reusable UI logic | `hooks/` (React), `composables/` (Vue) |
-| Data | Server reads, actions, API calls, cache keys | Server Components, `actions/*.ts`, `lib/*.api.ts` |
-| Type | TypeScript types, domain models | `types.ts` / `*.types.ts` |
-| Validation | Form and data schemas | `*.schema.ts` (Zod by default; Valibot or ArkType when bundle size matters) |
-
-The folders above are code *kinds*, not one flat bucket each. A grown app groups them by feature:
-
-```
+```text
 src/
-├─ app/                      # routes only; composes features, never imported by them
-├─ features/
-│  └─ booking/
-│     ├─ components/
-│     ├─ hooks/
-│     ├─ booking.api.ts      # service file (fetch/axios)
-│     ├─ booking.actions.ts  # Server Actions ("use server")
-│     └─ booking.schema.ts   # zod schema shared by form and action
-├─ components/ui/            # shared primitives (second consumer or later)
-├─ hooks/                    # shared hooks (second consumer or later)
-└─ lib/                      # shared utilities and service files
+  app/                    route composition (when the framework uses this directory)
+  features/booking/
+    BookingForm.tsx       presentation and interaction
+    booking.schema.ts     input contract if the project uses schemas
+    booking.data.ts       data boundary when useful
+    booking.test.ts       observable feature behavior
+  components/ui/          stable shared primitives
+  lib/                    deliberately shared infrastructure
 ```
 
-Full Next.js tree, path aliases and core files: `KIT/skills/app-builder/scaffolding.md`. Multi-app repos (`apps/` deployable, `packages/` shared, `@repo/*` via `workspace:*`): `KIT/skills/app-builder/templates/monorepo-turborepo/TEMPLATE.md`.
+A small feature can use fewer files. A service file should express a meaningful data contract, not exist only to hide a one-line fetch. Framework route files may contain appropriate loader/action work; prevent circular dependencies and route-specific assumptions leaking into shared modules.
 
-## 2. File responsibility and size
+Shared packages in a multi-app repository need an actual ownership/build/version contract. A second app alone does not mandate Turborepo, pnpm or publishing a package. Reuse through a folder/workspace only when its lifecycle fits.
 
-One responsibility per file. Size is a signal, not a limit: a clear 230-line file beats a 90-line file that fetches, validates, renders, and juggles modals. Comfortable ranges: UI component 80-180 lines, page 100-220, hook/composable 40-150, service 50-200. Split when a file mixes UI + data + business logic + validation; do not split a coherent file to hit a number.
+## State ownership decisions
 
-Two call sites that merely look alike are not a pattern. A premature abstraction couples callers to a shape you guessed wrong, and unwinding it later costs more than the duplication would have.
+| State | Candidate owner | Important contract |
+|---|---|---|
+| Temporary interaction | Component/subtree | Reset when identity/lifetime changes |
+| Form draft | Form workflow | Preserve input, validate, handle pending/failure |
+| Deep-linkable filters | Router URL | Parse/serialize defaults; Back/Forward works |
+| Server records | Loader/query cache/store already adopted | Key identity, freshness, invalidation and access |
+| Shared client workflow | Context/store/reducer or feature boundary | One authority; explicit transitions and reset |
+| External subscription | Supported store/subscription adapter | Consistent snapshot, cleanup and SSR behavior |
+| High-frequency visual values | CSS/ref/motion value when suitable | Avoid needless renders; preserve accessibility |
 
-## 3. State tiers
+Context, Redux, Zustand, Pinia and other tools are alternatives, not a mandatory state ladder. Update frequency, subtree size and debugging needs determine which fits. A global cache must not leak data across sessions/tenants; clear or scope it on identity changes.
 
-| Need | Use |
-|---|---|
-| Component-internal | `useState` / `ref` |
-| Reusable state or logic in one feature | custom hook / composable |
-| Shareable UI state (filters, tab, pagination, sort) | URL `searchParams` via `nuqs` or the router — not `useState`, so it survives reload, deep link, and Back |
-| Shared client state in a subtree or across the app | Zustand or Jotai (React); Pinia (Vue) |
-| Rarely-changing values (theme, session, locale) | React Context / `provide`-`inject` (Vue) — never for frequently updated state |
-| Server state | §4, never a global store |
-| Continuous input-driven values (scroll, pointer) | refs or `motion/react` motion values (`nextjs-react-expert` Rule 5.10) |
+## Server/client data boundaries
 
-## 4. Data layer (default order)
+In a server-rendered app, server loaders/components can fetch private data and pass allowed serializable values to interactive UI. A client query may be appropriate for polling, infinite lists, offline behavior or existing SPA architecture. Avoid duplicate server/client requests by using the framework/query library's supported hydration path.
 
-1. **Reads: Server Components.** `page.tsx` / `layout.tsx` fetch directly (DB, API, cached `fetch`) and pass plain data down. No client fetching for data known at render time.
-2. **Mutations: Server Actions + `useActionState`.** Submits call an action in `*.actions.ts` (`"use server"`) that validates with the shared Zod schema and checks auth inside the action; the component reads `[state, formAction, isPending]` for inline errors and pending UI; `updateTag` / `revalidatePath` after the write (`nextjs-react-expert` section 9). Server Actions are for mutations, not real-time data.
-3. **Client-interactive server state: TanStack Query.** For polling, infinite lists, optimistic UI or background refetching. Queries wrap service functions; mutations call Server Actions or the service. Keep server state out of Zustand or Redux; a project already on SWR keeps it.
-4. **Real-time:** a subscription (WebSocket / SSE / provider SDK) feeding a query cache or local store, never polling through Server Actions.
+Server actions, route handlers and controllers are mutation boundaries when adopted by the project. All require validation and authorization. Revalidate the relevant read owner after a successful write. Client caches need deliberate optimistic rollback, error/pending state and duplicate-submission handling.
 
-```ts
-// user.api.ts (service: the only place raw fetch/axios lives)
-export async function getUsers(): Promise<User[]> {
-  const res = await http.get('/users')
-  return userSchema.array().parse(res.data)
-}
+Cache keys include input dimensions that change results, such as tenant, user permissions, filters or locale. In-memory process globals must not silently become cross-request user state.
 
-// useUsers.ts (client-interactive only)
-export function useUsers() {
-  return useQuery({ queryKey: ['users'], queryFn: getUsers })
-}
-```
+## Forms and errors
 
-Vue/Nuxt: `useFetch` / `$fetch` for reads, TanStack Query for interactive state, same service-file rule.
+Native forms, framework actions, form libraries and local state can all be appropriate. Keep labels, field names, server errors and retained input aligned. Client validation is a usability layer; enforce authoritative rules on the server/database. Map expected errors without exposing internal details. Check keyboard submission, focus after errors and concurrent repeated actions.
 
-## 5. Forms validate against a schema
+A schema can be shared where formats align; do not ship server-only dependencies or secrets just to avoid defining a smaller client schema.
 
-- React/Next: native `<form action={serverAction}>` + `useActionState` for simple forms; `react-hook-form` + `zod` (via `@hookform/resolvers`) for complex forms (multi-step, dynamic fields, heavy client validation), still submitting to a Server Action.
-- Vue: `vee-validate` + zod/yup.
-- Schemas live in `*.schema.ts` next to the form, shared with the server action. Errors render inline next to the field (form states: `frontend-design`).
-- Laravel: a Form Request holds the rules; Blade shows `@error('field')` next to the input and keeps `old('field')` values.
+## Refactoring a mixed-responsibility screen
 
-## 6. Vue: Composition API + composables
+Find real seams: filtering, table rendering, editing, data loading, state transitions. Move one coherent responsibility while preserving props, URL behavior, reset rules and accessibility. Avoid extracting solely to hit line/effect counts. A large clear component can be easier than many files whose behavior must be reconstructed.
 
-Production apps use `<script setup>` SFCs (Options API is fine for small or legacy cases). `components/` → UI, `composables/` → reusable pure logic (`useX`), service files → API calls. A composable when reusing logic; a component when reusing logic and layout.
+React hooks/composables encapsulate reusable state or lifecycle; ordinary pure transformations do not need hook names. Keep list keys tied to identity and server/client imports valid. Props may be narrow primitives or domain objects depending on the actual stable contract; neither is universally superior.
 
-## 7. Naming and props
+## Other frontend environments
 
-| Prefer | Avoid |
-|---|---|
-| `UserProfileCard.tsx` | `Card.tsx` |
-| `useCreateBooking.ts` | `handle.ts` |
-| `booking.api.ts`, `booking.actions.ts` | `api.ts`, `actions.ts` (bare) |
-| `booking.schema.ts` | `data.ts` |
+- **Vue/Nuxt:** use existing Options/Composition API and loaders/composables consistently. Define state ownership/reactivity and subscription cleanup; no rewrite solely for `script setup`.
+- **Laravel/Blade/Livewire/Inertia:** keep database/access work in the application's established controllers/actions/components. Use prepared view data, validation errors and supported component boundaries. Do not force an SPA or one action class per use case.
+- **Plain HTML/CSS/JS:** progressive enhancement and small modules can suffice. Group styles/assets by actual reuse; add a framework/build tool only when it solves shared templating, behavior or delivery needs.
 
-Type props explicitly; pass the object, not a scatter of primitives: `{ product: Product; onSelect?: (p: Product) => void }` instead of seven loose props.
+## Verification
 
-## 8. Splitting a god component
-
-Tells: over ~200 lines, more than ~3 `useEffect` / `watch`, many `useState` / `ref`, renders and fetches, many business branches, several modals/tables/forms in one file. Decompose along the page seams:
-
-```
-Page (Server Component)
- ├─ Header
- ├─ Filter            (client)
- ├─ Table / List
- ├─ Pagination
- └─ Modal / Form      (client, Server Action)
-```
-
-Keep client islands small: one interactive button does not make the whole page `"use client"`.
-
-## 9. Minimum tests
-
-Utilities and important hooks/composables → unit tests; main forms → validation tests; critical flows → e2e. Colocate or use `tests/unit` + `tests/e2e`, one convention per project. Details: `testing-patterns`.
-
-## 10. TypeScript
-
-`strict: true`; avoid `any` (use `unknown` and narrow, or a schema); explicit types for props, API responses and domain models; unions over enums (Node's type stripping and `erasableSyntaxOnly` reject enums); schemas for external data, because types do not guard runtime input. TypeScript 5.9+ baseline.
-
-## 11. Laravel Blade (with Livewire or Alpine)
-
-```
-app/
-├─ Http/Controllers/OrderController.php     # thin: validate (Form Request), authorise (Policy), call an action
-├─ Http/Requests/StoreOrderRequest.php
-├─ Actions/Orders/CreateOrder.php           # business logic, one use case per class
-├─ Livewire/Orders/OrderTable.php           # interactive pieces only (if Livewire is used)
-resources/views/
-├─ layouts/app.blade.php
-├─ components/                              # Blade components: <x-order-status-badge>
-└─ orders/index.blade.php, create.blade.php
-resources/css/app.css, resources/js/app.js  # Vite entry points
-```
-
-Blade components for repeated markup; Livewire or Alpine for the interactive islands; Inertia (Vue or React) when the app is mostly client-side screens. Keep queries out of views: pass prepared data from the controller, and eager-load relations there (`database-design`).
-
-## 12. Plain HTML, CSS and JavaScript sites
-
-```
-index.html, about.html, ...
-assets/css/tokens.css      # custom properties from DESIGN.md
-assets/css/base.css, layout.css, components/*.css
-assets/js/main.js          # small ES modules, one per feature: nav.js, precinct-finder.js
-assets/img/, assets/data/*.json
-```
-
-One ES module per behaviour, loaded with `<script type="module">`; data in JSON files rather than inside scripts; progressive enhancement so content works before JavaScript loads. Reach for a build tool or framework when pages share a lot of repeated markup or the site needs templating.
+Check imports/type contracts and a real render/interaction across affected states. Utilities/business rules warrant focused tests when meaningful; broad component snapshots rarely replace them. Use actual framework builds for module/serialization boundaries and browser checks for layout, focus, navigation and hydration. Keep an existing strictness policy; widening compiler config is a separate change with its own compatibility cost.

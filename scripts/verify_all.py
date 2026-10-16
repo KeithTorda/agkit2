@@ -70,14 +70,18 @@ def release_steps(project: Path, url: str | None, no_build: bool, no_e2e: bool) 
     steps = build_steps(project, "full", None, url)
     runtime = [s for s in steps if s.category == "runtime"]
     steps = [s for s in steps if s.category != "runtime"]
-    if not no_build:
-        steps.append(build_step(project))
+    build = build_step(project)
+    if no_build and not build.skip_reason:
+        build.commands, build.skip_reason = [], "--no-build"
+        build.skip_not_verified = True
+    steps.append(build)
     for name, rel in EXTRA_AUDITS:
         steps.append(kit_step(name, rel, "audit", project))
     steps.append(kit_step("Bundle analysis", "skills/performance-profiling/scripts/bundle_analyzer.py", "audit", project))
     for step in runtime:
         if no_e2e and step.name.startswith("Playwright"):
             step.commands, step.skip_reason = [], "--no-e2e"
+            step.skip_not_verified = True
         steps.append(step)
     return steps
 
@@ -109,6 +113,10 @@ def main(argv: list[str] | None = None) -> int:
     console.line(f"stack: {', '.join(stack.names) or 'unknown'} | url: {args.url or 'none'}")
 
     steps = release_steps(project, None if args.no_runtime else args.url, args.no_build, args.no_e2e)
+    for step in steps:
+        if step.category == "runtime" and (args.no_runtime or not args.url):
+            step.skip_reason = "--no-runtime" if args.no_runtime else "no runtime URL supplied for release verification"
+            step.skip_not_verified = True
     results = execute(steps, console, args.stop_on_fail)
     ok = suite_success(results, args.strict)
     payload = report_payload("verify_all", project, "release", results, started, args.strict,

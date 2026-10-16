@@ -1,79 +1,23 @@
----
-name: astro-static
-description: Astro static site template principles. Content-focused websites, blogs, documentation.
-version: 2.5.0
----
+# Astro content or static site
 
-# Astro Static Site Template
+## Fit and inspection
 
-> Pin to the current stable line when scaffolding.
+Use when the selected foundation is Astro and most content can be rendered ahead of time or through its supported server mode. Check content sources, update workflow, hosting and whether any interactive islands or server routes are needed.
 
-## Tech Stack
+Inspect existing work before scaffolding. For a new foundation, use current official setup guidance and compatible versions; do not copy historical CLI flags blindly. Preserve the requested package manager, deployment constraints and user changes.
 
-| Component | Technology |
-|-----------|------------|
-| Framework | Astro (current major, 5+) |
-| Content | MDX + Content Collections (Content Layer API) |
-| Styling | Tailwind CSS v4 (@tailwindcss/vite) |
-| Integrations | Sitemap, RSS, SEO |
-| Output | Static/SSG |
+## Implementation decisions
 
----
+- Use conventional pages, layouts and content collections supported by the installed release. Keep a clear content schema and meaningful metadata.
 
-## Directory Structure
+- Hydrate islands only where interaction needs them. A contact form still needs a real submission destination and failure/success behavior.
 
-```
-project-name/
-├── src/
-│   ├── components/      # .astro components
-│   ├── content/         # Collection entries (blog/, docs/ .md/.mdx)
-│   ├── layouts/         # Page layouts
-│   ├── pages/           # File-based routing (only reserved dir)
-│   ├── styles/
-│   │   └── global.css   # @import "tailwindcss";
-│   └── content.config.ts # Collection definitions (Content Layer, in src/ root)
-├── public/              # Static assets
-├── astro.config.mjs
-└── package.json
-```
+- Choose static export or the required hosting adapter deliberately; do not promise every server feature works on arbitrary static hosting.
 
----
+For new visual design, complete the shared short style/reference intake and wait unless already answered or delegated. Reuse accepted tokens and design components; this template does not select an aesthetic or install a styling package. API/CLI-only work needs no visual questionnaire.
 
-## Key Concepts
+## Verify and hand off
 
-| Concept | Description |
-|---------|-------------|
-| Content Layer API | Collections defined in `src/content.config.ts` with `loader`s (glob/file) + Zod schemas |
-| Islands Architecture | Partial hydration for interactivity |
-| Zero JS by default | Static HTML unless needed |
-| MDX Support | Markdown with components |
+Build the selected output, inspect representative routes and content entries, test navigation/assets, and verify forms through their actual endpoint when implemented.
 
----
-
-## Setup Steps
-
-1. `npm create astro@latest {{name}}`
-2. Add integrations: `npx astro add mdx sitemap`
-3. Add Tailwind v4: `npx astro add tailwind` (installs @tailwindcss/vite, not the legacy @astrojs/tailwind)
-4. Define collections in `src/content.config.ts` using `loader`s + Zod schemas
-5. `npm run dev`
-
----
-
-## Deployment
-
-| Platform | Method |
-|----------|--------|
-| Vercel | Auto-detected |
-| Netlify | Auto-detected |
-| Cloudflare Pages | Auto-detected |
-| GitHub Pages | Build + deploy action |
-
----
-
-## Best Practices
-
-- Use Content Collections for type safety
-- Prefer static generation
-- Add islands only where needed
-- Optimize images with Astro Image
+Report the actual run command, implemented outcome, checks performed and concrete remaining setup. Starter code, a mocked integration or a successful dependency install is not proof of a working end-to-end product.

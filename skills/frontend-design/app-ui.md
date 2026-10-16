@@ -1,28 +1,56 @@
-# App UI (frontend-design §4.4, §5.E, §7)
+# App UI
 
-Read when: building or fixing an app page: dashboard, settings, form, table, any non-marketing screen. Core SKILL.md first (§0.F screen read, §1.A app-page dials, §4.0 judgment, §4.7 copy, §4.8 app-UI tells all apply here).
+Read for dashboards, settings, onboarding, forms, tables, and other non-marketing screens. [SKILL.md](./SKILL.md) covers new-design intake; maintenance extends the approved design.
 
-## 4.4 States and forms
-- Full cycle, designed in the screen read (SKILL.md §0.F): loading = skeletons matching the final layout, not spinners; empty = composed, says how to populate, first run shows the one action that creates the first item; error = inline for forms, toast only for transient, `aria-live`, always a way forward (retry, edit, link out); long content = design for the 200-char title and 500-row list, truncate or paginate deliberately; `:active` = `scale-[0.98]` or `-translate-y-px`.
-- `focus-visible` ring on every interactive element, never `outline: none` without a replacement; state never by colour alone (add an icon, label, or weight).
-- Buttons: AA text on their own background (4.5:1; 3:1 at 18px+); scrim or stroke under ghost buttons over photos; primary CTA label one line at desktop (1024px+), three words max; one label per intent per page ("Get in touch" and "Let's talk" are one intent: pick one for nav, hero, footer).
-- Forms: label above input (never placeholder-as-label), helper text in markup, error text below, `gap-2` blocks; inputs, placeholders, labels, rings, errors pass AA on the section background, in every shipped color scheme; validate against a schema, not `window.alert()`.
+## 4.4 Controls, states, and forms
+Use custom-styled controls coherent with the approved product. Read [components.md](components.md) when creating or replacing a control: its dropdown, calendar, dialog or other open surface belongs to the design as much as its trigger, with semantic and keyboard behavior preserved.
 
-## 5.E Feedback on action (interaction, not decoration)
-The motion that matters most is the half-second after a click.
-- Every mutation shows pending **on the control that triggered it** (disabled + "Saving..."), not a page-wide spinner; success shows inline or by navigating, a toast only when the user has already left the context.
-- Errors appear next to their cause and read per SKILL.md §4.7.
-- Optimistic UI only for reversible, high-frequency actions (like, toggle, reorder), with a visible revert on failure; never for payments, deletes, or anything with a receipt.
-- Hover changes one property (colour or elevation) over `DESIGN.md` `motion.duration.fast`; state transitions use `motion.duration.base`. Under 100 ms feels instant; over 300 ms needs a pending state.
+Design states that actually apply to the screen:
 
-## 7. App-page and component work
-Page-level app UI (settings, onboarding, dashboards, forms, tables): app-page dials (SKILL.md §1.A), `DESIGN.md` component tokens, a design system when the brief names one (design-systems.md §2.A). Dense tables: TanStack Table or AG Grid; editors: Monaco / CodeMirror; multi-step forms: form-library patterns. SKILL.md §0.F, §4.0, §4.7 and design-systems.md §4.9 apply everywhere; marketing rules (hero, eyebrows, logo walls: marketing-layout.md) do not.
+| State | Useful behavior |
+|---|---|
+| Loading | Indicate activity near the content or action. Use a skeleton for predictable layouts or a spinner/progress label when that communicates better. Avoid fake progress. |
+| Empty | Explain what is missing and the next useful action; distinguish first use from no search results. |
+| Pending mutation | Show feedback on the triggering control when practical, prevent accidental duplicate submission, and preserve the user's input. |
+| Error | Explain the problem near its cause, associate field errors with controls, and provide a recovery path. Use live regions for important asynchronous messages. |
+| Success | Update the visible result, navigate, or confirm inline. A toast may supplement context when appropriate. |
+| Long content / many items | Allow meaningful wrapping, truncation with access to the full value, sorting, or pagination as needed. |
+| Unavailable / no permission | Explain the boundary and useful next step without exposing restricted data. |
 
-Dark, dense ops or monitoring screens with a high-contrast look: `style-dark-dashboard.md`.
+Persistent visible labels, helper/error relationships, correct input types, keyboard behavior, and visible focus are part of the component. State must remain understandable without color alone. Check normal text against the actual background; large text thresholds differ from small text. Do not infer a passing contrast result from a color token's name.
 
-Hierarchy on an app page (marketing counterpart: marketing-layout.md §4.5):
-- **One primary action per view**, in one fixed place (top-right of the page header, or bottom-right of a form). Default to one filled button per region and avoid repeating the same action; two filled buttons are fine when both actions are equally primary (Approve / Reject in a review queue, Cash / GCash at a POS checkout) or DESIGN.md says so.
-- **Page header** = title, one line of context, actions. Greetings and stat rows are not headers.
-- **Forms** in groups of ≤ 5 fields under a group heading; single column below `lg`; the field the user fills first is first; helper text only where a field is genuinely ambiguous.
-- **Tables**: numeric columns right-aligned, text left; the column the user scans first is first; row height from the density dial, not padding guesses; a row's primary action visible without hover on touch.
-- **Lead with what the user checks first** (SKILL.md §0.F item 4): a dashboard opens on the one number or list that answers "is anything wrong", not a row of tiles. The grayscale-and-squint test (SKILL.md §4.0) applies here as on a landing page.
+Button names should describe their actions. Keep them readable in the user's language; no arbitrary three-word limit. Touch targets and spacing should be comfortable for the audience. Do not force scale or translation feedback on every control.
+
+## 5.E Feedback and behavior
+- Keep the UI responsive during work. Disable only controls whose use would cause conflicting or duplicate actions, not an entire screen without reason.
+- Use optimistic updates only when failure can be clearly recovered and the product's semantics support it. Preserve existing confirmed transaction flows.
+- Hover, focus, press, selection, and validation transitions may use color, opacity, elevation, or a small transform as appropriate. Keep feedback-only or richer choreography aligned with the agreed intent and motion preferences.
+- Do not use a toast or `window.alert()` as a replacement for persistent field error information.
+- Prototype controls should demonstrate the promised flow or be visibly identified as unavailable/demo. Do not display success without performing the represented operation.
+- For navigation that overlays and blocks the page, verify its modal focus contract: move focus appropriately, keep keyboard users out of covered content, support dismissal and restore focus. An inline, nonmodal disclosure keeps ordinary page navigation; do not trap focus merely because a menu is expanded.
+
+## 7. App-page hierarchy
+Lead with the information the user needs to decide or act. A monitoring dashboard may lead with exceptions; a work queue with its actionable list; a financial view with a balance. Make operational signals understandable: show the condition, its significance and a clear next action when one is available. Give that action enough emphasis to be found. There is no mandatory stat-tile row, hero, or welcome message.
+
+Give the primary task clear emphasis while allowing multiple equally valid actions when the task requires them. Position repeated actions consistently; a long form may benefit from both top and bottom save access. Headers, greetings, context, and counts are optional content, not banned patterns.
+
+Group forms by meaning and reading order, not a fixed number of fields. Choose single or multiple columns according to dependencies, input width, and viewport; keep labels and errors connected on mobile and under zoom. Preserve submitted values on validation failure.
+
+For tables, align comparable numbers consistently, use tabular figures where useful, provide clear headers and sort state, and expose essential row actions on touch and keyboard. Reuse existing table/editor components; introduce a specialized library only when the actual interaction requires it.
+
+Read `style-dark-dashboard.md` only for an approved dark operations direction. Marketing layout/imagery rules do not automatically apply to app screens.
+
+### Density and data meaning
+Choose density from the work: scanning a queue, comparing values or reading an explanation have different needs. Fit useful information through grouping, layout and concise copy; check whether secondary text became small by accident, especially where unused space remains.
+
+Make metrics and charts semantically checkable. State units, period and population where ambiguity changes interpretation; explain non-obvious measures, included statuses or rate denominators. Use the same definitions in labels, calculations and detail views. When filters change, communicate the result context and which summaries, charts or rows follow those filters. A decorative chart or number must not imply an unsupported measure or live result.
+
+### Content space and essential data
+Choose navigation, chart arrangements and table presentation from the content space left after navigation, padding and sibling panels. Check intermediate widths: a rail may remain, narrow, move or collapse; charts may stay adjacent or stack according to readable labels and useful plotting space. Device names and preset breakpoints do not establish that the resulting workspace is usable.
+
+Identify the columns and actions needed for the task before adapting a table. If essential data starts offscreen, make it discoverable and reachable with an appropriate overflow cue, prioritized or pinned context columns, column controls or a row-detail view. Choose only the mechanisms the task needs. Verify the initial narrow view, the farthest essential column and row actions with touch and keyboard; check that users can still identify the row they are acting on.
+
+### Rendered craft review
+Read the actual render at its intended display scale: supporting labels, status explanations, chart axes/captions, filter context and action text matter alongside headlines and metric values. Check whether an operational issue and its next action can be found, and whether useful density has become cramped microcopy. Inspect the first viewport and below-fold sequence, then verify essential data access at narrow and intermediate widths.
+
+Record craft findings separately from control behavior. A successful filter, scroll or export check proves that behavior; its visual affordance, readability and prominence still need rendered review. Static captures alone do not prove that controls work.

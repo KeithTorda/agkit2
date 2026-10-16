@@ -11,6 +11,8 @@ updated: 2026-09-27
 
 # Kape Norte Counter POS - Plan Overview
 
+> Example context: This fictional cafe plan demonstrates linked planning formats. Names, dates, signoffs, budget and technology choices are sample data; no actual approval, deployment or measurement is claimed.
+
 ## Summary
 
 Kape Norte is a one-branch café in Tuguegarao City with two cashiers per shift and an owner who does the books at night. Orders are written on paper slips, change is computed in the cashier's head, and the owner rebuilds the day's sales from slips and a GCash screenshot folder. This plan covers a counter POS on one Android tablet: menu, orders with modifiers, cash and GCash payments, receipts on a Bluetooth thermal printer, Senior Citizen and PWD discounts, shift cash counts, and a daily report the owner reads from home.

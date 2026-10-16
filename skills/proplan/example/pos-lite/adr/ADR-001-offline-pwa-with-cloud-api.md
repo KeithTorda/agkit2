@@ -8,6 +8,8 @@ deciders: Liza Dela Cruz (owner), developer
 
 # ADR-001: Offline-capable PWA on the counter tablet with a cloud Laravel API
 
+> Example context: This fictional accepted decision illustrates ADR structure and consequences. Its sample deciders, costs and device assumptions are not evidence of a real user choice or current compatibility.
+
 ## Status
 
 Accepted on 2026-09-27 at the architecture checkpoint.

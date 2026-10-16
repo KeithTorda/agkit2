@@ -7,35 +7,20 @@ owner: backend-specialist
 updated: YYYY-MM-DD
 ---
 
-<!--
-Owner: backend-specialist (Phase 3). Input: 02-requirements, 03-architecture, 04-data-model, 07 authorization matrix when available.
-IDs defined here:
-  API-01 ...  one heading per endpoint (or per closely related pair): "### API-04 PUT /orders/{uuid}".
-Each API section names the R-ids it serves on a "Serves:" line; the traceability matrix reads them.
-Do not define API ids in a summary table as well (the checker reports duplicates). The index table below puts the ID in the third column for that reason.
-For a server-rendered app with few JSON endpoints (Laravel Blade, Livewire), list the routes and form posts that change data; the same fields apply.
--->
+<!-- AGKIT2 2.8.0 planning scaffold. Keep machine-readable IDs/fields and use only relevant content. Replace illustrative rows and examples with the actual brief. Do not invent evidence, approvals, dates or locale-specific obligations. Shared core/design/verification rules govern decisions and checks; this template adds no universal approval or task-count gate. -->
+
 
 # API
 
 ## Conventions
 
-<!--
-- Base URL and versioning (/api/v1; how breaking changes are introduced).
-- Format: JSON, UTF-8, field naming (snake_case or camelCase; pick one).
-- Dates in ISO 8601 with offset; money as integer centavos or string decimals; never floats.
-- Pagination (cursor or page/per_page), filtering and sorting parameters.
-- Idempotency for retried writes (Idempotency-Key header or client UUIDs).
--->
-
+<!-- Match actual consumers and framework conventions. Specify identifiers, dates, money, pagination and retry behavior where needed without forcing public versioning on an internal action. -->
 ## Authentication and authorization
 
-<!-- Mechanism (session cookie, Sanctum or JWT bearer token, API key for machines), token lifetime and refresh, where roles are checked (server, every endpoint), how the matrix in 07 maps to endpoints. -->
-
+<!-- Define identity and per-resource permission checks with role names aligned to 02/07. Authentication alone does not grant record access. -->
 ## Error model
 
-<!-- One shape for all errors, and the codes the client must handle. -->
-
+<!-- Use a consistent actionable error contract suitable to the stack. The sample shape/statuses are examples; keep caller handling and observability coherent. -->
 ```json
 { "error": { "code": "validation_failed", "message": "Readable message", "fields": { "amount": ["Must be at least 1"] } } }
 ```
@@ -53,16 +38,17 @@ For a server-rendered app with few JSON endpoints (Laravel Blade, Livewire), lis
 
 ## Rate limits
 
-<!-- Per route group: sign-in, public forms, exports. -->
-
+<!-- Bound expensive/abusable operations based on actual traffic and trust boundaries; explain proposed limits. -->
 ## Endpoint index
 
+<!-- Reference endpoint IDs already defined below. Keep the ID out of the first column to avoid duplicate definitions. -->
 | Method | Path | ID | Role |
 |---|---|---|---|
 | | | | |
 
 ## Endpoints
 
+<!-- Define each API ID once with Serves, request/response, authorization and failure/side-effect behavior. Include idempotency/transactions for retried consequential writes. -->
 ### API-01 <METHOD /path>
 
 - Serves: R-001
@@ -71,12 +57,11 @@ For a server-rendered app with few JSON endpoints (Laravel Blade, Livewire), lis
 - Request:
 - Response:
 - Errors:
-- Notes: <!-- idempotency, side effects (emails, jobs), audit events written, performance expectation -->
+- Notes:
 
 ## Webhooks and events
 
-<!-- Incoming webhooks (payment provider callbacks: signature check, replay protection, idempotent handling) and outgoing events. -->
-
+<!-- Document actual integrations, signature/identity validation, duplicate handling, retries and observability. Say inapplicable when none exist. -->
 ## Versioning and deprecation
 
-<!-- How long old versions live, how clients are told. For an internal app with one client, "breaking changes ship with the client in the same deploy" is a valid policy; say so. -->
+<!-- Explain compatibility for real consumers. A coordinated internal deployment can be sufficient; do not add a public API lifecycle unnecessarily. -->

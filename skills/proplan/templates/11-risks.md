@@ -7,37 +7,32 @@ owner: project-planner
 updated: YYYY-MM-DD
 ---
 
-<!--
-Owner: project-planner (Phase 4), with input from solution-architect (technical), security-auditor (security), product-manager (scope and adoption).
-IDs defined here:
-  RK-01 ...  risks, defined as the first cell of the register table.
-Write each risk as cause -> event -> effect: "The printer model is not supported by Web Bluetooth (cause), so receipts cannot print from the tablet (event), which blocks M2 and launch (effect)."
-A risk without a mitigation that appears in the roadmap (a task, a spike, a buffer) is only a worry. Name the T-id where the mitigation lives.
-Include non-technical risks: client availability for UAT, hardware purchase, legal approval, staff adoption, data migration from spreadsheets.
--->
+<!-- AGKIT2 2.8.0 planning scaffold. Keep machine-readable IDs/fields and use only relevant content. Replace illustrative rows and examples with the actual brief. Do not invent evidence, approvals, dates or locale-specific obligations. Shared core/design/verification rules govern decisions and checks; this template adds no universal approval or task-count gate. -->
+
 
 # Risks
 
 ## Scoring
 
+<!-- Use a simple shared scale if useful. Evaluate probability and actual product/delivery impact; scores support judgment rather than manufacturing precision. -->
 | Level | Likelihood | Impact |
 |---|---|---|
 | Low | unlikely in this project | minor delay or cost, no user effect |
 | Medium | could well happen | milestone slips or a feature is reduced |
 | High | expected unless acted on | launch slips, money or data at risk, legal exposure |
 
-Score = likelihood x impact (Low 1, Medium 2, High 3). Review risks scoring 6 or more at every milestone.
+Suggested score = likelihood x impact (Low 1, Medium 2, High 3). Use the score to prioritize review alongside consequence and uncertainty; adapt the review cadence to the project.
 
 ## Risk register
 
+<!-- Define stable RK IDs with cause/event/effect, owner, trigger, mitigation and recovery. Link work when mitigation needs a task. Include only risks relevant to this system. -->
 | ID | Risk (cause, event, effect) | Category | Likelihood | Impact | Score | Mitigation (T-id) | Trigger and contingency | Owner | Status |
 |---|---|---|---|---|---|---|---|---|---|
 | RK-01 | | | | | | | | | open |
 
 ## Assumptions to validate
 
-<!-- Assumptions from 00 that would become risks if wrong, each with how and when it gets confirmed. -->
-
+<!-- Identify uncertain claims whose failure changes the plan, and the observation/owner that will resolve them. -->
 ## Review cadence
 
-<!-- When the register is reviewed (each milestone demo) and who updates it. Closed risks stay in the table with status "closed" and the date. -->
+<!-- Review at meaningful delivery/decision points. Preserve resolved history and record accepted risk truthfully; no invented signoff. -->

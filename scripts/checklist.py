@@ -102,6 +102,8 @@ def git_changed_files(project: Path, since: str | None = None) -> list[str] | No
             diff = run("diff", "--name-only", "-z", "--diff-filter=ACMR", since)
         if diff is not None and diff.returncode == 0:
             paths.update(p for p in diff.stdout.split("\0") if p)
+        else:
+            return None  # unresolved comparison is unknown scope, never an empty change set
 
     project_res = project.resolve()
     out = []
@@ -123,6 +125,7 @@ class Stack:
     node: dict | None = None
     python: bool = False
     php: bool = False
+    manifest_errors: list[str] = field(default_factory=list)
 
 
 def _read_json(path: Path) -> dict:
@@ -137,7 +140,22 @@ def detect_stack(project: Path) -> Stack:
     stack = Stack()
     pkg_path = project / "package.json"
     if pkg_path.is_file():
-        pkg = _read_json(pkg_path)
+        try:
+            pkg = json.loads(pkg_path.read_text("utf-8-sig"))
+            if not isinstance(pkg, dict):
+                raise ValueError("top-level value must be an object")
+        except (OSError, ValueError) as exc:
+            stack.manifest_errors.append(f"package.json: {exc}")
+            pkg = {}
+        for section in ("dependencies", "devDependencies", "scripts"):
+            if section in pkg and not isinstance(pkg[section], dict):
+                stack.manifest_errors.append(f"package.json: {section} must be an object")
+                pkg[section] = {}
+        if isinstance(pkg.get("scripts"), dict):
+            for name, command in list(pkg["scripts"].items()):
+                if not isinstance(command, str):
+                    stack.manifest_errors.append(f"package.json: scripts.{name} must be a string")
+                    del pkg["scripts"][name]
         deps = {**(pkg.get("dependencies") or {}), **(pkg.get("devDependencies") or {})}
         stack.node = {"pkg": pkg, "deps": deps, "scripts": pkg.get("scripts") or {}}
         label = next((n for key, n in (("next", "Next.js"), ("nuxt", "Nuxt"), ("@sveltejs/kit", "SvelteKit"),
@@ -152,6 +170,12 @@ def detect_stack(project: Path) -> Stack:
         stack.names.append("Django" if (project / "manage.py").is_file() else "Python")
     if (project / "composer.json").is_file():
         stack.php = True
+        try:
+            composer = json.loads((project / "composer.json").read_text("utf-8-sig"))
+            if not isinstance(composer, dict):
+                raise ValueError("top-level value must be an object")
+        except (OSError, ValueError) as exc:
+            stack.manifest_errors.append(f"composer.json: {exc}")
         stack.names.append("Laravel" if (project / "artisan").is_file() else "PHP")
     if not stack.names and any(project.glob("*.html")):
         stack.names.append("Static HTML")
@@ -284,23 +308,23 @@ def node_steps(project: Path, stack: Stack, scope: list[str] | None, full: bool)
     src_files = [f for f in (js_files or []) if f]
     if js_files == []:
         tests.skip_reason = no_js
+    elif test_script and NPM_PLACEHOLDER_TEST not in test_script and which(pm):
+        tests.name = f"Tests ({pm} test)"
+        tests.commands = [[which(pm), "test"]]  # preserve project config, setup and custom flags
     elif vitest and "vitest" in deps:
         if src_files and not full:
             tests.name = f"Tests (vitest related, {len(src_files)} file(s))"
-            tests.commands = [[vitest, "related", "--run", "--passWithNoTests", *src_files]]
+            tests.commands = [[vitest, "related", "--run", *src_files]]
         else:
             tests.name = "Tests (vitest run)"
-            tests.commands = [[vitest, "run", "--passWithNoTests"]]
+            tests.commands = [[vitest, "run"]]
     elif jest and "jest" in deps:
         if src_files and not full:
             tests.name = f"Tests (jest related, {len(src_files)} file(s))"
-            tests.commands = [[jest, "--findRelatedTests", "--passWithNoTests", *src_files]]
+            tests.commands = [[jest, "--findRelatedTests", *src_files]]
         else:
             tests.name = "Tests (jest)"
-            tests.commands = [[jest, "--passWithNoTests"]]
-    elif test_script and NPM_PLACEHOLDER_TEST not in test_script and which(pm):
-        tests.name = f"Tests ({pm} test)"
-        tests.commands = [[which(pm), "test"]]  # type: ignore[list-item]
+            tests.commands = [[jest]]
     else:
         tests.missing_reason = "no JS test runner (vitest/jest or a test script)"
     steps.append(tests)
@@ -361,7 +385,7 @@ def python_steps(project: Path, scope: list[str] | None, full: bool) -> list[Ste
     return steps
 
 
-def _project_php_files(project: Path, limit: int = 300) -> list[str]:
+def _project_php_files(project: Path) -> list[str]:
     skip = {"vendor", "node_modules", "storage", "bootstrap", ".git", "public"}
     found: list[str] = []
     for path in sorted(project.rglob("*.php")):
@@ -369,8 +393,6 @@ def _project_php_files(project: Path, limit: int = 300) -> list[str]:
         if any(part in skip for part in rel.parts[:-1]):
             continue
         found.append(rel.as_posix())
-        if len(found) >= limit:
-            break
     return found
 
 
@@ -462,13 +484,14 @@ def runtime_steps(url: str | None) -> list[Step]:
     steps = []
     for name, rel, timeout in (("Lighthouse", "skills/performance-profiling/scripts/lighthouse_audit.py", 240),
                                ("Playwright smoke", "skills/testing-patterns/scripts/playwright_runner.py", 180)):
-        step = Step(name, "runtime", timeout=timeout, kit_script=True)
+        step = Step(name, "runtime", timeout=timeout, kit_script=True,
+                    required=name.startswith("Playwright"), json_status=True)
         if not url:
             step.skip_reason = "no --url"
         elif not (KIT_ROOT / rel).is_file():
             step.missing_reason = f"kit script not found: {rel}"
         else:
-            step.commands = [[sys.executable, str(KIT_ROOT / rel), url]]
+            step.commands = [[sys.executable, str(KIT_ROOT / rel), url, "--json"]]
         steps.append(step)
     return steps
 
@@ -478,6 +501,9 @@ def build_steps(project: Path, mode: str, scope: list[str] | None, url: str | No
     full = mode == "full"
     stack = detect_stack(project)
     steps: list[Step] = []
+    if stack.manifest_errors:
+        return [Step("Manifest validation", "types", required=True,
+                     failed_reason="; ".join(stack.manifest_errors))]
     if full:
         steps.append(security_step(project))
     if stack.node is not None:
@@ -526,7 +552,7 @@ def resolve_scope(project: Path, mode: str, all_files: bool, since: str | None) 
         return None, "whole project"
     changed = git_changed_files(project, since)
     if changed is None:
-        return None, "whole project (no git repository)"
+        return None, "whole project (Git scope unavailable)"
     return changed, f"{len(changed)} changed file(s)" + (f" since {since}" if since else "")
 
 

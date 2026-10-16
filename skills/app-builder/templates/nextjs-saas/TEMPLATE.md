@@ -1,132 +1,23 @@
----
-name: nextjs-saas
-description: Next.js SaaS template. React 19, Server Actions, Prisma 7, Stripe, Resend.
-version: 2.5.0
----
+# Subscription product on Next.js
 
-# Next.js SaaS Template
+## Fit and inspection
 
-> Pin to the current stable line when scaffolding.
+Use when a subscription product actually needs identity, organization/tenant membership, entitlements and billing on a chosen Next.js foundation. A shop or dashboard does not imply subscriptions or a particular payment provider.
 
-## Tech Stack
+Inspect existing work before scaffolding. For a new foundation, use current official setup guidance and compatible versions; do not copy historical CLI flags blindly. Preserve the requested package manager, deployment constraints and user changes.
 
-| Component | Technology | Version / Notes |
-|-----------|------------|-----------------|
-| Framework | Next.js | 16+ (App Router, Turbopack default, React Compiler enabled by this template via `reactCompiler: true`) |
-| Runtime | Node.js | 24 LTS |
-| Auth | Better Auth or Clerk; Auth.js for existing projects | Passkeys + OAuth; Lucia is deprecated |
-| Payments | Stripe API | Latest |
-| Database | PostgreSQL | Prisma 7 (Rust-free client, driver adapter, `prisma.config.ts`) |
-| Email | Resend | React Email |
-| UI | Tailwind CSS | v4 (CSS-first, no config file) |
-| Lint | ESLint 9 flat config | `eslint .`; `next lint` no longer exists |
+## Implementation decisions
 
----
+- Define membership, roles, tenant scope and entitlement rules independently of UI visibility. Enforce them at the server data boundary.
 
-## Directory Structure
+- Use the selected billing provider current integration docs. Verify webhook authenticity, idempotency, out-of-order events and server-confirmed status; a redirect is not payment evidence.
 
-```
-project-name/
-├── prisma/
-│   └── schema.prisma    # Database Schema
-├── src/
-│   ├── actions/         # Server Actions (mutations; backend-specialist)
-│   │   ├── auth-actions.ts
-│   │   ├── billing-actions.ts
-│   │   └── user-actions.ts
-│   ├── app/
-│   │   ├── (auth)/      # Route Group: Login, register
-│   │   ├── (dashboard)/ # Route Group: Protected routes (App Layout)
-│   │   ├── (marketing)/ # Route Group: Landing, pricing (Marketing Layout)
-│   │   └── api/         # Only used for Webhooks or Edge cases (backend-specialist)
-│   │       └── webhooks/stripe/
-│   ├── components/
-│   │   ├── emails/      # React Email templates
-│   │   ├── forms/       # Client components using useActionState (React 19)
-│   │   └── ui/          # Primitives (shadcn/ui acceptable when DESIGN.md or the brief calls for it)
-│   ├── lib/
-│   │   ├── auth.ts      # Auth library config
-│   │   ├── db.ts        # Prisma Singleton
-│   │   ├── data/        # Data Access Layer (server-only reads for Server Components)
-│   │   └── stripe.ts    # Stripe Singleton
-│   └── app/globals.css  # Tailwind v4 imports (@theme in CSS)
-├── DESIGN.md            # Visual source of truth (written before UI code)
-└── package.json
-```
+- Represent trials, cancellation, failed payment and entitlement transitions according to the business decision. Keep test-mode data/keys distinct and label demo states.
 
----
+For new visual design, complete the shared short style/reference intake and wait unless already answered or delegated. Reuse accepted tokens and design components; this template does not select an aesthetic or install a styling package. API/CLI-only work needs no visual questionnaire.
 
-## SaaS Features
+## Verify and hand off
 
-| Feature | Implementation |
-|---------|---------------|
-| Auth | Better Auth or Clerk (Auth.js in existing projects) with passkeys + OAuth |
-| Reads | Server Components via `lib/data/` |
-| Data Mutation | Server Actions + `useActionState` (no API routes) |
-| Client server-state | TanStack Query only for polling, infinite lists, optimistic UI |
-| Subscriptions | Stripe Checkout & Customer Portal |
-| Webhooks | Asynchronous Stripe event handling |
-| Email | Transactional via Resend |
-| Validation | Zod (Server-side validation) |
+Test tenant isolation and relevant entitlement transitions with provider sandbox fixtures where available. Never create real charges or subscriptions as a routine verification step without authorized scope.
 
----
-
-## Database Schema
-
-| Model | Fields (Key fields) |
-|-------|---------------------|
-| User | id, email, stripeCustomerId, subscriptionId, plan |
-| Account | OAuth provider data (Google, GitHub...) |
-| Session | User sessions (Database strategy) |
-
----
-
-## Environment Variables
-
-| Variable | Purpose |
-|----------|---------|
-| DATABASE_URL | Prisma connection string (Postgres) |
-| BETTER_AUTH_SECRET / AUTH_SECRET | Session secret for the chosen auth library |
-| STRIPE_SECRET_KEY | Payments (Server-side) |
-| STRIPE_WEBHOOK_SECRET | Webhook verification |
-| RESEND_API_KEY | Email sending |
-| NEXT_PUBLIC_APP_URL | Application Canonical URL |
-
----
-
-## Setup Steps
-
-1. Initialize project (Node 24):
-   ```bash
-   npx create-next-app@latest {{name}} --typescript --tailwind --eslint --app --src-dir
-   ```
-
-2. Install core libraries (auth package per the chosen library: `better-auth` or `@clerk/nextjs`; `next-auth` only in an existing Auth.js project):
-   ```bash
-   npm install stripe resend @prisma/client @prisma/adapter-pg zod
-   npm install -D prisma babel-plugin-react-compiler
-   ```
-   Then set `reactCompiler: true` in `next.config.ts` (compiler-first when the React Compiler is enabled; the memo rule is in `nextjs-react-expert`).
-
-3. Tailwind v4 in `globals.css`, tokens from `DESIGN.md`:
-   ```css
-   @import "tailwindcss";
-   @custom-variant dark (&:where(.dark, .dark *));
-   ```
-
-4. Configure environment (.env.local)
-
-5. Migrate the database:
-   ```bash
-   npx prisma migrate dev
-   ```
-
-6. Run local Webhook:
-   ```bash
-   npm run stripe:listen
-   ```
-
-7. Run project:
-   ```bash
-   npm run dev
-   ```
+Report the actual run command, implemented outcome, checks performed and concrete remaining setup. Starter code, a mocked integration or a successful dependency install is not proof of a working end-to-end product.

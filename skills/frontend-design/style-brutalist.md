@@ -1,54 +1,28 @@
-# Style: Industrial Brutalist / Tactical Telemetry
+# Style: Swiss, brutalist, or telemetry
 
-Variant of [SKILL.md](./SKILL.md). Use when this direction is chosen: "brutalist", "Swiss industrial", "terminal", "HUD / telemetry", "blueprint", "data-heavy raw", or `DESIGN.md` names it. Everything in SKILL.md still applies. Hex values below are labelled examples of the style; `DESIGN.md` tokens replace them.
+Use for an approved bold grid, Swiss-industrial, raw typography, terminal, or telemetry direction. These are related references, not one mandatory aesthetic. [SKILL.md](./SKILL.md) governs intake, truthful data, accessibility, and implementation.
 
-## What sets this style apart
-| Choice | Why |
-|---|---|
-| Single colour scheme: Swiss Print is light-only, Telemetry is dark-only | Choosing the style is the specification. Record `colorScheme: light` or `dark` in `DESIGN.md`. |
-| Crosshairs at grid intersections and ASCII framing brackets | The visible blueprint grid is the content of this style. Marks sit on real grid intersections and real data points. |
-| Uppercase for structural headers and metadata | Casing is the style's structural device. Inline metadata rows are not eyebrows. |
-| Serif as a textural disruptor | Deliberate contrast against heavy grotesks, degraded (halftone or dither), never for body. |
-| Zero radius, 1-2px solid borders as compartments | Visible compartments replace whitespace grouping. Still one radius scale (0). |
+## Choose the qualities that fit
+Swiss print may contribute heavy type, strong rules, a visible grid, generous negative space, and sharp corners. Telemetry may contribute compact monospaced data, framed readouts, dark surfaces, and clear status. Neither forces a light-only/dark-only theme, hazard red, fake coordinates, CRT scanlines, or tiny text.
 
-Fake data stays out. Strings like `REV 2.6`, `UNIT / D-01`, random coordinates, or fake counters are invented precision (SKILL.md §4.7). Label only real revisions, units, IDs, and readings, or mark mock data as mock. A version label in the hero reads as a template unless it is a real release.
+If combining qualities, define a coherent role system in `DESIGN.md`. Contrasting sections are allowed. A mobile or data-heavy interface needs readable controls even if a reference uses poster-scale type.
 
-## Dials
-`DESIGN_VARIANCE 8`, `MOTION_INTENSITY 3`, `VISUAL_DENSITY 8` unless the design read says otherwise.
+## Typography and layout
+Use a display face with suitable weight and a readable body/data face. Mono is useful for real readouts; an extra serif is optional only when it has an explicit role, not a required third family. Check licensing and language support.
 
-## Pick one archetype per project
-- **Swiss Industrial Print (light):** 1960s corporate identity and machinery manuals. Off-white paper substrate, monolithic heavy sans, visible grid lines, oversized viewport-bleeding numerals, red as the only accent.
-- **Tactical Telemetry / CRT (dark):** mainframes, aerospace HUDs. Deactivated-CRT dark substrate, dense tabular data, monospace dominance, phosphor glow, scanlines, ASCII framing.
-Never mix the two substrates in one interface.
+Oversized type can create impact, but preserve glyphs and meaning across breakpoints. Choose line height from the actual font rather than forcing 0.85 everywhere. Small metadata still needs readable size, contrast, and spacing.
 
-## Typography
-- Macro (structural headers): heavy neo-grotesque: `Archivo Black`, `Neue Haas Grotesk` (Black), `Roboto Flex` (heavy axis), `Monument Extended`. Fluid scale `clamp(4rem, 10vw, 15rem)`, tracking `-0.03em` to `-0.06em`, line-height `0.85-0.95`, uppercase.
-- Micro (data, metadata, nav): monospace: `JetBrains Mono`, `IBM Plex Mono`, `Space Mono`, `VT323` (CRT only). `10-14px`, tracking `0.05-0.1em`, line-height `1.2-1.4`, uppercase, `tabular-nums`.
-- Textural serif (rare): `Playfair Display`, `EB Garamond`; only through halftone or 1-bit dither post-processing.
+A strong CSS grid, aligned rules, or compartmentalized rows can establish structure. Repeated layouts support scanning. Adapt dense regions and large type to narrow widths instead of forcing all content into absolute panels.
 
-## Colour (example values)
-- **Swiss Print:** background `#F4F4F0` or `#EAE8E3`; ink `#050505` to `#111111`; accent `#E61919` / `#FF2A2A` (hazard red) for strike-throughs, thick rules, and vital highlights. Nothing else.
-- **Telemetry:** background `#0A0A0A` or `#121212` (not `#000000`); phosphor `#EAEAEA` text; the same red accent; optional terminal green `#4AF626` for exactly one live readout, never as text color.
-- The style's own restraint: no gradients, no soft shadows, no translucency. Colors simulate physical media or emissive displays.
+## Color and texture
+Example print roles: warm paper `#F4F4F0`, ink `#111111`, signal red `#C52222`. Example telemetry roles: base `#0A0A0A`, foreground `#EAEAEA`, a chosen brand accent. Verify actual pairs; a bright accent is not automatically safe for small text.
 
-## Layout
-- Strict CSS Grid; elements anchor to tracks, nothing floats. `display: grid; gap: 1px` with contrasting parent/child backgrounds produces razor-thin dividers without border declarations.
-- Bimodal density: tightly packed mono metadata clusters against vast negative space framing macro type.
-- Full-width `<hr>` rules segregate operational units. Corners are 90 degrees everywhere.
-- Mobile: the grid collapses to one column with the same 1px compartments; macro type keeps the `clamp()` floor.
+Texture, halftone, scanlines, glow, and grain are optional expressive treatments. Keep them behind content, out of hit testing, and cheap to render. Do not apply CRT decoration to every technical product. Shadows, gradients, or translucency are available if the agreed direction uses them coherently.
 
-## Symbology
-- ASCII framing on real data points: `[ DELIVERY SYSTEMS ]`, `< RE-IND >`; directional glyphs `>>>`, `///`.
-- `®`, `©`, `™` as geometric elements when the mark is real.
-- Barcode-like repeating vertical lines and warning stripes as section separators, used sparingly (one device per section).
+## Data and motion
+Show genuine IDs, revisions, readings, and state. Demo telemetry must be visibly identified when it could look live. Do not fabricate precision to fill the visual system.
 
-## Texture and post-processing
-- Halftone / 1-bit dither: `mix-blend-mode: multiply` overlays with an SVG radial-dot pattern, or pre-processed images.
-- CRT scanlines (Telemetry only): `repeating-linear-gradient(0deg, transparent 0 2px, rgba(0,0,0,0.1) 2px 4px)` on the background.
-- Global grain: one low-opacity SVG noise filter on a `fixed pointer-events-none` layer (motion.md §5.D).
+Use feedback-only or richer movement according to the agreed intent, with a purpose and reduced-motion behavior. Use semantic tables, lists, `data`, `output`, or `samp` when they match the information.
 
-## Engineering
-- Semantic tags for telemetry: `<data>`, `<samp>`, `<kbd>`, `<output>`, `<dl>`, `<table>` for real tabular data.
-- `clamp()` only for macro typography; mono sizes are fixed.
-- Motion stays at dial 3: state changes snap or step (`steps()` easing) rather than ease; no parallax, no scroll hijack. Reduced motion needs no special handling when nothing animates continuously.
-- Contrast: hazard red on the paper substrate fails AA for small text; use it for rules, highlights, and display sizes only. Phosphor text and terminal green on `#0A0A0A` pass AA.
+## Review
+Check keyboard access, focus, small text, long values, responsive reading order, accent contrast, and clipping. A bold composition succeeds through deliberate hierarchy, not by making every label uppercase or every boundary visible.

@@ -395,13 +395,13 @@ class UXAuditor:
                             "Glass effect (backdrop-filter); check text contrast over busy backgrounds.")
         shadow = decls.get("box-shadow", "") + " " + decls.get("text-shadow", "")
         if re.search(r"(^|,)\s*0(px)?\s+0(px)?\s+\d+px\s+(\d+px\s+)?(#|rgb|hsl)", shadow) and shadow.count(",") >= 1:
-            self.style_info("glow", file, line, "style-glow", "Layered glow shadow; reads as decoration unless the brand calls for it.")
+            self.style_info("glow", file, line, "style-glow", "Layered glow shadow; review hierarchy, contrast, and rendering cost in the chosen direction.")
         if re.search(r"#(8b5cf6|a855f7|9333ea|7c3aed|6d28d9|a78bfa|c084fc)\b", joined):
             self.style_info("purple", file, line, "style-purple-default",
                             "Tailwind-default purple; pick the primary on purpose.")
         if bg and bg == (0, 0, 0):
             self.style_info("pure-black-white", file, line, "style-pure-black",
-                            "Pure black background; a near-black is often softer.")
+                            "Pure black background; verify text hierarchy and contrast against the actual surface.")
 
     # -- markup --------------------------------------------------------------
     def audit_markup(self, text: str, file: str, find_line, is_jsx: bool) -> None:
@@ -546,7 +546,7 @@ class UXAuditor:
         if len(self.font_families) > 2 and not self.style_is_chosen("fonts"):
             names = ", ".join(sorted(self.font_families)[:5])
             self.add("info", "(project)", None, "font-families",
-                     f"{len(self.font_families)} font families ({names}); design-rules suggests at most two unless DESIGN.md says otherwise")
+                     f"{len(self.font_families)} font families ({names}); check that each has a useful role, language coverage, and acceptable loading cost")
         if self.has_tokens:
             for file, count in self._pending_hex:
                 self.add("info", file, None, "hard-coded-colors",

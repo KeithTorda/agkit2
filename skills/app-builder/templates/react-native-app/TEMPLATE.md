@@ -1,84 +1,23 @@
----
-name: react-native-app
-description: React Native mobile app template. Expo SDK 54+, Expo Router, New Architecture, NativeWind 4, Reanimated 4, FlashList v2.
-version: 2.5.0
----
+# React Native mobile product
 
-# React Native App Template
+## Fit and inspection
 
-> Pin to the current stable line when scaffolding. Install every package that touches native code with `npx expo install` so versions match the SDK.
+Use when React Native is selected or installed. Choose Expo or a native-managed setup from device capability, build and distribution requirements; inspect actual compatible versions.
 
-## Tech Stack
+Inspect existing work before scaffolding. For a new foundation, use current official setup guidance and compatible versions; do not copy historical CLI flags blindly. Preserve the requested package manager, deployment constraints and user changes.
 
-| Component | Technology | Notes |
-|---|---|---|
-| Core | React Native + Expo | SDK 54+, New Architecture enabled (default) |
-| Language | TypeScript | Strict mode |
-| UI logic | React 19 | React Compiler on (`experiments.reactCompiler` in `app.json`); compiler-first; the memo rule is in `nextjs-react-expert` |
-| Navigation | Expo Router | File-based, typed routes, universal links |
-| Styling | NativeWind 4+ (stable) | Tailwind classes in RN; use the Tailwind version NativeWind's install guide specifies |
-| Animation | Reanimated 4 | UI-thread animations; requires the New Architecture |
-| Lists | FlashList v2 | Drop-in for long lists; no `estimatedItemSize` |
-| State | Zustand + TanStack Query | Client state + server state |
-| Storage | Expo SecureStore | Encrypted key-value storage |
+## Implementation decisions
 
-## Directory Structure
+- Reuse supported navigation and theme mechanisms. Adapt platform back/permission behavior and read real safe-area/keyboard insets.
 
-```
-project-name/
-├── src/
-│   ├── app/                 # Expo Router routes only
-│   │   ├── _layout.tsx      # Root layout (Stack/Tabs); imports global.css
-│   │   ├── index.tsx
-│   │   ├── (tabs)/          # Tab group: _layout.tsx, home.tsx, profile.tsx
-│   │   ├── +not-found.tsx
-│   │   └── [id].tsx         # Dynamic route (typed)
-│   ├── components/ui/       # Primitives (Button, Text)
-│   ├── components/features/ # Composed components
-│   ├── hooks/
-│   ├── lib/api.ts           # fetch client
-│   ├── lib/storage.ts       # SecureStore wrapper
-│   ├── store/               # Zustand stores
-│   └── constants/           # Theme values from DESIGN.md
-├── assets/                  # Fonts, images
-├── global.css               # NativeWind entry
-├── babel.config.js          # nativewind/babel preset
-├── metro.config.js          # withNativeWind wrapper
-├── DESIGN.md                # Visual source of truth (written before UI code)
-└── app.json                 # Expo config: scheme, newArchEnabled, typed routes
-```
+- Choose server cache, local storage, secure credentials and offline synchronization separately. NativeWind, Reanimated and third-party virtualized lists are options when justified.
 
-## Navigation Patterns
+- Keep runtime-native compatibility and development/build profiles explicit. An over-the-air update cannot replace every native binary change.
 
-| Pattern | Implement |
-|---|---|
-| Stack | `<Stack />` in `_layout.tsx` |
-| Tabs | `<Tabs />` in `(tabs)/_layout.tsx` |
-| Drawer | `expo-router/drawer` |
-| Modal | `presentation: 'modal'` on a Stack screen |
-| Deep links | `scheme` in `app.json`; `expo-linking` for incoming URLs |
+For new visual design, complete the shared short style/reference intake and wait unless already answered or delegated. Reuse accepted tokens and design components; this template does not select an aesthetic or install a styling package. API/CLI-only work needs no visual questionnaire.
 
-## Setup Steps
+## Verify and hand off
 
-1. Create the project:
-   ```bash
-   npx create-expo-app@latest my-app
-   cd my-app
-   ```
-2. Core dependencies (SDK-matched):
-   ```bash
-   npx expo install expo-router expo-linking expo-constants expo-status-bar react-native-safe-area-context react-native-screens
-   npx expo install react-native-reanimated react-native-worklets @shopify/flash-list expo-image expo-secure-store
-   npm install nativewind zustand @tanstack/react-query
-   ```
-3. React Compiler: on in the recent Expo default template; otherwise `npx expo install babel-plugin-react-compiler` and set `experiments.reactCompiler: true` in `app.json`. NativeWind, per its current install guide: add `nativewind/babel` and `jsxImportSource: "nativewind"` to `babel.config.js`; wrap Metro with `withNativeWind(config, { input: './global.css' })`; create `global.css` with the Tailwind directives; import it in `src/app/_layout.tsx`; set `content` paths in `tailwind.config.js`.
-4. Enable typed routes in `app.json` (`experiments.typedRoutes: true`) and set the URL `scheme`.
-5. Run: `npx expo start -c` (`i` for the iOS simulator, `a` for the Android emulator).
+Compile/run the available native target, inspect actual screens and text scaling, exercise primary navigation/data flow and relevant offline/permission behavior. State simulator versus device coverage.
 
-## Best Practices
-
-- Keep `newArchEnabled: true`; Reanimated 4 and FlashList v2 depend on it.
-- Use `expo-image` instead of `<Image />`; FlashList v2 for long lists, FlatList acceptable for short fixed lists.
-- Server data goes through TanStack Query; no fetches inside `useEffect`.
-- Theme values (colors, spacing, type scale) come from `DESIGN.md`; mirror them in the Tailwind theme and `constants/`.
-- Respect safe areas and platform conventions (iOS 26 and Android 16 baselines; see `mobile-design`).
+Report the actual run command, implemented outcome, checks performed and concrete remaining setup. Starter code, a mocked integration or a successful dependency install is not proof of a working end-to-end product.

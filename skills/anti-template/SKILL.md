@@ -1,73 +1,50 @@
 ---
 name: anti-template
-description: Reference of defaults that make copy, UI and code look generated, with what to write instead - 35 parts by topic. Use when writing visible text, designing or reviewing a page, or checking a project for template tells; read only the parts the task needs.
-version: 2.5.0
+description: "Review craft, originality, clarity, and implementation quality against the actual brief and approved direction. Select relevant topic references for copy, interfaces, accessibility, software, and completion review; familiar styles are not defects."
+version: 2.8.2
 ---
 
-# Anti-template guidance
+# Craft review
 
-These are defaults that make work look generated. Question each one against the brief. `DESIGN.md` or an explicit client request overrides any of them: if the client asks for glass, a gradient hero, glow badges or bold motion, build it well and skip the matching warning.
+Improve the particular work in front of you. Keep the compatible `anti-template` name, but use this as a craft reference rather than a detector of supposedly forbidden styles. The quality questions are whether the result serves its audience, expresses the agreed direction, behaves correctly, and survives real use.
 
-Firm only:
-- **Accessibility** (part 27): contrast, real controls, labels, focus, keyboard, reduced motion.
-- **Hype-free system copy** (parts 01-04): no hype words, no fake-excited microcopy, buttons say what they do, errors say what to do next.
+## Establish the basis of review
 
-Everything else is a question to ask ("does this page need it, and does it fit this audience?"), not a ban. When you keep a flagged default on purpose, say why in one line.
+Read the current request, project context, affected files, and available output. Before every new visual design, ask one short question about style and references and wait, unless the user has already answered or explicitly delegated those choices. Maintenance matching an approved design does not reopen intake. Use the intake owned by `design-rules`; another specialist should not ask it again.
 
-Parts live in `KIT/skills/anti-template/parts/`. Do not read all 35. Pick by task, read 1-4 parts.
+Separate the user's chosen direction, an established product constraint, an observed defect, and your own preference. An approved gradient, glass panel, illustration, dense table, centered hero, minimal page, or expressive animation is available to preserve and improve. Do not replace the style to satisfy a checklist.
 
-## Pick by task
-| Task | Read |
+## Review method
+
+1. Select the topic references below that relate to the changed surface. Do not load the whole collection into a small task.
+2. Inspect representative real content and states. Look for weak hierarchy, unclear language, fabricated claims, unusable controls, fragile code, or mismatches with the approved direction.
+3. Explain an issue through its effect. “Secondary labels disappear on this image crop” is actionable; “this looks AI” is not.
+4. Correct authorized defects at their source. Refine your own draft where the task calls for finished work. Preserve working flows, good details, and unrelated choices.
+5. Verify the affected output and behavior using the relevant workflow. A static match is a clue; a score or file count does not establish quality.
+
+Distinguish a blocking defect from an optional refinement. Truthful content, secure data handling, accessible interaction, and reliable behavior are substantive requirements. Font counts, layout quotas, adjective bans, fixed motion levels, and mandatory plainness are not.
+
+## Topic map
+
+| Work | Relevant references |
 |---|---|
-| Any reply, plan, report or summary you write | 07 |
-| Button, label, form text, toast, confirm, loading | 03, 17 |
-| Empty state, error page, onboarding, status text, dates, pesos | 04 |
-| Landing, marketing, pricing, about page copy | 05, 24, 10 |
-| README, docs, changelog, commit, PR, code comments, logs | 06 |
-| Email, SMS, social post, SEO title, meta, OG tags | 08 |
-| Anything for a PH client, LGU, barangay, school, COMELEC, POS | 09 |
-| New page or component (visual) | 10, 14, and the component part below |
-| Writing or reviewing CSS / Tailwind / Bootstrap classes | 11, 29 |
-| Colours, dark mode | 12, 34 |
-| Fonts, type scale | 13 |
-| Mobile, responsive | 15 |
-| Header, nav, sidebar, tabs, footer, pagination | 16 |
-| Forms and inputs | 17 |
-| Buttons and actions | 18 |
-| Tables, lists, cards, badges, stat tiles | 19 |
-| Charts | 20 |
-| Modals, drawers, toasts, tooltips, spinners, skeletons | 21 |
-| Dashboard, admin panel, CRUD, POS, inventory | 22 |
-| Sign in, register, reset, profile, settings, billing | 23 |
-| A specific page type (blog, docs, checkout, 404, precinct finder) | 24 |
-| Animation | 25 |
-| Icons, images, logos, favicon | 26 |
-| Accessibility | 27 |
-| HTML markup | 28 |
-| JS / TS | 30 |
-| React / Next / Vue | 31 |
-| API, backend, database | 32 |
-| File, folder, variable names | 33 |
-| Performance, SEO, theming | 34 |
-| `/review`, pre-ship check, grep for tells | 35 |
+| Words and sentence flow | [01](parts/01-words.md), [02](parts/02-phrases-sentences.md) |
+| Product microcopy and states | [03](parts/03-microcopy-core.md), [04](parts/04-microcopy-states.md) |
+| Marketing and messages | [05](parts/05-marketing-copy.md), [08](parts/08-email-social-meta.md) |
+| Technical writing and reports | [06](parts/06-docs-code-text.md), [07](parts/07-agent-replies.md) |
+| Philippine context when actually relevant | [09](parts/09-filipino-context.md) |
+| Visual direction, styling, color, type | [10](parts/10-visual-tropes.md), [11](parts/11-css-patterns.md), [12](parts/12-color.md), [13](parts/13-typography.md) |
+| Layout, responsive behavior, navigation | [14](parts/14-layout-spacing.md), [15](parts/15-responsive-mobile.md), [16](parts/16-navigation.md) |
+| Forms and actions | [17](parts/17-forms-inputs.md), [18](parts/18-buttons-actions.md) |
+| Data and charts | [19](parts/19-data-display.md), [20](parts/20-charts-dataviz.md) |
+| Overlays, administration, accounts | [21](parts/21-overlays-feedback.md), [22](parts/22-dashboards-admin.md), [23](parts/23-auth-account.md) |
+| Page types, motion, assets | [24](parts/24-page-types.md), [25](parts/25-motion.md), [26](parts/26-icons-images.md) |
+| Accessibility and markup | [27](parts/27-accessibility.md), [28](parts/28-html-structure.md) |
+| CSS, JavaScript, frameworks | [29](parts/29-css-architecture.md), [30](parts/30-js-ts.md), [31](parts/31-react-frontend.md) |
+| Backend contracts and data | [32](parts/32-backend-api-db.md) |
+| Structure, performance, metadata, themes | [33](parts/33-naming-structure.md), [34](parts/34-performance-seo-theming.md) |
+| Completion review and evidence | [35](parts/35-master-checklist.md) |
 
-## All parts
-01 words · 02 phrases and sentences · 03 microcopy core · 04 microcopy states · 05 marketing copy · 06 docs and code text · 07 agent replies · 08 email, social, meta · 09 Filipino context · 10 visual tropes · 11 CSS patterns · 12 colour · 13 typography · 14 layout and spacing · 15 responsive and mobile · 16 navigation · 17 forms and inputs · 18 buttons and actions · 19 data display · 20 charts · 21 overlays and feedback · 22 dashboards and admin · 23 auth and account · 24 page types · 25 motion · 26 icons and images · 27 accessibility · 28 HTML structure · 29 CSS architecture · 30 JS / TS · 31 React frontend · 32 backend, API, DB · 33 naming and structure · 34 performance, SEO, theming · 35 master checklist and grep patterns
+## Useful handoff
 
-File names: `parts/NN-<topic>.md` (for example `parts/09-filipino-context.md`). List the folder if unsure.
-
-## How to read a part
-- Each table row is *AI pattern → why it reads as generated → use instead*. Read "use instead" as the default when nothing in the brief points elsewhere.
-- Some parts say "banned" or "never" for visual or code patterns. Outside parts 01-04 and 27, read that as "do not reach for it by reflex". A pattern the brief or `DESIGN.md` asks for is a design decision, not a tell.
-- Hex values in the parts are labelled examples of common defaults (mostly Tailwind and shadcn palettes). Real colours come from `DESIGN.md`.
-- The tell is usually the combination, not the single element: indigo + glass + gradient text + three equal cards + "Unlock your potential" is a template; one glass nav on a photo-led consumer site is a choice.
-
-## Keep in mind without reading a part
-1. No hype words in system copy: seamless, powerful, robust, cutting-edge, unlock, elevate, empower, leverage, delve, journey, comprehensive, intuitive (01).
-2. Buttons say the action: Save, Sign in, Export. "Get started" only when it is the literal next step (03).
-3. Empty state = fact + next action. Error = what failed + what to do. No "Oops" (04).
-4. No emoji and no exclamation marks in system UI text, unless the brand voice in `DESIGN.md` is deliberately playful (03).
-5. Decoration is a choice: glow, gradient text, glass, blobs, hover scale and entrance animations are fine when the direction calls for them and wrong when they are there because nobody chose (10, 25).
-6. Colours, fonts, radii from `DESIGN.md` tokens. One accent per view unless the direction says otherwise (12).
-7. "Live" only for real push updates. Otherwise "Updated 2m ago" (04).
-8. Your own reply: lead with the result, no "Great question", no claim of testing you did not run (07).
+Lead with the concrete finding or finished improvement. Identify affected scope, evidence, corrections, and any unverified part. If no actionable defects were found, say what was examined without implying that all possible behavior was tested. Use `frontend-design`, `mobile-design`, `document-generation`, or `motionv` for their actual output workflow; this review does not add a separate approval stage.

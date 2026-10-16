@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from validate_kit import extract_frontmatter, normalize_list, parse_frontmatter, section  # noqa: E402
 
 KIT = Path(__file__).resolve().parents[1]
-VERSION = "2.5.0"
+VERSION = "2.8.1"  # fallback for an incomplete source fixture
 
 
 def default_target(kit: Path = KIT) -> Path:
@@ -52,6 +52,12 @@ def routed_commands(kit: Path) -> list[str]:
 
 
 def build(kit: Path = KIT) -> str:
+    try:
+        release_version = (kit / 'VERSION').read_text('utf-8-sig').strip()
+        if not re.fullmatch(r'\d+\.\d+\.\d+', release_version):
+            release_version = VERSION
+    except OSError:
+        release_version = VERSION
     agents = []
     for path in sorted((kit / "agents").glob("*.md")):
         data = frontmatter(path)
@@ -78,7 +84,7 @@ def build(kit: Path = KIT) -> str:
     lines = [
         "---",
         "name: quick-reference",
-        f"version: {VERSION}",
+        f"version: {release_version}",
         "priority: P2",
         "trigger: model_decision",
         "description: Catalog of the kit's agents (triggers and skills), slash commands, reference skills and scripts. "

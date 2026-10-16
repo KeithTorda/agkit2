@@ -1,84 +1,42 @@
 ---
 name: clean-code
-description: Pragmatic coding conventions - follow the project first, readable names, small focused functions, no speculative abstraction, update every dependent, and how to simplify existing code safely. Use when writing, editing, refactoring or simplifying code, or when reviewing code for readability.
-version: 2.5.0
+description: Make code easier to understand and change while preserving required behavior and project conventions. Use for implementation, simplification and refactoring; focus on the touched code and the real maintenance problem.
+version: 2.8.2
 ---
 
 # Clean Code
 
-Working code that the next person can read and change. These are conventions, not gates: the project's existing style wins, and nothing here blocks "done" on its own. Firm items are marked; they are about correctness, not taste.
+Readable code makes the domain, effects and failure paths visible. Begin with what the code must preserve, then simplify the shortest route to the user's outcome. An existing convention is usually more valuable than a competing style.
 
-## Principles
+## Understand before reorganizing
 
-| Principle | In practice |
-|---|---|
-| Single responsibility | If describing a function needs "and", consider splitting it |
-| DRY, later | Duplicate twice; extract on the third use, once the shape has stopped changing |
-| KISS | The simplest solution that fully solves the problem |
-| YAGNI | Do not build what nothing uses yet |
-| Leave it better | Tidy what you touch, within the task's scope; no drive-by rewrites |
+Read affected callers, configuration and tests. Identify the observable contract: input, returned data, errors, ordering, mutations and compatibility. Separate requested behavior changes from behavior-preserving refactors. Characterize risky legacy behavior with a focused test or repeatable observation when suitable coverage is absent.
 
-## Names (convention)
+## Shape code around meaning
 
-Follow the project's naming first: its casing, file layout and vocabulary. In new code, prefer names that say what the thing is in the domain and that someone can find with a search:
+- Name domain operations precisely: `reserveStock` explains more than `processData`. Short local names are fine when immediately clear.
+- Keep a function cohesive. Split when distinct responsibilities/effects obscure behavior, not because of a line count or the word "and".
+- Make invalid states harder to construct with types, schemas, constraints or explicit transitions. Runtime input still needs runtime validation.
+- Use guard clauses when they clarify the main path. Preserve cleanup, transaction and resource lifetime when rearranging control flow.
+- Keep effects visible. Do not hide writes, destructive actions or retries behind a harmless-looking getter.
+- Comments explain constraints, surprising choices or workarounds. Update them when the code changes.
 
-| Element | Prefer | Over |
-|---|---|---|
-| Variables | `pendingOrderCount` | `n`, `data`, `temp` |
-| Functions | `formatInvoiceTotal()`, `getUserById()` (verb + noun) | `process()`, `handle()`, `doStuff()` |
-| Booleans | `isActive`, `hasPermission`, `canEdit` | `active2`, `flag` |
-| Constants | `MAX_RETRY_COUNT` (or the language's convention) | bare `3` in the code |
-| Files | `invoice-table.tsx`, `invoice-total.test.ts`, `InvoiceController.php` | a growing `utils.ts`, `helpers.js`, `styles.css` |
+## Choose abstraction by evidence
 
-- Short names are fine in small scopes (`i`, `row`, `e` in a handler).
-- A shared `lib/` or `utils/` folder is fine; a single catch-all file that everything imports is the thing to avoid.
-- If a name needs a comment to explain it, a better name usually exists.
-- **Firm:** a rename updates every reference in the same change. Search for the old name first; do not leave broken imports or half-renamed call sites.
-- CSS class naming: `css-architecture`. `python "KIT/scripts/naming_check.py" .` reports naming findings as advisory notes.
+Similar syntax alone does not justify sharing. Extract when callers share meaning and must evolve together, or when a stable boundary clarifies testing/integration. There is no required second/third-use threshold. Deliberate duplication can beat a configurable component with unrelated branches; a one-use function can usefully name a business rule.
 
-## Size and shape (signals, not limits)
+Avoid speculative extensibility, but retain interfaces that enforce real boundaries. Use direct dependencies when sufficient and injection when replacement, isolation or lifecycle control has a purpose. Do not replace clear loops, classes or concrete code solely to impose a style.
 
-Long functions, many parameters and deep nesting are signals to look again, not rules to satisfy:
+## Change shared code carefully
 
-| Signal | Usual response |
-|---|---|
-| A function doing several things (often past ~40 lines) | Split along the steps it performs |
-| More than ~4 parameters | Pass an options object or a domain type |
-| Nesting past ~3 levels | Guard clauses and early returns |
-| Two abstractions for one feature | Check whether one is enough |
+Search exports, imports, dynamic registration and persisted shapes before renaming public contracts. Update consumers together or provide compatibility. Keep unrelated cleanup out of the diff. Generated/vendor code follows its owning workflow.
 
-A clear 60-line function beats three 20-line functions that must be read together. Do not split coherent code to hit a number.
+Before deleting apparent dead code, check framework discovery, reflection, runtime registration and external consumers. No textual references is evidence, not proof.
 
-## Over-engineering to avoid
+## Verify meaning and readability
 
-| Instead of | Do |
-|---|---|
-| Comments that restate the code | Comment the why, the non-obvious, the workaround and its reason |
-| A helper for a one-liner used once | Inline it |
-| A factory for two objects, an interface with one implementation, a wrapper that only delegates | Use the concrete thing; extract a seam when a second implementation or a test needs it |
-| Magic numbers in business logic | Named constants (tax rates, limits, timeouts) |
-| A custom cache or memoisation without a measured hot path | Measure first |
-| A state machine for three states | `if` / `switch` (a real workflow with many states and transitions is a different case) |
+Use focused existing checks for touched behavior; broaden when a shared contract changes. Tests should protect outcomes, not count functions, assert helper names or duplicate implementation. A formatting-only change usually needs a static check, not a new test suite.
 
-## Before editing a shared file
+Review the diff for accidental behavior changes, swallowed errors, weaker types, broken callers and unrelated churn. Explain improvements and intentional behavior changes. Use `systematic-debugging` for unclear behavior and `adversarial-review` when independent defect review adds confidence.
 
-Check who depends on it: what imports it, what it imports, which tests cover it. **Firm:** change the file and every dependent in the same task, so the build is never left half-migrated.
-
-## Simplifying existing code
-
-Triggered by "simplify", "clean up", "refactor", or code that is hard to change.
-
-1. Understand what the code does and why it was written this way; find the tests that cover it.
-2. Remove dead code: unused imports, unreachable branches, commented-out blocks, flags for features that shipped, stale TODOs.
-3. Flatten nesting with early returns; replace nested loops with `filter` / `map` where it reads better.
-4. Inline trivial abstractions; merge functions that always change together; simplify data structures.
-5. **Firm:** preserve behaviour. Run the existing tests and the build (tier per `code-rules`); if there are no tests around risky logic, add a characterisation test first or say it was not verified.
-
-Keep complexity that a measured hot path, the framework, the user's chosen pattern, or a known next step needs. If removing an abstraction might break something you cannot see, ask.
-
-## Working style
-
-- Feature requested: write it; no tutorial narration in the reply.
-- Bug reported: fix the cause; explain it in one line.
-- Requirement unclear: state the assumption and proceed, or ask per `core-protocol` when the answer changes what gets built.
-- Verification: follow the `code-rules` tier for the change; report what ran and what did not.
+`python "KIT/scripts/naming_check.py" .` gives advisory naming observations. Heuristics do not override the language, framework or repository convention.

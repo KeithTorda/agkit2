@@ -1,98 +1,23 @@
----
-name: monorepo-turborepo
-description: Turborepo monorepo template principles. pnpm workspaces, shared packages.
-version: 2.5.0
----
+# Workspace with Turborepo orchestration
 
-# Turborepo Monorepo Template
+## Fit and inspection
 
-> Pin to the current stable line when scaffolding.
+Use when multiple packages/deployables justify a workspace and Turborepo is selected. Do not create a monorepo for a small single app solely to match this template.
 
-## Tech Stack
+Inspect existing work before scaffolding. For a new foundation, use current official setup guidance and compatible versions; do not copy historical CLI flags blindly. Preserve the requested package manager, deployment constraints and user changes.
 
-| Component | Technology |
-|-----------|------------|
-| Build System | Turborepo 2.x |
-| Package Manager | pnpm |
-| Apps | Next.js, Hono API (`node-api` template) |
-| Packages | Shared UI, Config, Types, Utils |
-| Language | TypeScript |
+## Implementation decisions
 
----
+- Define package ownership, explicit exports, dependency direction and task graph. Preserve the chosen workspace package manager and lockfile strategy.
 
-## Directory Structure
+- Cache only reproducible tasks with complete inputs/environment dependencies. Avoid caching private artifacts or assuming a cached command means the local app actually ran.
 
-```
-project-name/
-├── apps/
-│   ├── web/             # Next.js app
-│   ├── api/             # Hono API (node-api template)
-│   └── docs/            # Documentation
-├── packages/
-│   ├── ui/              # Shared components (@repo/ui)
-│   ├── config/          # ESLint, TS, Tailwind presets (@repo/config)
-│   ├── types/           # Shared types (@repo/types)
-│   └── utils/           # Shared utilities (@repo/utils)
-├── turbo.json           # "tasks" key (renamed from "pipeline" in v2)
-├── pnpm-workspace.yaml
-└── package.json         # requires "packageManager" field
-```
+- Share code or tokens where a stable contract helps; avoid coupling every app to one giant common package. Each deployable keeps its own runtime and secret boundary.
 
----
+For new visual design, complete the shared short style/reference intake and wait unless already answered or delegated. Reuse accepted tokens and design components; this template does not select an aesthetic or install a styling package. API/CLI-only work needs no visual questionnaire.
 
-## Key Concepts
+## Verify and hand off
 
-| Concept | Description |
-|---------|-------------|
-| Workspaces | Globs declared in `pnpm-workspace.yaml` |
-| Pipeline | `turbo.json` `tasks` graph (NOT `pipeline` — renamed in v2) |
-| Caching | Remote/local task caching |
-| Dependencies | `workspace:*` protocol, `@repo/*` namespace |
-| Env mode | v2 is strict — declare task `env`/`globalEnv` or caching breaks |
+Run affected package tasks and relevant cross-package checks, verify clean builds and cache invalidation where changed, and exercise the actual deployable rather than only its workspace command.
 
----
-
-## Turbo Tasks (turbo.json)
-
-> `tasks` is the v2 key. The `pipeline` key was renamed — migrate with `npx @turbo/codemod rename-pipeline`.
-
-| Task | Depends On |
-|------|------------|
-| build | ^build (dependencies first) |
-| dev | cache: false, persistent |
-| lint | ^build |
-| test | ^build |
-
----
-
-## Setup Steps
-
-1. Create root directory
-2. `pnpm init`
-3. Create pnpm-workspace.yaml
-4. Create turbo.json
-5. Add apps and packages
-6. `pnpm install`
-7. `pnpm dev`
-
----
-
-## Common Commands
-
-| Command | Description |
-|---------|-------------|
-| `pnpm dev` | Run all apps |
-| `pnpm build` | Build all |
-| `pnpm --filter @name/web dev` | Run specific app |
-| `pnpm --filter @name/web add axios` | Add dep to app |
-
----
-
-## Best Practices
-
-- Split `apps/` (deployable) from `packages/` (libraries, shared config)
-- Namespace internal packages with `@repo/*`; reference via `workspace:*`
-- Define entrypoints with the `exports` field (better tree-shaking than barrel files)
-- Share tsconfig/eslint from `packages/config`
-- Declare task `env`/`globalEnv` explicitly (v2 strict env mode)
-- Use Turbo remote caching for CI
+Report the actual run command, implemented outcome, checks performed and concrete remaining setup. Starter code, a mocked integration or a successful dependency install is not proof of a working end-to-end product.

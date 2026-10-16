@@ -9,35 +9,26 @@ owner: coordinator
 updated: YYYY-MM-DD
 ---
 
-<!--
-Owner: the coordinator (the agent running /proplan). Written last in the first pass, updated on every /proplan update.
-Purpose: the one page a client, a new developer or /orchestrate reads first. Everything else is linked from here.
-Rules:
-- `set:` is `full` or `lite`; proplan_check.py uses it to decide which files are required.
-- `version:` is the plan version. MAJOR = scope or architecture changed (new ADR, Must added or removed); MINOR = requirements, tasks or estimates changed; PATCH = wording only. Every change gets a changelog row naming the affected IDs.
-- Do not define IDs here (G-, R-, T- and so on are defined in their own documents); refer to them.
-Delete these comments when the document is filled; the checker ignores them either way.
--->
+<!-- AGKIT2 2.8.0 planning scaffold. Keep machine-readable IDs/fields and use only relevant content. Replace illustrative rows and examples with the actual brief. Do not invent evidence, approvals, dates or locale-specific obligations. Shared core/design/verification rules govern decisions and checks; this template adds no universal approval or task-count gate. -->
+
 
 # <System name> - Plan Overview
 
 ## Summary
 
-<!-- 3-6 sentences in plain language: who the client is, what hurts today, what the system does about it, what is deliberately left out. A non-technical client should understand it. -->
-
+<!-- Explain who needs the system, the problem, useful scope and important exclusions. Use enough detail for the reader; no sentence quota applies. -->
 | Item | Value |
 |---|---|
-| Client | <!-- organisation, contact person and role --> |
-| Team | <!-- people and roles, e.g. 1 developer + client supervisor for UAT --> |
-| Target launch | <!-- date, and whether it includes buffer --> |
-| Plan set | <!-- full or lite, and the documents it includes --> |
-| Architecture | <!-- one line + ADR id --> |
-| Budget | <!-- hosting per month, licences, hardware; development budget if known --> |
+| Client |  |
+| Team |  |
+| Target launch |  |
+| Plan set |  |
+| Architecture |  |
+| Budget |  |
 
 ## Documents
 
-<!-- One row per file in this folder. Keep the owner column: it tells /proplan update who changes what. -->
-
+<!-- Keep only rows for the selected set. Link each actual document and identify the accountable owner. -->
 | File | Contents | Owner |
 |---|---|---|
 | 01-goals.md | Business goals, development goals, KPIs | product-manager |
@@ -59,28 +50,22 @@ Delete these comments when the document is filled; the checker ignores them eith
 
 ## Key decisions
 
-<!-- The 3-6 decisions that shape everything else, each with its ADR or requirement id. Example: "Offline-first PWA with a cloud API (ADR-001)". -->
-
+<!-- Record the choices shaping delivery and their relevant ADR/requirement references. Do not invent a minimum count. -->
 ## Assumptions
 
-<!-- Things taken as true without confirmation. Each should be cheap to check; list who confirms it and by when if it matters. A wrong assumption here is a risk in 11-risks. -->
-
+<!-- Distinguish proposed targets and unverified facts. Give important assumptions a validation owner/path; avoid fake certainty. -->
 ## Constraints
 
-<!-- Fixed conditions: deadline, budget, hosting the client already pays for, legal requirements, devices, existing systems that must stay. -->
-
+<!-- Record actual constraints from the brief and verified context. Do not infer locale, jurisdiction, budget or hosting from an example. -->
 ## Open questions
 
-<!-- Only questions that change the build. Each with a recommended default and who answers. "None blocking" is a valid answer. -->
-
+<!-- Only unresolved choices that change the deliverable or a consequential commitment belong here. Name who decides; none blocking is valid. -->
 ## Architecture checkpoint
 
-<!-- Record the Phase 2 decision: options shown, option chosen, by whom, date. Example: "Options A/B/C from ADR-001 shown to the owner on 2026-09-27; A chosen." If the user said "proceed" without choosing, write that and which option the coordinator chose. -->
-
+<!-- Record the decision and its authority: explicit user choice, an existing accepted decision or a delegated technical choice. This section does not impose a universal approval checkpoint. -->
 ## Next step
 
-<!-- Usually: run `/orchestrate docs/proplan/<slug> M1` to build milestone M1. Mention anything that must happen first (hardware purchase, client sign-off, accounts). -->
-
+<!-- Name the next executable work and actual prerequisites. Continue an already-authorized build; planning-only work can hand off to orchestrate. -->
 ## Changelog
 
 | Version | Date | Change | Affected IDs |

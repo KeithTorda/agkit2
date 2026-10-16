@@ -1,69 +1,60 @@
-# /proplan reference: IDs and checker
+# Proplan IDs and checker reference
 
-Part of `KIT/skills/proplan/SKILL.md`. The ID rules every /proplan agent follows and what `proplan_check.py` enforces.
+Use this for machine-readable document contracts. The workflow in [SKILL.md](./SKILL.md) governs planning depth and decision handling; the checker validates structure and links rather than the quality of the product decision.
 
-## ID conventions
+## Stable identifiers
 
-| ID | Meaning | Defined in | Defined as |
+| ID | Meaning | Home | Definition |
 |---|---|---|---|
-| G-01 | business goal | 01 | heading `### G-01 Name` |
-| DG-01 | development goal (quality/engineering target) | 01 | heading |
-| KPI-01 | success metric | 01 | first cell of the metrics table |
-| R-001 | functional requirement | 02 | heading; body has `Priority:`, `Goals:`, `Story:`, `AC1: Given ... when ... then ...` |
-| NFR-01 | non-functional requirement | 02 | heading; body has a number and `Serves DG-xx` |
-| API-01 | endpoint | 05 (lite: 03) | heading in 05 with `Serves: R-xxx`; lite: first cell of the API table |
-| S-01 | screen | 06 | first cell of the screen inventory table |
-| TH-01 | threat | 07 | first cell of the STRIDE table |
-| TC-001 | test case | 08 | first cell of the test case table, `Covers` column lists R-/NFR-ids |
-| M1 | milestone | 10 | heading `### M1 Name (weeks)` |
-| T-001 | task | 10 | `- [ ] **T-001** outcome` + `owner · estimate · depends · covers` line + `verify:` line |
-| RK-01 | risk | 11 (lite: 10) | first cell of the register table |
-| DOC-01 | document to produce | 12 | first cell of the table |
-| ADR-001 | architecture decision | `adr/ADR-001-<slug>.md` | the file itself |
-| RV-01 | review finding | REVIEW.md | first cell of the findings table |
+| G-01 | Business goal | 01 | Heading beginning with the ID |
+| DG-01 | Development/quality goal | 01 | Heading beginning with the ID |
+| KPI-01 | Success metric | 01 | First cell of the metric table |
+| R-001 | Functional requirement | 02 | Heading; Priority and Given/when/then acceptance line |
+| NFR-01 | Quality requirement | 02 | Heading; measurable criterion and relevant DG link |
+| API-01 | Endpoint/action contract | 05; lite 03 | Heading with Serves line; lite API table row |
+| S-01 | Screen/view | 06 | First cell of screen inventory |
+| TH-01 | Threat | 07 | First cell of threat table |
+| TC-001 | Acceptance test case | 08 | First cell of case table, Covers links R/NFR |
+| M1 | Milestone | 10 | Heading beginning with the ID |
+| T-001 | Task | 10 | Checkbox `- [ ] **T-001**` with owner, covers and verify |
+| RK-01 | Risk | 11; lite 10 | First cell of risk register |
+| DOC-01 | Documentation deliverable | 12 | First cell of document table |
+| ADR-001 | Architecture decision | adr/ADR-001-<slug>.md | Numbered file with matching H1/frontmatter |
+| RV-01 | Review finding | REVIEW.md | First cell of findings table |
 
-Rules every agent follows: define an ID once, in its home document; cite IDs anywhere; never renumber or reuse an ID (a dropped requirement becomes `Priority: Won't` with a note); widths are fixed (R-001 not R-1).
+Define each ID once in its home; references may appear elsewhere. Preserve fixed widths and never renumber/reuse identities during an update. Keep removed work as a truthful historical item when needed.
 
-What counts as a definition:
-- **Headings**: a heading whose first token is an ID (`### R-001 ...`, `### API-03 ...`).
-- **Table rows**: the first cell of a row defines the ID only when the table's header row starts with `ID` (`| ID | ... |`), or when the table is in that ID's home document (for example the `| KPI | Metric |` table in 01) and the ID is not already a heading there. Any other table whose first column holds IDs (a requirement-to-screen map in 06, a summary table in 02) only cites them, so it never causes a duplicate or wrong-home error. Use an `ID` header only for the table that defines the IDs.
-- **Tasks**: the `- [ ] **T-001**` checkbox line.
-- **Milestones**: `### M1 Name` headings in 10. A milestone reference is counted only in a heading, as a whole table cell (`| M2 |`), or next to the word "milestone" ("milestone M2", "M2 milestone", "Milestones M1..M3"); a bare "M4" in prose ("Apple M4 laptop") is not an ID.
+Headings define an ID only when it is the first token. Thus `### Wireframe: S-01 ...` references a screen already defined in the inventory. A table's first cell defines an ID when its first header is `ID`, or in the ID's home document when not already defined as a heading. Use other column orders or non-ID headers for summary/reference tables to avoid duplicate definitions.
 
-## Checker
+Milestone references are recognized in headings, whole table cells or next to “milestone”; ordinary prose such as a device model is not automatically a milestone. Generated TRACEABILITY uses the stable markers `<!-- proplan:traceability:start -->` and `<!-- proplan:traceability:end -->`; do not edit their contents by hand.
+
+## Task contract
+
+```markdown
+- [ ] **T-001** Implement the stated outcome
+  - owner: backend-specialist · estimate: 1d · depends: - · covers: R-001
+  - verify: <specific command or observation and expected result>
+```
+
+Use real IDs and an existing kit agent, or `Name (human)`, as owner. Dependencies must exist and be acyclic. Estimates are useful only with a basis; the checker warning does not justify invented precision. `[x]` requires actual completion evidence. A roadmap states contingency/buffer explicitly, including a justified zero if appropriate; no fixed percentage is policy.
+
+## Run the checker
 
 ```powershell
-python "KIT/scripts/proplan_check.py" docs/proplan/<slug>                         # set from 00-overview 'set:', else auto-detect
-python "KIT/scripts/proplan_check.py" docs/proplan/<slug> --write-traceability    # regenerate TRACEABILITY.md, then check
+python "KIT/scripts/proplan_check.py" docs/proplan/<slug>
+python "KIT/scripts/proplan_check.py" docs/proplan/<slug> --write-traceability
+python "KIT/scripts/proplan_check.py" docs/proplan/<slug> --stage design
 python "KIT/scripts/proplan_check.py" docs/proplan/<slug> --lite --json
-python "KIT/scripts/proplan_check.py" docs/proplan/<slug> --stage design         # end of Phase 3
 ```
 
-`--stage design` is for the end of Phase 3: it does not require 10-13, TRACEABILITY.md or REVIEW.md, skips the Must-requirement task and test coverage checks, and ignores references to T-, RK- and milestone IDs (they are defined in Phase 4). Everything else is checked. The default `--stage final` checks everything.
+The overview's `set:` selects full/lite unless explicitly overridden. Design stage omits later delivery/review files and task/test coverage checks; it ignores references to T-, RK- and milestones not yet defined. Final stage checks the complete selected set. `--strict` also fails on warnings.
 
-It fails (exit 1) on: missing files for the set; missing frontmatter keys or H1; bad ID syntax; IDs defined twice or outside their home; dangling references; a requirement without priority or without a Given/when/then line; a Must requirement with no task (and, full set, no test case); a task without owner, verify line or covered requirement; circular task dependencies; a goal no requirement serves; ADR files misnumbered or missing sections; a stale TRACEABILITY.md; an open blocker in REVIEW.md (a `Blocker` row whose Status starts with "open", any case). It warns on: empty sections, leftover placeholders or TBD, NFRs without a number, requirements with no goal, tasks without estimate, owners that are not kit agents (mark people `owner: Name (human)`), no buffer in the roadmap. Exit 2 = usage error.
+Errors include missing set files/frontmatter/H1, invalid or duplicate/wrong-home IDs, dangling links, requirements without priority or Given/when/then criteria, Must requirements without tasks (and without cases in full mode), invalid task contracts/cycles, unserved goals, malformed ADRs, stale traceability and open blocker findings. Warnings include empty sections/placeholders, NFRs without numbers, requirements without goals, missing estimates, unknown owner names and missing buffer.
 
-## Handoff summary example
+Exit 0 means no checker errors, not validated architecture, executed tasks or user approval. Exit 1 means errors (or warnings under strict); exit 2 means usage failure. Report the actual result and assess warnings in context. Qualitative criteria can be useful even if a numeric heuristic warns; never insert arbitrary numbers merely to obtain green.
 
-Phase 6 summary for the bundled lite example, in the exact line order SKILL.md prescribes:
+## The bundled example
 
-```text
-Kape Norte Counter POS plan ready: docs/proplan/cafe-pos/ (lite set, v1.0.0, checker PASS with 0 warnings)
+`example/pos-lite/` demonstrates linked IDs and parseable formats with a fictional cafe system. Its names, dates, signoffs, pricing, hardware assumptions and regulatory/tax rules are illustrative; they are not current verified advice. Use the checker to inspect structure and choose current project decisions from the actual brief/evidence.
 
-What it delivers: a counter POS on one Android tablet for a one-branch café: menu with modifiers, cash and GCash (static QR +
-reference number), SC/PWD discounts, Bluetooth receipts, voids with supervisor PIN, shift cash count, and a daily report on the
-owner's phone. Selling continues offline and syncs later.
-Architecture: offline-capable PWA + Laravel 12 API on a small VPS (ADR-001) - the only option that keeps selling during outages
-and gives the owner reports from home without hardware in the café.
-Scope: 12 requirements (11 Must), 6 NFRs; out: loyalty, inventory deduction, GCash API, multi-branch, BIR accreditation.
-Development goals: 80% coverage on money modules; add-item 100 ms p95 on the tablet; WCAG 2.2 AA; 8 h offline with no lost or
-duplicate orders.
-Schedule: M1 foundation (Oct 8), M2 sell and pay (Oct 26), M3 control, reports, pilot (Nov 6), launch Nov 16; 19 tasks,
-30 days + 5 days buffer. Critical path runs through printing (T-010) and sync (T-008, T-009).
-Top risks: Web Bluetooth printer support (spike on day 1 of T-010); late tablet/printer purchase (models sent by Oct 5);
-receipt wording approval (T-016 starts Oct 26).
-Review: 7 findings, 6 fixed, 1 accepted (no kitchen display; owner confirmed).
-Decisions for you: none.
-Next: /orchestrate docs/proplan/cafe-pos M1
-Not verified: VPS price and Singapore latency from Tuguegarao; the printer model's BLE profile.
-```
+At handoff describe the plan path/set/version, expected outcome, significant decisions, readiness, actual checker evidence and outstanding limits. A planning-only request can name `/orchestrate docs/proplan/<slug> M1` as the next step; a request that already includes building can continue without redundant approval.

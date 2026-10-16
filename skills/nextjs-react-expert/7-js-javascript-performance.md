@@ -1,173 +1,44 @@
-# 7. JavaScript Performance
+# JavaScript hot-path decisions
 
-> **Impact:** LOW-MEDIUM
-> **Focus:** Micro-optimizations for hot paths (render loops, event handlers, large collections). Measure first; most code never needs these.
+Use these techniques for a measured hot path or substantial data set. A shorter expression or fewer passes does not automatically make the user experience faster. Keep order, mutation, locale and numeric semantics intact.
 
----
+## Rule 7.1: Avoid layout thrashing
 
-## Rule 7.1: Avoid Layout Thrashing
+Alternating DOM writes and layout reads can force repeated synchronous layout. Batch compatible reads, then writes, or use CSS/framework layout mechanisms. Preserve dependencies when a measurement intentionally follows a write. Verify the browser trace; not every property read causes layout.
 
-**Impact:** MEDIUM  
-**Tags:** dom, reflow, layout-thrashing  
+## Rule 7.2: Index repeated lookups when worthwhile
 
-Reading a layout property (`offsetWidth`, `getBoundingClientRect()`, `getComputedStyle()`) between style writes forces a synchronous reflow each time. Batch all writes, then read once; or batch all reads, then write.
+A Map/Set can reduce repeated linear searches, but costs construction/memory and needs correct key identity. A single lookup in a short list rarely needs an index. Rebuild/invalidate the index when source data changes; stale indexes are correctness defects.
 
-```typescript
-// Incorrect: write, read, write, read = two forced reflows
-el.style.width = '100px'
-const w = el.offsetWidth
-el.style.height = '200px'
-const h = el.offsetHeight
-
-// Correct: writes together, one read
-el.style.width = '100px'
-el.style.height = '200px'
-const { width, height } = el.getBoundingClientRect()
+```js
+const byId = new Map(records.map(record => [record.id, record]))
+const selected = requestedIds.map(id => byId.get(id))
 ```
 
-In React, prefer toggling a class (`className={isHighlighted ? 'highlighted' : ''}`) over imperative style writes in effects. See [what forces layout](https://gist.github.com/paulirish/5d52fb081b3570c81e3a).
+This assumes duplicate IDs have a deliberate policy and callers handle absent records. Constructing the map does not validate uniqueness.
 
----
+## Rule 7.3: Bound and invalidate caches
 
-## Rule 7.2: Build Index Maps for Repeated Lookups
+Memoizing repeated expensive pure work may help. Include every semantic input in the key, bound memory and decide expiry/cleanup. Locale, permissions and normalization can change results. Caching storage/cookie reads can make preferences or identity stale. A module-level Map is not a safe default for server user data.
 
-**Impact:** LOW-MEDIUM  
-**Tags:** map, indexing  
+## Rule 7.4: Combine iteration only when clearer or proven
 
-Repeated `.find()` by the same key is O(n) per lookup. Build a `Map` once.
+Multiple array passes can be perfectly readable and adequate. A combined loop can reduce allocation on large hot paths, but preserve order, short-circuiting, sparse-array semantics and side effects. Do not rewrite ordinary `map`/`filter` chains across the repository as a performance ritual.
 
-```typescript
-// Incorrect: O(n) per order
-orders.map(order => ({ ...order, user: users.find(u => u.id === order.userId) }))
+## Rule 7.5: Check cheap conditions when semantics allow
 
-// Correct: O(1) per order
-const userById = new Map(users.map(u => [u.id, u]))
-orders.map(order => ({ ...order, user: userById.get(order.userId) }))
-```
+Short-circuit inexpensive guards before expensive pure comparisons if it reduces real work. Reordering may change observable side effects, thrown errors or timing-sensitive behavior. Verify null/empty handling and compare expected distributions rather than choosing from intuition alone.
 
-Same idea for membership checks: `new Set(allowedIds).has(id)` instead of `allowedIds.includes(id)`.
+## Rule 7.6: Reuse regular expressions carefully
 
----
+Reuse expensive expressions when useful, but global/sticky regular expressions carry mutable `lastIndex`. Hoisting one can create surprising repeated-test behavior. Bound input and assess pathological patterns when untrusted text can cause excessive backtracking.
 
-## Rule 7.3: Cache Repeated Function Calls and Storage Reads
+## Rule 7.7: Choose the required algorithm
 
-**Impact:** MEDIUM  
-**Tags:** cache, memoization, localStorage, cookies  
+A single min/max needs a linear scan rather than sorting the whole collection. Define behavior for empty input, NaN and mixed numeric types. Spread into `Math.max` can fail for very large argument lists; a loop may be appropriate. Use a representative benchmark when this is a claimed bottleneck.
 
-When a pure function is called many times with the same input during render (`slugify(project.name)` for 100 rows), cache results in a module-level `Map`; it works in utilities and handlers, not only components.
+## Rule 7.8: Preserve collection ownership
 
-```typescript
-const slugCache = new Map<string, string>()
-export function cachedSlugify(text: string) {
-  let slug = slugCache.get(text)
-  if (slug === undefined) {
-    slug = slugify(text)
-    slugCache.set(text, slug)
-  }
-  return slug
-}
-```
+Do not mutate props/state/shared arrays accidentally with `sort`. Use a supported nonmutating method or copy first when ownership requires it. Runtime support for newer methods must match the deployed environment; do not introduce a polyfill or upgrade without need. Define locale/numeric comparator semantics explicitly when relevant.
 
-`localStorage`, `sessionStorage`, and `document.cookie` are synchronous and slow; cache reads in memory and keep the cache in sync on writes. Invalidate when storage can change externally:
-
-```typescript
-window.addEventListener('storage', (e) => { if (e.key) storageCache.delete(e.key) })
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') storageCache.clear()
-})
-```
-
-Reference: [How we made the Vercel Dashboard twice as fast](https://vercel.com/blog/how-we-made-the-vercel-dashboard-twice-as-fast)
-
----
-
-## Rule 7.4: Combine Multiple Array Iterations
-
-**Impact:** LOW-MEDIUM  
-**Tags:** arrays, loops  
-
-Three `.filter()` calls iterate three times. In hot paths, one loop:
-
-```typescript
-const admins: User[] = [], testers: User[] = [], inactive: User[] = []
-for (const user of users) {
-  if (user.isAdmin) admins.push(user)
-  if (user.isTester) testers.push(user)
-  if (!user.isActive) inactive.push(user)
-}
-```
-
----
-
-## Rule 7.5: Cheap Checks Before Expensive Comparisons
-
-**Impact:** MEDIUM-HIGH  
-**Tags:** arrays, comparison, early-return  
-
-Compare lengths before sorting or deep-comparing arrays; return early from validation loops on the first failure.
-
-```typescript
-function hasChanges(current: string[], original: string[]) {
-  if (current.length !== original.length) return true
-  const a = current.toSorted(), b = original.toSorted()
-  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return true
-  return false
-}
-```
-
----
-
-## Rule 7.6: Hoist RegExp Creation
-
-**Impact:** LOW-MEDIUM  
-**Tags:** regexp  
-
-Do not build a `RegExp` inside render. Hoist constant patterns to module scope; for patterns derived from props, escape the input and let the compiler memoize the derivation.
-
-```tsx
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-function Highlighter({ text, query }: Props) {
-  const regex = new RegExp(`(${escapeRegex(query)})`, 'gi') // compiler memoizes on query
-  return <>{text.split(regex).map(renderPart)}</>
-}
-```
-
-Global regexes (`/g`) carry mutable `lastIndex` state; do not share one instance across `test()` calls.
-
----
-
-## Rule 7.7: Use a Loop for Min/Max Instead of Sort
-
-**Impact:** LOW  
-**Tags:** arrays, sorting  
-
-Finding the latest item is O(n) with a loop; sorting is O(n log n) and copies the array. `Math.max(...arr)` throws on very large arrays because of argument-count limits, so use the loop for unbounded input.
-
-```typescript
-function latest(projects: Project[]) {
-  if (projects.length === 0) return null
-  let best = projects[0]
-  for (let i = 1; i < projects.length; i++) {
-    if (projects[i].updatedAt > best.updatedAt) best = projects[i]
-  }
-  return best
-}
-```
-
----
-
-## Rule 7.8: Use `toSorted()` Instead of `sort()` for Immutability
-
-**Impact:** MEDIUM-HIGH  
-**Tags:** arrays, immutability, react-state  
-
-`.sort()` mutates in place, which corrupts React props and state and causes stale-closure bugs. `.toSorted()`, `.toReversed()`, `.toSpliced()`, and `.with()` return new arrays and are available in all current browsers and Node 20+.
-
-```typescript
-// Incorrect: mutates the users prop
-const sorted = users.sort((a, b) => a.name.localeCompare(b.name))
-
-// Correct
-const sorted = users.toSorted((a, b) => a.name.localeCompare(b.name))
-```
+Verify observable results and comparable timing/memory. Avoid fragile microbenchmarks that exclude warmup, input distribution or real allocation costs.

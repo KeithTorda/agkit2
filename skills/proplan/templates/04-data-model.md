@@ -7,33 +7,20 @@ owner: database-architect
 updated: YYYY-MM-DD
 ---
 
-<!--
-Owner: database-architect (Phase 3). Input: 02-requirements, 03-architecture, ADRs.
-IDs: none defined here. Refer to the R-ids a table supports and to NFR-xx for integrity, privacy and retention.
-Aim: a developer can write the migrations from this document without asking questions.
-Write constraints in the database, not only in the application: NOT NULL, UNIQUE, CHECK, foreign keys with a deliberate ON DELETE.
--->
+<!-- AGKIT2 2.8.0 planning scaffold. Keep machine-readable IDs/fields and use only relevant content. Replace illustrative rows and examples with the actual brief. Do not invent evidence, approvals, dates or locale-specific obligations. Shared core/design/verification rules govern decisions and checks; this template adds no universal approval or task-count gate. -->
+
 
 # Data Model
 
 ## Conventions
 
-<!--
-State once, then do not repeat per table:
-- Table and column naming (snake_case plural tables, singular models).
-- Primary keys (bigint identity, or UUID when clients create records offline or ids are exposed publicly).
-- Timestamps (created_at, updated_at, stored in UTC, displayed in Asia/Manila).
-- Soft delete or not, and for which tables.
-- Money as integer centavos (or numeric(12,2)); never float.
-- Enumerations as text with CHECK, or lookup tables; say which.
--->
-
+<!-- Choose naming, IDs, time handling, monetary representation and deletion behavior from actual engine and product constraints. Explain exposed/offline IDs; do not prescribe UUIDs, soft deletion or a locale universally. -->
 ## Entities
 
-<!-- One line per entity: what it represents in the client's words, and the R-ids that need it. -->
-
+<!-- Define each actual entity in the product vocabulary and link its requirements. -->
 ## Entity relationship diagram
 
+<!-- Show relationships and cardinality consistent with the tables and product rules. -->
 ```mermaid
 erDiagram
   PARENT ||--o{ CHILD : has
@@ -41,8 +28,7 @@ erDiagram
 
 ## Tables
 
-<!-- One subsection per table. Keep the three parts: columns, indexes, constraints. -->
-
+<!-- Keep columns, indexes and constraints consistent. Enforce durable integrity where practical and identify transaction/concurrency invariants. -->
 ### table_name
 
 | Column | Type | Null | Default | Notes |
@@ -50,31 +36,27 @@ erDiagram
 | id | bigint identity | no | | primary key |
 
 Indexes:
-<!-- Each index with the query it serves: "orders (shift_id, created_at) - shift report". No index without a query. -->
+
 
 Constraints:
-<!-- Unique, check and foreign key rules with ON DELETE behaviour and why. -->
+
 
 ## Enumerations and reference data
 
-<!-- Allowed values, who can change them, seed data. -->
-
+<!-- State valid values, ownership and change behavior where relevant; fixtures must be deterministic and free of production secrets. -->
 ## Data lifecycle and retention
 
-<!-- For each kind of record: how long it is kept, why (tax records, audit, RA 10173 purpose limitation), how it is disposed of (delete, anonymise, archive). -->
-
+<!-- Specify purpose, retention, deletion/archive behavior and verified applicable obligations. Distinguish a proposal from a legal requirement. -->
 | Data | Retention | Reason | Disposal |
 |---|---|---|---|
 | | | | |
 
 ## Personal data inventory
 
-<!-- Every column holding personal or sensitive personal information, its purpose and who may read it. 07-security uses this list. -->
-
+<!-- List actual sensitive/personal fields, purpose and access boundaries for the security/UX owners. Do not collect data because the template suggests it. -->
 ## Volumes and growth
 
-<!-- Rows per day or month for the big tables, size after 3 years, the query that will get slow first and its plan. -->
-
+<!-- Use observed or explicitly estimated workloads and representative queries. Label uncertainty; avoid invented precise growth forecasts. -->
 ## Migrations and seed data
 
-<!-- Migration order, how existing data is imported (spreadsheet, old system), seed data for development and for production (roles, settings), and the rollback approach for each risky migration. -->
+<!-- Describe compatibility, ordering, backfill validation and recovery. Application rollback does not restore deleted data; applying live changes needs actual authorization. -->

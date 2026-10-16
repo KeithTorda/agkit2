@@ -1,62 +1,30 @@
-# Project Type Detection
+# Detect the actual deliverable
 
-Map a request, or an existing folder, to a project type and template. Detect existing projects first.
+Read the request's object and inspect the repository before choosing a template. “Inventory” describes a domain; it does not decide whether the deliverable is a web portal, offline mobile client, desktop tool, API or spreadsheet. “Modern” does not select a stack.
 
-## Keyword Matrix
+## Evidence to gather
 
-| Keywords | Project Type | Template |
-|----------|--------------|----------|
-| blog, post, article | Blog | astro-static |
-| simple site, brochure, "just HTML", upload to cPanel | Static site | none: plain HTML/CSS/JS with one stylesheet and `DESIGN.md` tokens |
-| barangay, LGU, school, COMELEC portal with admin | Admin portal | nextjs-fullstack, or Laravel (see Existing projects) when hosted on PHP |
-| pos, point of sale, inventory, canteen | POS / inventory | nextjs-fullstack or Laravel; ask about offline use |
-| e-commerce, product, cart, payment | E-commerce | nextjs-saas |
-| dashboard, panel, management | Admin Dashboard | nextjs-fullstack |
-| ai, chat, bot, llm, rag, agent app | AI / Chatbot App | nextjs-fullstack (AI SDK / Streaming) |
-| api, backend, service, rest | API Service (standalone Node) | node-api |
-| php, laravel, artisan, livewire | Laravel App | none — see Existing projects below |
-| python, fastapi, django | Python API | python-fastapi |
-| mobile, android, ios, react native | Mobile App (RN) | react-native-app |
-| flutter, dart | Mobile App (Flutter) | flutter-app |
-| portfolio, personal, cv | Portfolio | nextjs-static |
-| crm, customer, sales | CRM | nextjs-fullstack |
-| saas, subscription, stripe | SaaS | nextjs-saas |
-| landing, promotional, marketing | Landing Page | nextjs-static |
-| docs, documentation | Documentation | astro-static |
-| extension, plugin, chrome | Browser Extension | chrome-extension |
-| desktop, electron | Desktop App | electron-desktop |
-| cli, command line, terminal | CLI Tool | cli-tool |
-| monorepo, workspace | Monorepo | monorepo-turborepo |
+- Existing repository: framework and language manifests, lockfiles, entrypoints, routing, schema/migrations, project scripts, tests and deployment configuration.
+- Product: primary users and flow, data source, roles, native capabilities, offline writes, expected usage, integrations and the actual hosting environment.
+- Delivery: editable source, static files, hosted app, store package, extension, CLI or service. Respect an explicit choice.
 
+Extend an existing foundation when it can support the request. A Laravel project stays Laravel unless a justified migration is within scope; a brochure may need only static HTML, and a dashboard can consume an existing API without a new database.
 
-## Detection Process
+## Route by constraints
 
-```
-1. Tokenize user request
-2. Extract keywords
-3. Determine project type
-4. Missing information that changes the build → one message, at most 3 questions, each with a default (`brainstorming` for format). Otherwise state assumptions
-5. Suggest tech stack
-```
+| Deliverable | Candidate reference when appropriate |
+|---|---|
+| Content-heavy static site | `astro-static` or the existing static pipeline |
+| Static React-oriented site | `nextjs-static`; plain HTML can be simpler |
+| React full-stack product | `nextjs-fullstack` |
+| Subscription product on that foundation | `nextjs-saas` only if billing is actually required |
+| Vue application | `nuxt-app` |
+| Standalone Node/Python service | `node-api` / `python-fastapi` |
+| React Native or Flutter mobile product | `react-native-app` / `flutter-app` |
+| Electron desktop product | `electron-desktop` |
+| Browser extension / command line tool | `chrome-extension` / `cli-tool` |
+| Several independently built packages | `monorepo-turborepo` when its orchestration is useful |
 
-## Conflict Resolution
+These are examples already available in the kit, not an exhaustive platform list. Native Swift/Kotlin, PHP frameworks, other supported stacks, or no framework may fit better. Use current official setup guidance for the selected foundation.
 
-When a request matches multiple keywords (e.g. "a CLI to manage my e-commerce products" matches both `cli` and `e-commerce`), resolve in this order:
-
-| Priority | Rule | Example |
-|---|---|---|
-| 1 | **Platform wins over domain.** A concrete platform (mobile / desktop / cli / extension) outranks a web/business domain (e-commerce, crm, blog). | "CLI to manage e-commerce" → **cli-tool** (e-commerce is the data domain, not the deliverable) |
-| 2 | **Head noun wins.** The keyword describing what is being built (grammatical subject) outranks modifiers. | "a **dashboard** for my Shopify store" → **nextjs-fullstack** (dashboard is the thing; Shopify is context) |
-| 3 | **Still ambiguous → ask.** If no rule breaks the tie, offer the options as one of your (at most 3) questions, with a default. | "an app for my shop" → ask: web, mobile or desktop? Default: web, works on phones |
-
-## Existing projects (detect before choosing a template)
-
-| Files present | Project | Action |
-|---|---|---|
-| `next.config.*` | Next.js | Work in the existing structure; backend inside the app is Route Handlers + Server Actions |
-| `nuxt.config.*` | Nuxt | Existing structure; `frontend-specialist` handles Vue/Nuxt when the project already uses it |
-| `composer.json` + `artisan` | Laravel | No template: work in the existing structure. New Laravel app: `laravel new <name>` or `composer create-project laravel/laravel <name>`. Laravel paths per agent: the ownership table in `KIT/agents/orchestrator.md` |
-| `pyproject.toml` / `manage.py` | Python (FastAPI / Django) | Existing structure; `python-fastapi` template only for a new service |
-| `app.json` + `expo` dependency, or `pubspec.yaml` | Expo / Flutter | Existing structure; `mobile-developer` |
-
-A request that names a feature for an existing project is `/enhance` work (`feature-building.md`), never a new scaffold.
+For a new visual design complete the shared style/reference intake and wait. Ask about a missing platform or offline model only when it changes a consequential choice; inspect/infer what is already established. Do not require a question count or treat silence as acceptance.

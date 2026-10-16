@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the AG Kit v2.5 structure and its cross references.
+"""Validate the AG Kit structure and its cross references.
 
 Checks
   layout     plugin.json present, no legacy workflows/ or agent/ folders, VERSION format, JSON valid
@@ -43,7 +43,9 @@ except ImportError:  # pragma: no cover - optional
     yaml = None
 
 KIT_DEFAULT = Path(__file__).resolve().parents[1]
-USER_PATH_MARKERS = ("C:/Users/" + "Keith", "C:\\Users\\" + "Keith", "C:\\\\Users\\\\" + "Keith")
+# Match usernames on any Windows drive, including escaped JSON/Python paths.
+# Concatenated fixture strings and <user> placeholders do not match.
+USER_PATH = re.compile(r"\b[A-Za-z]:[/\\]+Users[/\\]+[^/\\\s`\"'<>${}]+", re.I)
 USER_PATH_ALLOWED = {"rules/core-protocol.md", "install.ps1"}
 KIT_RULES = ("core-protocol", "code-rules", "design-rules", "engineering-excellence", "request-routing",
              "universal-rules", "quick-reference")
@@ -73,6 +75,13 @@ LEGACY_PATTERNS = {
     r"minimum 3 (strategic )?questions": "removed question floor",
 }
 TEXT_EXT = {".md", ".py", ".ps1", ".json", ".txt", ".yaml", ".yml", ".toml", ".js", ".ts", ".html", ".css", ".sh"}
+
+
+def is_history_document(root: Path, path: Path) -> bool:
+    """Explicit archived notes do not define active kit references or path policy."""
+    rel = path.relative_to(root)
+    return (rel.parts[:2] == ("docs", "history") or
+            (path.parent == root and (path.name in HISTORY_DOCS or path.name.startswith(("PLAN", "BRIEF")))))
 
 
 @dataclass
@@ -157,8 +166,16 @@ class Validator:
         version = self.root / "VERSION"
         if not version.is_file():
             self.add("warning", "version.missing", "VERSION", "VERSION file is missing")
-        elif not re.fullmatch(r"\d{4}\.\d{1,2}\.\d{1,2}", self.read(version).strip()):
-            self.add("warning", "version.format", "VERSION", f"Expected YYYY.M.D, got {self.read(version).strip()!r}")
+        elif not SEMVER.fullmatch(self.read(version).strip()):
+            self.add("warning", "version.format", "VERSION", f"Expected numeric major.minor.patch, got {self.read(version).strip()!r}")
+        manifest_path = self.root / "plugin.json"
+        try:
+            manifest = json.loads(self.read(manifest_path))
+        except ValueError:
+            manifest = {}
+        if isinstance(manifest, dict) and manifest.get("version") and version.is_file():
+            if manifest["version"] != self.read(version).strip():
+                self.add("error", "version.mismatch", "VERSION", "VERSION must match plugin.json version")
         for path in self.root.rglob("*.json"):
             if any(p in {"__pycache__", "node_modules", ".git"} for p in path.parts):
                 continue
@@ -356,7 +373,7 @@ class Validator:
             rel = self.rel(path)
             if rel in OBSOLETE or any(p in {".git", "node_modules"} for p in path.parts):
                 continue
-            if path.parent == self.root and (path.name in HISTORY_DOCS or path.name.startswith(("PLAN", "BRIEF"))):
+            if is_history_document(self.root, path):
                 continue
             out.append(path)
         if self.rules_dir is not None and self.rules_dir != self.root / "rules":
@@ -429,16 +446,14 @@ class Validator:
             rel = self.rel(path)
             if rel in USER_PATH_ALLOWED or rel in OBSOLETE:
                 continue
-            if path.parent == self.root and (path.name in HISTORY_DOCS or path.name.startswith(("PLAN", "BRIEF"))):
+            if is_history_document(self.root, path):
                 continue
             text = self.read(path)
-            for marker in USER_PATH_MARKERS:
-                idx = text.find(marker)
-                if idx >= 0:
-                    self.add("error", "hygiene.user_path", path,
-                             f"hardcoded user path {marker!r} - write KIT/... (defined once in core-protocol)",
-                             line_of(text, idx))
-                    break
+            match = USER_PATH.search(text)
+            if match:
+                self.add("error", "hygiene.user_path", path,
+                         f"hardcoded user path {match.group(0)!r} - write KIT/... (defined once in core-protocol)",
+                         line_of(text, match.start()))
         for path in sorted(self.root.rglob("*.py")):
             if "__pycache__" in path.parts:
                 continue
@@ -560,7 +575,7 @@ def main(argv: list[str] | None = None) -> int:
             stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
         except (AttributeError, ValueError):
             pass
-    parser = argparse.ArgumentParser(description="Validate the AG Kit v2.5 structure and cross references.",
+    parser = argparse.ArgumentParser(description="Validate AGKIT2 structure and cross references.",
                                      epilog="Exit codes: 0 no errors, 1 errors (or warnings with --strict), 2 usage.")
     parser.add_argument("path", nargs="?", default=None, help="kit root (default: the kit this script is in)")
     parser.add_argument("--rules", type=Path, help="rules directory (default: KIT/rules or ~/.gemini/config/rules)")

@@ -7,17 +7,14 @@ owner: devops-engineer
 updated: YYYY-MM-DD
 ---
 
-<!--
-Owner: devops-engineer (Phase 3). Input: 03 deployment view, 07 secrets, 08 environments, 01 availability goals.
-IDs: none defined here. Refer to NFR-xx for availability, RPO/RTO and backups, and to T-xxx for setup tasks once 10 exists.
-Size to the client: shared hosting with cPanel and a weekly backup can be the right answer; say why.
-Every procedure here must be something a second person could follow at 22:00 without calling the author.
--->
+<!-- AGKIT2 2.8.0 planning scaffold. Keep machine-readable IDs/fields and use only relevant content. Replace illustrative rows and examples with the actual brief. Do not invent evidence, approvals, dates or locale-specific obligations. Shared core/design/verification rules govern decisions and checks; this template adds no universal approval or task-count gate. -->
+
 
 # Operations
 
 ## Environments
 
+<!-- Describe only actual environments and their purpose/data/access. A staging environment is useful when warranted, not an automatic extra service. -->
 | Environment | Purpose | Host | URL | Data | Who deploys |
 |---|---|---|---|---|---|
 | Local | development | developer machine | localhost | seed | developer |
@@ -26,30 +23,26 @@ Every procedure here must be something a second person could follow at 22:00 wit
 
 ## Configuration and secrets
 
-<!-- Environment variables per environment (names only, never values), where they are stored, who can change them, how a new secret is added and rotated. -->
-
+<!-- List required names and storage/rotation ownership, never secret values. -->
 ## CI/CD pipeline
 
-<!-- Stages in order, what fails the pipeline, and where it runs (GitHub Actions, GitLab CI). Example: install -> lint -> types -> tests -> build -> deploy to staging on main -> manual promote to production. -->
-
+<!-- Match project/provider capabilities and meaningful release checks. Identify artifact identity and failure behavior without requiring a generic pipeline shape. -->
 ## Deploy procedure
 
-<!-- Step by step for production, including the migration step, cache clearing, queue restart, and the smoke check after deploy. Deploy windows (outside business hours for a store or office). Who approves. -->
-
+<!-- Prepare the concrete target/revision, data effects and recovery path. Use existing authorization; ask only for a consequential operation not already authorized. Verify the serving result and a key flow. -->
 ## Database migrations
 
-<!-- How migrations run in deploy, how destructive changes are split (expand, migrate data, contract), and the backup taken before a risky migration. -->
-
+<!-- Specify compatibility/order, backfills, validation and recovery. Distinguish app rollback from data restoration and avoid inferred production targets. -->
 ## Backups and restore
 
-<!-- What is backed up (database, uploaded files, configuration), how often, where (off-site, encrypted), retention, and the restore test schedule. State RPO (max data loss) and RTO (max downtime). -->
-
+<!-- Align coverage, frequency, retention and restore validation with actual recovery needs. State RPO/RTO basis and untested assumptions. -->
 | Item | Frequency | Location | Retention | Restore tested |
 |---|---|---|---|---|
 | | | | | |
 
 ## Monitoring and alerting
 
+<!-- Choose actionable symptoms with an owner and response; remove irrelevant signal rows rather than creating noisy alerts. -->
 | Signal | Tool | Threshold | Alert to | Action |
 |---|---|---|---|---|
 | Uptime | | | | |
@@ -60,20 +53,16 @@ Every procedure here must be something a second person could follow at 22:00 wit
 
 ## Logging
 
-<!-- What is logged, where, retention, and what must never be logged (passwords, tokens, full ID numbers, personal data beyond need). -->
-
+<!-- Make investigation possible while limiting sensitive data. State retention, access and correlation fields. -->
 ## Rollback and incident response
 
-<!-- How to roll back a bad release (previous release folder, container tag, Vercel instant rollback), how to roll back or forward a failed migration, who is called, how the client is informed, and the short post-incident note. -->
-
+<!-- Identify a usable recovery target, data compatibility limits and escalation path. Avoid repeated speculative mutations during an incident. -->
 ## Maintenance
 
-<!-- OS and dependency updates (cadence, who), certificate renewal, log rotation, storage growth, licence renewals, domain renewal dates. -->
-
+<!-- Assign maintenance the system actually needs and use the platform-supported mechanisms. -->
 ## Cost
 
-<!-- Monthly running cost by item (hosting, domain, email, SMS, storage, backups) in the client's currency. -->
-
+<!-- Identify currency, assumptions and source/date for current provider costs. Estimates must be labeled and verified when used for a commitment. -->
 ## Handover and runbooks
 
-<!-- Runbooks to write (link 12): deploy, restore, rotate a secret, add a user, what to do when the site is down. Accounts and credentials handed to the client and how. -->
+<!-- Plan documents/access transfer for actual operators. Keep credentials in the appropriate secret channel rather than this file. -->

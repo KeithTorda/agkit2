@@ -1,49 +1,22 @@
 ---
 name: updatekit
-description: "/updatekit - Fetches the latest AG Kit release from GitHub (KeithTorda/agkit2), updates local repository and plugins, installs rules, and verifies validity."
-version: 2.5.0
+description: "Check upstream AGKIT2 changes or update a clean source repository and activate it with backup/validation. Use /updatekit; --check fetches metadata but never pulls or installs."
+version: 2.8.2
 ---
 
 # /updatekit
 
-**Input:** none (or `--check` to preview without applying).
-**Agent:** none.
+Use the existing helper, preserving local customization:
 
-Fetches the latest version of AG Kit directly from GitHub (`https://github.com/KeithTorda/agkit2.git`), updates the source repository on `c:\Users\Keith\Desktop\agkit2`, syncs the Antigravity plugin and rules directories, and runs validation.
+```powershell
+python "KIT/scripts/update_kit.py" --check
+python "KIT/scripts/update_kit.py" --repo "<source repository>"
+```
 
-## Steps
+`--check` fetches Git metadata and compares HEAD with the selected origin branch, then returns before pull/install even when they match. It does not update source worktree files, active rules or installed plugin files. Fetch can require network access and changes Git metadata; do not describe it as entirely filesystem read-only.
 
-1. **Check local git repository.**
-   Ensure `c:\Users\Keith\Desktop\agkit2` is on the `main` branch.
-   Run:
-   ```powershell
-   git -C "c:\Users\Keith\Desktop\agkit2" fetch origin main
-   ```
+Applying an update requires a clean source worktree on the selected branch and a fast-forward pull. The helper will not discard, stash or reset customizations. If local changes exist, report them and preserve/merge them within the user's scope rather than overwriting them. `--branch` defaults to main; inspect before selecting a different branch. The helper locates an adjacent source repository or the user's Desktop/agkit2; `--repo` selects another location.
 
-2. **Compare commit hash.**
-   Check if local `HEAD` is behind `origin/main`:
-   ```powershell
-   git -C "c:\Users\Keith\Desktop\agkit2" rev-parse HEAD
-   git -C "c:\Users\Keith\Desktop\agkit2" rev-parse origin/main
-   ```
-   If identical, report that AG Kit is already at the latest commit.
+The installer validates source/staging, backs up active files, activates and verifies them, restoring prior active files if activation fails. `install.ps1 -Check` validates without activation; inspect the installer's current parameters before using custom locations. Report the actual source revision/version, installation outcome and backup path from execution, not a predicted success.
 
-3. **Pull latest changes.**
-   ```powershell
-   git -C "c:\Users\Keith\Desktop\agkit2" pull origin main
-   ```
-
-4. **Re-install into Antigravity.**
-   Execute the installer to update plugin files and rules:
-   ```powershell
-   powershell -ExecutionPolicy Bypass -File "c:\Users\Keith\Desktop\agkit2\install.ps1"
-   ```
-
-5. **Validate Installation.**
-   Confirm schema and rule budget:
-   ```powershell
-   python "KIT/scripts/validate_kit.py" "KIT" --rules "KIT/../../rules" --quiet
-   ```
-
-6. **Report outcome.**
-   Output the updated version, commit hash, and reminder to restart the IDE if subagent definitions changed.
+For conflicting rules, drift or broken setup, use `KIT/skills/doctor/SKILL.md` to diagnose before changing configuration. Restart Antigravity/open a new chat to load changed instructions; an installed kit is not a tested generated design.

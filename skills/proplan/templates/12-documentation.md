@@ -7,20 +7,14 @@ owner: documentation-writer
 updated: YYYY-MM-DD
 ---
 
-<!--
-Owner: documentation-writer (Phase 4). Input: 06 (users), 09 (runbooks), 10 (milestones and tasks).
-IDs defined here:
-  DOC-01 ...  documents to produce during the build, defined as the first cell of the table.
-Plan documentation as work: each document has an audience, an owner agent, a due point (a milestone or a T-id) and a
-"done when" that can be checked. Documentation nobody owns is not written.
-Write for the reader's language and setting: a cashier guide for Filipino staff may be in Filipino or Taglish with screenshots;
-an API reference is in English.
--->
+<!-- AGKIT2 2.8.0 planning scaffold. Keep machine-readable IDs/fields and use only relevant content. Replace illustrative rows and examples with the actual brief. Do not invent evidence, approvals, dates or locale-specific obligations. Shared core/design/verification rules govern decisions and checks; this template adds no universal approval or task-count gate. -->
+
 
 # Documentation Plan
 
 ## Documents to produce
 
+<!-- The rows illustrate possible deliverables; keep only those with an actual reader and useful completion criterion. Define stable DOC IDs and a real owner/due point. DESIGN.md is for relevant visual work, not every API/CLI project. -->
 | ID | Document | Audience | Owner | Due | Location and format | Done when |
 |---|---|---|---|---|---|---|
 | DOC-01 | README (setup, scripts, structure) | developers | documentation-writer | M1 | README.md | a fresh clone runs with the documented commands |
@@ -33,12 +27,10 @@ an API reference is in English.
 | DOC-08 | CHANGELOG | client, developers | documentation-writer | every release | CHANGELOG.md | entry per release |
 | DOC-09 | Handover pack (accounts, credentials procedure, contacts) | client | documentation-writer | launch | | client signs receipt |
 
-<!-- Delete the rows that do not apply; add training material, video walkthroughs or printed quick cards if the users need them. -->
 
 ## Standards
 
-<!-- Where docs live (repo /docs, client drive), format (Markdown, PDF export for the client), screenshots policy (updated when the screen changes), language, versioning with releases. -->
-
+<!-- Use formats, location and language suited to the actual readers. Examples do not impose English, Filipino, screenshots or PDF on every guide. -->
 ## Keeping docs current
 
-<!-- Which changes require a doc update (tie to the definition of done in 08), and who checks at each milestone. -->
+<!-- Tie documentation maintenance to the behavior/contracts that change and an accountable owner; avoid duplicating generated inventories without need. -->

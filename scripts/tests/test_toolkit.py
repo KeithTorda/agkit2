@@ -659,7 +659,8 @@ def fake_png(path: Path, width: int, salt: bytes = b"") -> None:
 
 class UiVerifyTests(unittest.TestCase):
     def verdict(self, d: Path, **extra):
-        payload = {"route": "/x", "widths": [390, 1440], "consoleErrors": 0, "failedRequests": 0, "status": "pass"}
+        payload = {"route": "/x", "widths": [390, 1440], "consoleErrors": 0, "failedRequests": 0,
+                   "interaction": "pass", "notVerified": [], "status": "pass"}
         payload.update(extra)
         (d / "verdict.json").write_text(json.dumps(payload), "utf-8")
 

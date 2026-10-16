@@ -1,125 +1,155 @@
 # Tokens reference
 
-Read when: writing or extending a DESIGN.md token block; core SKILL.md first.
+Read when creating or extending a `DESIGN.md`; [SKILL.md](./SKILL.md) defines intake and scope. Keep existing token consumers compatible and avoid a second source of truth.
 
-## 1. Token schema (front matter)
+## 1. Token schema
 
 ```yaml
-version: alpha  # optional
-name: Daylight Prestige
-description: ...  # optional
-colorScheme: both
+name: Example project
+description: Optional short description
+colorScheme: light
 colors:
-  <token-name>: "#RRGGBB"
+  primary: "#194B3A"
+  on-primary: "#FFFFFF"
+  surface: "#FBFAF7"
+  on-surface: "#1A1C1E"
 typography:
-  <token-name>: { fontFamily: Public Sans, fontSize: 48px, fontWeight: 600, lineHeight: 1.1, letterSpacing: -0.02em }
-rounded:
-  <scale>: 8px
-spacing:
-  <scale>: 16px  # Dimension or unitless number
-shadow:
-  <scale>: "0 1px 2px rgb(0 0 0 / 0.06)"
+  body-md:
+    fontFamily: Public Sans
+    fontSize: 16px
+    fontWeight: 400
+    lineHeight: 1.6
+rounded: { md: 8px }
+spacing: { md: 16px }
+shadow: { modal: "0 8px 24px rgb(26 28 30 / 0.12)" }
 motion:
-  duration: { <scale>: 200ms }
-  easing: { <name>: cubic-bezier(0.16, 1, 0.3, 1) }
-breakpoints:
-  <name>: 768px
+  duration: { fast: 140ms, base: 180ms }
+  easing: { standard: "cubic-bezier(0.2, 0, 0, 1)" }
+breakpoints: { md: 768px }
 components:
-  <component-name>: { backgroundColor: "{colors.primary}", textColor: "{colors.on-primary}", rounded: "{rounded.md}", padding: 12px }
+  button-primary:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.on-primary}"
+    typography: "{typography.body-md}"
+    rounded: "{rounded.md}"
+    padding: 12px
 ```
 
-**Types.** Color: `#` + hex sRGB (`"#1A1C1E"`). Dimension: number + `px` / `em` / `rem` (or `ms` / `s` for durations). Shadow: a full CSS `box-shadow` string, or `none` (flat designs). Token reference: `{path.to.token}` to a primitive (`{colors.primary-60}`); a composite (`{typography.label-md}`) only inside `components`. Typography: object with `fontFamily`, `fontSize`, `fontWeight` (number), `lineHeight` (unitless recommended), `letterSpacing`, optional `fontFeature`, `fontVariation`. Motion: `duration.<scale>` (Dimension) plus `easing.<name>` (a CSS timing function or `cubic-bezier(...)`). Breakpoint: Dimension in `px`.
+These are examples of supported roles, not required quantities or values. Use `light`, `dark`, or `both` to describe requested/existing scope; no automatic second theme.
 
-**Component properties.** `backgroundColor`, `textColor` (Color); `typography` (Typography); `rounded`, `padding`, `size`, `height`, `width` (Dimension). States are separate entries with a related key: `button-primary`, `button-primary-hover`, `button-primary-disabled`.
+### Value conventions
+- Color: quoted sRGB hex, for example `"#194B3A"`. Preserve an existing wider-color/alpha pipeline when needed; external CLI support may be narrower than project CSS.
+- Dimension: number with unit such as `16px`, `1rem`, or `0.02em`; numeric zero is useful where supported. Durations use `ms` or `s`.
+- Typography: `fontFamily`, `fontSize`, numeric `fontWeight`, and optional `lineHeight`, `letterSpacing`, `fontFeature`, `fontVariation`. Use a unitless line height where appropriate.
+- Shadow: a complete CSS box-shadow string or `none`.
+- Easing: quote CSS functions, especially inside flow mappings; unquoted commas can change YAML parsing.
+- Reference: quote `"{path.to.token}"`. Resolve the full path; reject missing targets and cycles. Composite typography references belong where the consumer expects typography.
+- Component properties may include `backgroundColor`, `textColor`, `typography`, `rounded`, `padding`, `size`, `height`, and `width`. Document additional properties in an existing consumer instead of assuming every external exporter supports them.
+- States may use related entries such as `button-primary-hover` or the project's existing state schema. Provide actual focus/disabled/error roles when relevant.
 
-**Dark values.** When `colorScheme: both`, give every color whose value changes a `-dark` counterpart (`surface` / `surface-dark`). Colors without a counterpart are the same in both schemes. The linter flags `-dark` tokens with no component reference as "orphaned"; that warning is expected.
+### Theme counterparts
+For a new spec using this kit's simple convention, changing colors in `both` may use `-dark` counterparts:
 
-**Recommended token names** (guidance): colors `primary secondary tertiary neutral surface on-surface on-primary error`; typography `headline-display headline-lg headline-md body-lg body-md body-sm label-lg label-md label-sm`; rounded `none sm md lg xl full`; shadow `none sm md lg`; motion.duration `fast base slow`, motion.easing `standard emphasized`; breakpoints `sm md lg xl`. With motion tokens, add a `## Motion` section (duration/easing rationale, motion limits) after Components.
+```yaml
+colorScheme: both
+colors:
+  primary: "#194B3A"
+  primary-dark: "#A8D5BE"
+  on-primary: "#FFFFFF"
+  on-primary-dark: "#12382B"
+  surface: "#FBFAF7"
+  surface-dark: "#131816"
+  on-surface: "#1A1C1E"
+  on-surface-dark: "#F1F5F2"
+```
 
-## 2. Sections (canonical order)
+Map each counterpart to the same semantic role when switching themes. Keep unchanged colors shared. If a project already has theme modes, CSS variable overrides, or a different token structure, document that mapping rather than renaming everything to this example. Check both themes in the rendered UI. Light/dark color-blocked sections within one theme may use separate section roles instead.
 
-| # | Section | Aliases | Purpose |
-|---|---|---|---|
-| 1 | Overview | Brand & Style | Brand personality, audience, tone; the one-line design read and the three dials. Fallback context when a token is missing. |
-| 2 | Colors | | Palette rationale, at least `primary`; which color drives interaction; the color scheme (light / dark / both) in words. |
-| 3 | Typography | | 9-15 levels as semantic roles (headline / body / label × size); pairing rationale if a serif is used. |
-| 4 | Layout | Layout & Spacing | Grid model, spacing scale, container widths, breakpoints, density. |
-| 5 | Elevation & Depth | Elevation | Shadow scale, or for flat designs the alternative (borders, tonal layers). |
-| 6 | Shapes | | Radius scale and where each level applies. |
-| 7 | Components | | Buttons, inputs, cards, chips, lists: per-atom guidance beyond the tokens. |
-| 8 | Do's and Don'ts | | Guardrails during generation: effects the direction uses on purpose, defaults it rejects, motion limits, imagery rules. |
+### Naming
+Choose names for meaning and reuse. Possible roles include `primary`, `on-primary`, `surface`, `on-surface`, `muted`, `border`, `focus`, `error`, and `success`. Typography may use `display`, `heading`, `body`, `label`, and `code` at the actual sizes needed. A project does not need 9-15 typography levels, multiple fonts, a shadow scale, or an unused dark palette.
+
+## 2. Document sections
+
+| Section | Contents |
+|---|---|
+| Overview | Approved direction, purpose, audience, useful references or delegation; optional existing dials |
+| Colors | Semantic palette, theme scope, and intentional section contrast |
+| Typography | Type roles, font sources, language coverage, hierarchy, reading measure |
+| Layout | Containers, spacing relationships, grid, responsive reflow, information density |
+| Elevation & Depth | Tonal layers, borders, shadows, transparency, and their roles |
+| Shapes | Role-based radius/shape treatment |
+| Components | Reusable controls and states beyond primitive tokens |
+| Do's and Don'ts | Specific agreed choices to preserve, rather than generic style prohibitions |
+| Motion / Imagery / Iconography | Useful additional detail when the design actually uses it |
+
+Keep unique headings. If interoperating with an external DESIGN.md linter, use its supported section order and aliases as needed; do not discard existing useful content just to imitate an example. Minimal projects can use a short subset.
 
 ## 3. Consumers
 
-- `frontend-design` maps every token group onto Tailwind v4 `@theme`: `colors.*` → `--color-*`, `typography.*.fontFamily` → `--font-*`, `.fontSize` → `--text-*`, `rounded.*` → `--radius-*`, `spacing.*` → `--spacing-*`, `shadow.*` → `--shadow-*`, `motion.easing.*` → `--ease-*`, `breakpoints.*` → `--breakpoint-*` (durations feed the transition/animation utilities). `-dark` values apply under `.dark`; `colorScheme` decides which schemes ship. `@theme` mechanics: `tailwind-patterns` §2.
-- `mobile-design` reads the same tokens for React Native / Flutter theme objects.
-- Unknown section headings, token names, and component properties are accepted (properties with a warning); an invalid value is rejected; a duplicate section heading rejects the file.
+Use the existing project pipeline:
 
-## 4. Template (example values; replace every one)
+- CSS: semantic custom properties in the project's token entrypoint; local section roles can inherit/override them.
+- Tailwind: map colors, fonts, sizes, radius, spacing, shadows, easing, and breakpoints to the installed version's supported theme mechanism. In v4 these may be `@theme` variables such as `--color-*`, `--font-*`, `--text-*`, `--radius-*`, `--shadow-*`, `--ease-*`, and `--breakpoint-*`. Do not assume every composite maps to a single variable.
+- Component systems: feed their supported theme/token API without creating a competing CSS reset.
+- Native: `mobile-design` may map the same semantic decisions into React Native or Flutter theme objects.
+
+Check actual consumer output. A linter or exporter may support fewer value/property types than project CSS; report the mismatch and preserve the approved implementation instead of claiming an unsupported export succeeded.
+
+## 4. Concise complete example
 
 ```markdown
 ---
-name: Calm Scheduler
-colorScheme: both
+name: Clinic Scheduler
+colorScheme: light
 colors:
-  primary: "#1A1C1E"
+  primary: "#194B3A"
   on-primary: "#FFFFFF"
-  tertiary: "#B8422E"
-  neutral: "#F7F5F2"
   surface: "#FBFAF7"
-  surface-dark: "#131316"
   on-surface: "#1A1C1E"
-  on-surface-dark: "#F4F3EF"
-  error: "#B3261E"
+  border: "#D6DBD7"
+  focus: "#194B3A"
+  error: "#A82727"
 typography:
-  headline-lg: { fontFamily: Public Sans, fontSize: 48px, fontWeight: 600, lineHeight: 1.1, letterSpacing: -0.02em }
-  headline-md: { fontFamily: Public Sans, fontSize: 32px, fontWeight: 600, lineHeight: 1.2 }
-  body-md: { fontFamily: Public Sans, fontSize: 16px, fontWeight: 400, lineHeight: 1.6 }
-  label-md: { fontFamily: Public Sans, fontSize: 13px, fontWeight: 500, lineHeight: 1.3, letterSpacing: 0.02em }
-rounded: { sm: 4px, md: 8px, lg: 16px, full: 9999px }
-spacing: { xs: 4px, sm: 8px, md: 16px, lg: 32px, xl: 64px }
-shadow: { none: none, modal: "0 8px 24px rgb(26 28 30 / 0.12)" }
+  heading-md: { fontFamily: Public Sans, fontSize: 30px, fontWeight: 600, lineHeight: 1.2 }
+  body-md: { fontFamily: Public Sans, fontSize: 16px, fontWeight: 400, lineHeight: 1.5 }
+  label-md: { fontFamily: Public Sans, fontSize: 14px, fontWeight: 500, lineHeight: 1.4 }
+rounded: { control: 6px, panel: 12px }
+spacing: { sm: 8px, md: 16px, lg: 24px, xl: 40px }
 motion:
-  duration: { fast: 150ms, base: 250ms }
-  easing: { standard: cubic-bezier(0.2, 0, 0, 1) }
-breakpoints: { sm: 640px, md: 768px, lg: 1024px }
+  duration: { fast: 140ms, base: 180ms }
+  easing: { standard: "cubic-bezier(0.2, 0, 0, 1)" }
 components:
-  button-primary: { backgroundColor: "{colors.tertiary}", textColor: "{colors.on-primary}", typography: "{typography.label-md}", rounded: "{rounded.md}", padding: 12px }
-  button-primary-hover: { backgroundColor: "{colors.primary}" }
-  input: { backgroundColor: "{colors.surface}", textColor: "{colors.on-surface}", rounded: "{rounded.sm}", height: 44px }
-  card: { backgroundColor: "{colors.surface}", rounded: "{rounded.lg}", padding: 24px }
+  button-primary: { backgroundColor: "{colors.primary}", textColor: "{colors.on-primary}", rounded: "{rounded.control}", padding: 12px }
+  input: { backgroundColor: "{colors.surface}", textColor: "{colors.on-surface}", rounded: "{rounded.control}", height: 44px }
 ---
 
-# Calm Scheduler
+# Clinic Scheduler
 
 ## Overview
-Design read: healthcare scheduling for clinic staff; calm, trust-first, accessibility-first.
-Dials: DESIGN_VARIANCE 4, MOTION_INTENSITY 3, VISUAL_DENSITY 5.
+The user chose a calm service interface and asked to keep the clinic's green identity. Reference preference: no external reference; build on the existing product.
 
 ## Colors
-Light and dark both ship. Tertiary (#B8422E) is the only interaction color. Surface and on-surface swap to their -dark values in dark mode.
+Light mode only. Primary carries action and focus; error is reserved for actual errors. Verify contrast on rendered controls and feedback.
 
 ## Typography
-Public Sans throughout; no serif. Headlines 600, body 400, labels 500.
+Public Sans from the project's existing font pipeline. Clear title, body, and label roles; allow long patient names and translated labels.
 
 ## Layout
-12-column grid, 1200px container, spacing scale above; sections py-16.
-
-## Elevation & Depth
-Flat: 1px borders on surface, no drop shadows except the modal (0 8px 24px at 12% of primary).
+Lead with appointment selection. Group related fields, use the existing container, and reflow according to content width. Keep the next action reachable on mobile.
 
 ## Shapes
-sm for inputs, md for buttons, lg for cards, full only for chips.
+Control radius for inputs/buttons; panel radius for grouped appointment information.
 
 ## Components
-Buttons: one primary per view. Inputs: label above, error text below in error color. Cards: no nested cards.
+Persistent labels, associated field errors, pending submission feedback, and preserved input after failed submission.
 
 ## Motion
-Durations 150-250ms with standard easing; motion carries state and feedback only (dial 3), never decoration.
+Feedback only, with reduced-motion transitions disabled. No scroll reveals or ambient loops.
 
 ## Do's and Don'ts
-- Do use tertiary only for the single most important action per screen.
-- Do keep WCAG AA contrast (4.5:1 normal text) in both schemes.
-- Don't mix rounded and sharp corners in one view.
-- Don't add motion beyond dial 3.
+- Keep the approved clinic identity and working booking flow.
+- Use real assets and truthful availability; visibly identify any demo data.
+- Verify responsive wrapping, focus, labels, and the affected interaction.
 ```
+
+The example is a specific direction, not a universal recipe. Change the content and decisions to match the user's actual brief.

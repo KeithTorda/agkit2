@@ -1,59 +1,23 @@
 ---
 name: brainstorming
-description: Clarifies requirements and explores options before building. Covers how to write a question that changes the implementation, and how to diverge to several real approaches then converge on one with stated trade-offs. Use for new apps, multi-file features, vague requests, design discussions, and /brainstorm.
-version: 2.5.0
+description: "Clarify consequential ambiguities and compare approaches without a forced interview. Use for vague requirements, product or architecture choices, and design discussions."
+version: 2.8.2
 ---
 
 # Brainstorming
 
-Understand before building. Ask little, ask well; widen the option space before you narrow it.
+Make the next decision clearer. First use the request, relevant existing files and approved decisions; do not ask for information already available.
 
-## When to ask
+## Questions that matter
 
-Ask only when blocked: the answer changes what gets built (scope, data model, auth, money, a design direction you cannot infer). One message, at most 3 questions, each with a recommended default. Everything else becomes a stated assumption (`core-protocol`). There is no minimum number of questions.
+Ask when different answers change the outcome, scope, data/permission model or an expensive-to-reverse commitment. Keep questions conversational and limited to the decision at hand. Offer a recommendation when useful, while distinguishing a proposed default from an accepted answer.
 
-Before asking anything, spend the cheap information first: `.agents/memory/MEMORY.md`, `docs/plans/*.md`, `docs/proplan/*/`, `DESIGN.md`, and the code. A question those already answer is wasted.
+Before a new visual design, ask one conversational question about style and references, then wait as design-rules requires. An answer already supplied or an explicit delegation is sufficient. Repairs and maintenance within an approved direction do not repeat that intake.
 
-## How to ask
+Routine implementation choices can become concise stated assumptions. Silence is not authorization and does not answer required design intake. For examples of useful questions and when to defer them, read [dynamic-questioning.md](./dynamic-questioning.md).
 
-A question earns its place only by eliminating at least one implementation path. "Which database?" is preference-fishing; "Do orders and inventory need to update in one transaction, or is eventual consistency fine?" forces a choice that changes the data model, the ORM, and the hosting. Principles, generation steps, and domain question banks: [dynamic-questioning.md](./dynamic-questioning.md).
+## Options and convergence
 
-Format: one message, ordered by leverage, every question carrying a default so work proceeds on "proceed":
+Compare credible approaches only when a real choice exists. Explain the mechanism, benefit, downside, delivery/maintenance cost and fit for the actual constraints. Avoid a favored option beside strawmen or fixed option counts.
 
-```markdown
-**1. <decision point>** — <question>
-Why it matters: <what in the build changes with the answer>
-Options: A <pro / con> · B <pro / con>
-Default if unanswered: <choice + reason>
-```
-
-## Exploring options (/brainstorm, design discussions)
-
-Diverge, then converge. Do not anchor on the first idea that works.
-
-1. **Frame.** Restate the real goal, the user, and the hard constraints (budget, deadline, the stack already in place, scale). Name the problem behind the request, not its literal words.
-2. **Diverge.** Put 2–4 genuinely different approaches on the table — not one plan and two strawmen. For each: one-line description, main pro, main con, effort (low / medium / high), and when it fits.
-3. **Converge.** Recommend one and tie the reason to the constraints from step 1. A recommendation with no constraint behind it is a guess, not advice.
-4. **Hand off.** Let the user decide, then offer `/remember <decision>` and `/plan <topic>` (or `/proplan <system>` for a whole system).
-
-No code during exploration; diagrams welcome.
-
-One suggestion is not brainstorming; surface the trade-off the user should own:
-
-```text
-Weak:   "I'll build notifications with WebSockets."
-Strong: "Notifications three ways: polling (trivial, ~30s lag, fine under ~1k users) ·
-         SSE (one-way push, cheap, no client library) · WebSockets (bidirectional,
-         needs connection management and scaling). You have ~800 users and no live
-         chat, so SSE — move to WebSockets only if you add real-time collaboration."
-```
-
-## Anti-patterns
-
-| Avoid | Because |
-|---|---|
-| A question whose answer would not change the build | Cost with no information |
-| Asking again after "proceed" | One round, then defaults |
-| One option presented as the only way | Hides the trade-off the user should own |
-| Converging on the first approach that works | Skips the alternative that fits better |
-| Silently assuming an unstated requirement | Wrong output; state the assumption instead |
+Recommend one with a reason and a condition that would change the choice. Use `problem-solving` for difficult uncertainty, contradiction or repeated failed approaches. Continue authorized work once the relevant choice is settled; an exploration-only request ends with the analysis.

@@ -7,29 +7,17 @@ owner: solution-architect
 updated: YYYY-MM-DD
 ---
 
-<!--
-Owner: solution-architect (Phase 2). An arc42-lite description with C4 level 1-2 diagrams in mermaid.
-IDs: none defined here in the full set; refer to NFR-xx for quality drivers and ADR-xxx for decisions.
-Lite set only: this document also holds the "Data model summary" and "API summary" sections (API-01 ... defined as the first
-cell of the API table, each row naming the R-ids it serves). In the full set delete those two sections; 04 and 05 own them.
-Write for a developer who joins in month three: why the system is shaped this way, not only what it is.
-Diagrams: mermaid `flowchart` for C4 (GitHub and Antigravity render it); keep each diagram under about 15 nodes.
--->
+<!-- AGKIT2 2.8.0 planning scaffold. Keep machine-readable IDs/fields and use only relevant content. Replace illustrative rows and examples with the actual brief. Do not invent evidence, approvals, dates or locale-specific obligations. Shared core/design/verification rules govern decisions and checks; this template adds no universal approval or task-count gate. -->
+
 
 # Architecture
 
 ## Context and drivers
 
-<!--
-- What the system must do in one paragraph (link the key R-ids).
-- Quality drivers in priority order, each an NFR id: "selling never stops (NFR-02) > money is exact (NFR-06) > fast checkout (NFR-01)". When two drivers conflict, the order decides.
-- Constraints that shaped the design: team size and skills, budget, hosting, devices, existing systems.
--->
-
+<!-- Link important requirements and quality drivers to actual constraints. Describe existing and target behavior for brownfield work. -->
 ## System context (C4 level 1)
 
-<!-- People and external systems around the system, with what flows between them. -->
-
+<!-- Show people, external systems and important flows. Keep the diagram readable; do not add actors to reach a node count. -->
 ```mermaid
 flowchart LR
   user([Primary user]) -->|does what| sys[System name]
@@ -38,8 +26,7 @@ flowchart LR
 
 ## Containers (C4 level 2)
 
-<!-- Deployable units: web app, API, database, worker, mobile app, third-party services. Then one row per container. -->
-
+<!-- Show the deployable units the solution actually needs. A static site does not need a separate API, worker and database merely because the scaffold illustrates them. -->
 ```mermaid
 flowchart TB
   web[Web app] -->|HTTPS JSON| api[API]
@@ -52,56 +39,46 @@ flowchart TB
 
 ## Components
 
-<!-- Only for the container where the complexity lives (usually the API or the offline client). Name the modules and their responsibilities; say which module owns which R-ids. Skip for a simple CRUD app. -->
-
+<!-- Detail boundaries where it reduces implementation ambiguity. Say inapplicable when the system is simple rather than inventing layers. -->
 ## Integrations
 
-<!-- Every external system: payments (GCash, Maya, PayMongo), SMS, email, maps, government systems, printers, identity providers. -->
-
+<!-- List actual external contracts, trust, data, failure and fallback behavior. Provider-specific capability/cost claims require current evidence. -->
 | System | Direction | Protocol and auth | Data | Failure mode and fallback |
 |---|---|---|---|---|
 | | | | | |
 
 ## Key flows
 
-<!-- The 2-5 flows that carry the risk (payment, sync, approval, import). Numbered steps or a mermaid sequenceDiagram. Include what happens when a step fails. -->
-
+<!-- Explain critical paths, retries, consistency and recovery where relevant. Choose detail from the risk, not a fixed flow count. -->
 ## Technology stack
 
-<!-- Each choice with the reason for THIS project. The project's existing stack and the team's skills win over fashion. -->
-
+<!-- Tie choices to current project constraints and team needs. Preserve a suitable existing stack; references do not mandate dependencies. -->
 | Concern | Choice | Reason |
 |---|---|---|
 | | | |
 
 ## Cross-cutting concepts
 
-<!-- One short paragraph each where relevant: authentication and sessions, authorization, validation, error handling, logging, configuration, time zones (Asia/Manila), money and rounding, localisation, file storage. -->
-
+<!-- Describe only relevant shared behavior: identity, errors, logging, time, money, localization and storage. Use the actual audience timezone/currency, not a sample default. -->
 ## Architecture decisions
 
-<!-- List every ADR with its one-line decision. The reasoning lives in adr/ADR-NNN-slug.md. -->
-
+<!-- Link real ADRs with truthful proposed/accepted status. Routine delegated choices do not require a separate user approval ceremony. -->
 | ADR | Decision | Status |
 |---|---|---|
-| ADR-001 | | accepted |
+| ADR-001 | | proposed |
 
 ## Deployment view
 
-<!-- Where each container runs (VPS, shared hosting, Vercel, on-site PC), regions, domains. Details in 09-operations. -->
-
+<!-- Identify actual execution locations and operational boundaries, with details in 09 for the full set. -->
 ## Technical risks and debt
 
-<!-- Risks created by the architecture itself (new technology, single points of failure, vendor lock-in). Put the managed ones in 11-risks with RK ids. -->
-
+<!-- Expose consequences of the chosen boundaries and a validation/mitigation path; link managed risks where defined. -->
 ## Data model summary
 
-<!-- LITE SET ONLY (delete in the full set). Mermaid erDiagram of the main entities, then a table: entity, key fields, constraints and notes. State retention. -->
-
+<!-- LITE ONLY: summarize actual entities, keys, constraints and lifecycle. Full mode moves detail to 04 and removes duplicate definitions. -->
 ## API summary
 
-<!-- LITE SET ONLY (delete in the full set). One row per endpoint; the ID is the first cell. -->
-
+<!-- LITE ONLY: define API IDs once in this table and link served R IDs. Full mode defines endpoints in 05 instead. Do not invent an API for an API-free product. -->
 | ID | Method and path | Purpose | Role | Serves |
 |---|---|---|---|---|
 | API-01 | | | | R-001 |

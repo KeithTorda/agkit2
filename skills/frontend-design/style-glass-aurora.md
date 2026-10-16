@@ -1,56 +1,53 @@
-# Style: Glass, aurora and glow
+# Style: Glass, aurora, and glow
 
-Variant of [SKILL.md](./SKILL.md). Use when the brief or `DESIGN.md` asks for glassmorphism, frosted panels, aurora or mesh gradients, glow, "futuristic", "premium", visionOS-like, or when it is the chosen direction for a consumer product, launch, event, music or AI product. Done well, it looks expensive; done by reflex, it looks generated. The difference is contrast, restraint in count, and a real layer behind the glass.
+Use for approved translucent layers, aurora/mesh fields, atmospheric gradients, or glow. A request for "premium" or "futuristic" alone is not an automatic glass recipe: settle the user's actual direction through [SKILL.md](./SKILL.md).
 
-## Dials
-`DESIGN_VARIANCE 7`, `MOTION_INTENSITY 6`, `VISUAL_DENSITY 3` unless the design read says otherwise.
+## Visual intent
+Glass reveals an underlying layer; the backdrop and panel tint must work together. A color field, image, video, or scrolling content can create that depth. Content-heavy surfaces may need stronger tint or solid fill for comfortable reading.
 
-## Rules of the style
-- **Something worth seeing behind the glass.** A photo, video, gradient field or content scrolling underneath. Glass over a flat colour is just a grey box.
-- **Few layers.** One to three glass surfaces per view (nav, a hero card, a modal). Content-heavy areas (tables, long forms, articles) sit on solid surfaces.
-- **One gradient field per view.** The aurora or mesh lives in the background layer and is built from 2-4 brand hues; foreground elements stay solid or glass.
-- **Glow means emphasis.** One glowing element per view (the primary CTA, the live item, the selected card).
+Plan a coherent relationship between atmospheric background, foreground surfaces, and focal emphasis. There is no fixed number of panels, glows, hues, or gradients; count and intensity follow hierarchy, clarity, and performance. Do not put the same glowing treatment on every item by reflex.
 
-## Recipes
-Hex and rgba values are labelled examples; map them to `DESIGN.md` tokens.
+Motion is independent of this material style. A static glass design is valid. Follow the agreed motion intent; a static aurora is valid and richer movement needs a purpose and reduced-motion alternative.
+
+## Example material recipe
+Map every role to the actual `DESIGN.md`. Start from an opaque readable panel, then opt into translucency only where supported and visually verified:
 
 ```css
-/* Glass panel */
 .glass-panel {
-  background: rgb(255 255 255 / 0.08);                 /* example tint; darker tint on light backgrounds */
-  border: 1px solid rgb(255 255 255 / 0.18);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 8px 32px rgb(0 0 0 / 0.25);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  color: var(--color-on-surface);
+  background: var(--color-surface);
+  border: 1px solid var(--color-glass-border);
+  box-shadow: var(--shadow-glass);
 }
-/* Fallbacks: no blur support, or the user asked for less transparency */
-@supports not (backdrop-filter: blur(1px)) { .glass-panel { background: var(--color-surface); } }
-@media (prefers-reduced-transparency: reduce) { .glass-panel { background: var(--color-surface); backdrop-filter: none; } }
-
-/* Aurora background: fixed layer, not on scrolling content */
-.aurora {
-  position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background:
-    radial-gradient(60% 50% at 20% 20%, var(--color-aurora-1) 0%, transparent 60%),  /* example #7C3AED at 45% */
-    radial-gradient(50% 40% at 80% 30%, var(--color-aurora-2) 0%, transparent 60%),  /* example #06B6D4 at 35% */
-    radial-gradient(60% 50% at 50% 90%, var(--color-aurora-3) 0%, transparent 60%),  /* example #F472B6 at 30% */
-    var(--color-base);                                                                 /* example #0A0A12 */
-  filter: blur(40px);
+@supports (backdrop-filter: blur(1px)) {
+  .glass-panel {
+    background: var(--color-glass-tint);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+  }
 }
-@media (prefers-reduced-motion: no-preference) {
-  .aurora { animation: aurora-drift 30s ease-in-out infinite alternate; }
+@media (prefers-reduced-transparency: reduce) {
+  .glass-panel {
+    background: var(--color-surface);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
-@keyframes aurora-drift { to { transform: translate3d(0, -4%, 0) scale(1.08); } }
-
-/* Glow on the one element that earns it */
-.cta-glow { box-shadow: 0 0 0 1px var(--color-accent), 0 0 32px -4px var(--color-accent); }
 ```
 
-- Gradient text: fine on one display headline with a solid-colour fallback (`color` set before `background-clip: text`) and at display sizes only; body and UI text stay solid.
-- Gradient borders: `border-image` or a masked pseudo-element; one highlighted card, not every card.
+Support for the reduced-transparency query varies, so readable contrast cannot depend on that query alone. Use sufficient tint/scrim in the ordinary translucent state.
 
-## Accessibility and performance (firm)
-- Text on glass must meet 4.5:1 against the **worst** part of what is behind it. Raise the panel tint, add a scrim under text, or darken the background layer until it does. Check with the rendered page (`/see`, computed styles plus a screenshot), since the declared colours cannot tell you.
-- Honour `prefers-reduced-motion` (aurora and glow stay still) and `prefers-reduced-transparency` (solid surfaces).
-- `backdrop-filter` is expensive on low-end Android: keep it to a few fixed-size elements, never on long scrolling lists, and test the scroll on a throttled profile when the audience is mobile-first.
-- Focus rings stay solid and visible; a glow is not a focus indicator.
+## Gradients and emphasis
+Build aurora/mesh fields from the agreed palette, using a static CSS background where enough. If an animated field is approved, isolate it in a bounded decorative layer, avoid input interception, honor reduced motion, and measure its cost. Do not apply a fixed viewport blur to every section by default.
+
+Gradient text needs a readable solid fallback and adequate contrast across the glyphs, not only the headline's average background. Keep body/control text legible. Gradient borders and glow may emphasize selected or featured content; they do not replace a visible keyboard focus ring.
+
+Light and dark material treatments have different tint needs. A contrasting section can change the panel recipe; use local semantic tokens rather than assuming one transparency value works everywhere.
+
+## Accessibility and performance
+Inspect text against the worst actual backdrop area, including responsive crops and moving content. Normal text generally needs 4.5:1 contrast; qualifying large text 3:1. Raise tint, simplify the backdrop, or add a scrim to preserve the approved style.
+
+Use real browser inspection for focus, text, scroll, reduced motion, and unsupported blur behavior. Limit large blurred areas and stacked backdrop effects according to observed device cost; a static illustration or gradient can achieve atmosphere more cheaply. Reserve media dimensions and provide controls for meaningful video/audio behavior.
+
+## Review
+The composition should still read clearly with blur absent and motion disabled. Check initial load, mobile crops, low-emphasis text, overlays, focus, and scroll performance. Correct the weak local layer instead of stripping the entire glass direction during a generic anti-template review.

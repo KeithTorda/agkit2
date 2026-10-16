@@ -1,132 +1,23 @@
----
-name: nextjs-static
-description: Next.js static-export template for landing pages and portfolios. App Router, React 19, Tailwind v4, motion.
-version: 2.5.0
----
+# Next.js site with deliberate rendering
 
-# Next.js Static Site Template
+## Fit and inspection
 
-> Pin to the current stable line when scaffolding.
+Use when Next.js is the chosen foundation for a content or marketing site. Distinguish static export from a hosted Next runtime; a page that is statically rendered is not necessarily a standalone export.
 
-## Tech Stack
+Inspect existing work before scaffolding. For a new foundation, use current official setup guidance and compatible versions; do not copy historical CLI flags blindly. Preserve the requested package manager, deployment constraints and user changes.
 
-| Component | Technology | Notes |
-|---|---|---|
-| Framework | Next.js 16+ | App Router, static export; Turbopack is the default bundler |
-| UI | React 19.2 | Server Components; React Compiler enabled by this template (`reactCompiler: true`) |
-| Language | TypeScript 5.9+ | Strict mode |
-| Styling | Tailwind CSS v4 | CSS-first config, no JS config file |
-| Animation | motion (`motion/react`) | Successor of framer-motion; layout animations and gestures |
-| Icons | Lucide (or one other family: Phosphor, Radix Icons, Tabler; Heroicons for Tailwind-UI-style projects) | One family per project |
-| SEO | Metadata API | Native; `sitemap.ts`, `robots.ts`, `opengraph-image.tsx` |
-| Lint | ESLint 9 flat config | `eslint .`; `next lint` no longer exists |
+## Implementation decisions
 
-## Directory Structure
+- Use the installed router conventions and keep browser-only interactions scoped. Do not make an entire site client-rendered for one animation.
 
-```
-project-name/
-├── src/
-│   ├── app/
-│   │   ├── layout.tsx            # Root metadata, fonts
-│   │   ├── page.tsx              # Landing page
-│   │   ├── globals.css           # @import "tailwindcss"; @theme from DESIGN.md
-│   │   ├── not-found.tsx
-│   │   ├── sitemap.ts
-│   │   ├── robots.ts
-│   │   ├── opengraph-image.tsx
-│   │   └── (routes)/             # about, contact, ...
-│   ├── components/layout/        # Header, Footer
-│   ├── components/sections/      # Hero, Features, Pricing, FAQ, CTA
-│   ├── components/ui/            # Button, Card
-│   └── lib/utils.ts              # cn, formatters
-├── content/                      # Markdown / MDX
-├── public/
-├── DESIGN.md                     # Visual source of truth (written before UI code)
-├── next.config.ts
-└── package.json
-```
+- If output is a static export, check compatibility of dynamic routes, images, server functions, redirects and asset paths against current official docs.
 
-## Static Export Config
+- Motion, Tailwind, a CMS and a component library are optional. Add only what the selected content and interaction require.
 
-```typescript
-// next.config.ts
-import type { NextConfig } from "next";
+For new visual design, complete the shared short style/reference intake and wait unless already answered or delegated. Reuse accepted tokens and design components; this template does not select an aesthetic or install a styling package. API/CLI-only work needs no visual questionnaire.
 
-const nextConfig: NextConfig = {
-  output: "export",            // static hosting (S3, GitHub Pages, Netlify)
-  images: { unoptimized: true }, // no image server in static export; or use an image CDN loader
-  trailingSlash: true,          // avoids 404s on some static hosts
-};
+## Verify and hand off
 
-export default nextConfig;
-```
+Run the actual production build/export, serve its output when possible, inspect routes and responsive composition, and test real navigation and forms.
 
-## SEO (Metadata API)
-
-```typescript
-// src/app/layout.tsx
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: { template: "%s | Product", default: "Product — one-line promise" },
-  description: "What the product does, for whom.",
-  openGraph: { type: "website", locale: "en_US", url: "https://example.com", siteName: "Product" },
-};
-```
-
-## Landing Page Sections
-
-| Section | Purpose |
-|---|---|
-| Hero | H1, one-line promise, primary CTA |
-| Features | Benefits, not feature lists; vary the layout (avoid three identical cards by default) |
-| Social proof | Logos, numbers, testimonials |
-| Pricing | Plans with one recommended option |
-| FAQ | Objections answered; good for SEO |
-| CTA | Final conversion |
-
-## Animation Patterns (motion)
-
-```tsx
-import { motion, useScroll, useTransform } from "motion/react";
-```
-
-| Pattern | Implementation |
-|---|---|
-| Fade up | `initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}` |
-| Stagger | Parent variants with `staggerChildren` |
-| Parallax | `useScroll` + `useTransform` |
-| Micro-interactions | `whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}` |
-
-Respect `prefers-reduced-motion` (`useReducedMotion`).
-
-## Setup Steps
-
-1. `npx create-next-app@latest my-site --typescript --tailwind --eslint --app --src-dir`
-2. `npm install motion lucide-react clsx tailwind-merge` and `npm install -D babel-plugin-react-compiler`; set `reactCompiler: true` in `next.config.ts` (compiler-first when the React Compiler is enabled; the memo rule is in `nextjs-react-expert`).
-3. `src/app/globals.css` with tokens from `DESIGN.md`:
-   ```css
-   @import "tailwindcss";
-   @custom-variant dark (&:where(.dark, .dark *));
-
-   @theme {
-     --color-primary: oklch(0.55 0.18 250); /* from DESIGN.md */
-     --font-sans: var(--font-brand), system-ui, sans-serif;
-   }
-   ```
-4. `npm run dev`; `npm run build` writes the static site to `out/`.
-
-## Deployment
-
-| Platform | Method | Notes |
-|---|---|---|
-| Vercel / Netlify | git push | auto-detected |
-| GitHub Pages | Actions workflow | set `basePath` when not on a custom domain |
-| S3 / CloudFront | upload `out/` | error document → `404.html` |
-
-## Best Practices
-
-- Server Components by default; `'use client'` only for state, event handlers, and motion components.
-- `next/font` for self-hosted fonts and zero layout shift; the family comes from `DESIGN.md`.
-- Mobile-first with `sm:` / `md:` / `lg:`; images via `<Image />` with an external loader or `unoptimized`.
-- Lighthouse is advisory; run it when a URL is available (`performance-profiling`), plus the SEO check (`seo-fundamentals`).
+Report the actual run command, implemented outcome, checks performed and concrete remaining setup. Starter code, a mocked integration or a successful dependency install is not proof of a working end-to-end product.

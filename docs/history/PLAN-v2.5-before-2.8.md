@@ -1,3 +1,5 @@
+> Historical document. Current behavior is defined by the 2.7 rules and skills; see README.md and CHANGES.md.
+
 # AG Kit v2.5 — Rebuild Plan
 
 Date: 2026-09-27. Owner: Nikko (Keith Torda). Target: `Desktop/agkit2`, installs to `~/.gemini/config/plugins/ag-kit-v2` (same path as v2.2).

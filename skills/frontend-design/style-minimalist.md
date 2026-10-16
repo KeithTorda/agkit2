@@ -1,59 +1,35 @@
-# Style: Minimalist / Editorial (warm monochrome)
+# Style: Minimal / editorial
 
-Variant of [SKILL.md](./SKILL.md). Use when this direction is chosen: the brief says "Notion-like", "document-style", "warm minimalism", "editorial workspace", or `DESIGN.md` names it. Everything in SKILL.md still applies. Hex values below are labelled examples of the style; `DESIGN.md` tokens replace them.
+Use only for an approved minimal, document-like, or editorial direction. [SKILL.md](./SKILL.md) still governs intake and craft. This is a palette of choices, not a template; `DESIGN.md` replaces every example.
 
-## What sets this style apart
-| Choice | Why |
-|---|---|
-| Serif display for hero headings and pull quotes, sans for everything else | The editorial/document feel is the brief; record the pairing in `DESIGN.md`. |
-| Card surfaces a step lighter than the canvas (a pure white card on an off-white canvas works) | In an ultra-flat system, the near-white step is the only elevation device. |
-| Pastel chips in several hues | They are semantic tags (status, category); the brand accent stays one colour for the primary action. |
-| Divider-only accordions | Native to the document aesthetic. |
+## Character
+Build hierarchy through typography, alignment, whitespace, proportion, and precise interaction. A minimal composition can be warm, crisp, monochrome, image-led, or typographic. It need not be empty, gray, or identical to a familiar productivity app.
 
-## Dials
-`DESIGN_VARIANCE 5`, `MOTION_INTENSITY 3`, `VISUAL_DENSITY 3` unless the design read says otherwise.
+Use plain-language decisions about composition, density and motion. Existing numeric shorthand can remain useful project context, but does not prescribe this style.
 
 ## Typography
-- Sans (body, UI, buttons): `Geist Sans`, `Switzer`, or `Helvetica Neue`, falling back to `system-ui`. Do not name Apple system fonts (`SF Pro`) in `font-family`; they are not web-hostable.
-- Serif (hero headings, quotes only): `Newsreader`, `Lyon Text`, `Source Serif 4`. Tracking `-0.02em` to `-0.04em`, line-height `1.1`. Never for body or UI.
-- Mono (code, keystrokes, metadata): `Geist Mono`, `JetBrains Mono`.
-- Text colours (examples): body `#111111` or `#2F3437` at `line-height: 1.6`; secondary `#6B6A67` (the lighter `#787774` the style is known for fails AA on this canvas; use it only at 18px+). Near-black reads softer than pure black in this style.
-- Weights: 400 body, 500 UI, 600 headings. Sentence case; wide-tracked uppercase only on the few eyebrows the cap allows.
+A neutral sans alone may be enough. An editorial serif display with a readable sans body is another option. Example families include Source Sans 3, Public Sans, Geist, Newsreader, and Source Serif 4; check availability, language coverage, and license before choosing.
 
-## Colour (warm monochrome + spot pastels; example values)
-- Canvas: `#FBFBFA` or `#F7F6F3`. Card surface: `#FFFFFF` or `#F9F9F8`.
-- Borders and dividers: `#EAEAEA` or `rgba(0,0,0,0.06)`, always 1px.
-- Primary action: solid `#111111` with `#FFFFFF` text (hover `#333333`).
-- Semantic pastels (chips, inline code, icon tiles): pale red `#FDEBEC` / `#9F2F2D`, pale blue `#E1F3FE` / `#1F6C9F`, pale green `#EDF3EC` / `#346538`, pale yellow `#FBF3DB` / `#956400`.
-- Dark scheme, when `DESIGN.md` asks for both: canvas `#191919`, surface `#202020`, border `rgba(255,255,255,0.08)`, body `#E6E6E4`, secondary `#9B9A97`; pastels drop to 12% tints of the same hues.
-- The style's own restraint: no gradients, no neon, no large coloured sections, glass at most on a subtle nav blur, shadows `0 2px 8px rgba(0,0,0,0.04)` at most. Want more energy? That is a different direction (`directions.md`), not this one turned up.
+Keep the number of families purposeful. Mono is optional for real code or data; do not automatically add a third face. Choose body and UI type by reading needs; serif body text is valid for editorial content when readable. Use real weights, sufficient line height, and deliberate wrapping rather than squeezing text to a fixed line count.
 
-## Shape and spacing
-- Radius scale: `4-6px` buttons and inputs, `8-12px` cards, `9999px` only for small chips and tags. No pill primary buttons, no pill containers.
-- Sections `py-24` to `py-32`; typographic content `max-w-4xl` / `max-w-5xl`; cards padded `24-40px`.
-- Bento feature grids: asymmetric CSS Grid, `1px solid #EAEAEA` cell borders, ≤ 12px radius, cell count equal to content count (marketing-layout.md §4.5).
+## Color and depth
+Possible light canvas: `#FBFAF7`, ink `#1A1C1E`, supporting text `#5D5A55`. These are example roles; verify contrast against the actual surfaces. Pure white/black is also valid. A restrained brand accent can clarify action; semantic tag colors may use additional hues.
 
-## Components
-- Chips and status tags: `text-xs`, pill, `letter-spacing: 0.05em`, pastel background from the list above.
-- Accordion: no container boxes; items separated by `border-bottom: 1px solid #EAEAEA`; `+` / `-` toggle glyphs.
-- Keystrokes: `<kbd>` with `1px solid #EAEAEA`, `4px` radius, `#F7F6F3` background, mono font.
-- Software previews: a real screenshot or generated image (marketing-layout.md §4.6). A thin `1px #EAEAEA` frame with `8px` radius may wrap a real image; no fake window chrome, no traffic-light dots, no UI built from divs.
+Solid surfaces, subtle tonal steps, rules, or soft shadows can define depth. Gradients, color blocks, a subtle glass navigation, or a stronger image are options when the approved direction includes them; minimalism does not impose a blanket ban. A text-only section may intentionally stay plain.
 
-## Icons and imagery
-- Phosphor (Bold or Fill) or Radix Icons for the slightly heavier stroke this style wants; one family, one weight.
-- Illustrations: monochrome continuous-line ink sketches with a single pastel-filled geometric shape.
-- Photography: desaturated, warm-toned, with a `0.04` warm grain overlay; picsum seeds when real assets are missing. Backgrounds get depth from low-opacity imagery, a warm radial light spot at `opacity 0.03`, or a minimal line pattern; never a flat empty section.
+Only implement dark mode when requested or already supported. A contrasting section is allowed without adding a full second theme.
 
-## Motion (quiet)
-- Scroll entry: `translateY(12px)` + `opacity 0` → resolved over `600ms` with `cubic-bezier(0.16, 1, 0.3, 1)`, via `motion/react` `whileInView` or `IntersectionObserver`.
-- Hover: card shadow `0 0 0` → `0 2px 8px rgba(0,0,0,0.04)` over `200ms`; buttons `scale(0.98)` on `:active`.
-- Stagger: `animation-delay: calc(var(--index) * 80ms)` on lists and grids.
-- Optional ambient: one slow radial blob (`20s+`, `opacity 0.02-0.04`) on a `fixed pointer-events-none` layer behind the hero.
-- `transform` / `opacity` only; reduced-motion fallback per SKILL.md §5.
+## Shape, content, and media
+Use a consistent role-based shape and spacing system. Sharp corners, softly rounded cards, or pill buttons can all fit. Choose content widths by reading measure and composition, not fixed mandatory classes.
 
-## Build order
-1. Macro whitespace and container widths first.
-2. Type hierarchy and color variables (from `DESIGN.md`) next.
-3. Borders and dividers: every one is `1px #EAEAEA`.
-4. Imagery and depth per section.
-5. Scroll-entry motion last.
+Lists and open layouts often work well; cards and bento grids are available when the content benefits. Do not force a different layout into every section.
+
+Prefer real user/brand assets. Illustration or photography may add identity, but there is no minimum image count and no random-photo fallback. Real product screenshots or accurate coded demos can show the product. Generated images must not pretend to document real functionality.
+
+## Motion
+A quiet direction may use focus, hover, press, selection and state feedback. An expressive editorial direction can also use considered entrances or narrative movement when agreed. Choose by the actual brief rather than a numeric level; use `motion.md` for richer choreography and resilient fallback.
+
+Honor reduced motion, retain a visible focus indicator, and ensure feedback is understandable without movement.
+
+## Review
+Inspect the rendered composition at narrow and wide sizes. Look for weak hierarchy, awkward empty space, uneven optical alignment, unreadable secondary text, accidental wrapping, and controls that disappear into the quiet surface. Fix those problems without automatically adding decoration or flattening an approved expressive detail.

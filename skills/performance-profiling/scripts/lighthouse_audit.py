@@ -130,8 +130,10 @@ def main() -> int:
                     if result["scores"].get(name) is not None and result["scores"][name] < minimum]
         result.update({"thresholds": thresholds, "failed_thresholds": failures, "passed": not failures})
     else:
-        result["passed"] = result["status"] == "skipped"
-    exit_code = 0 if result["passed"] else 1
+        result["passed"] = False
+    result["verified"] = result["status"] == "success" and result["passed"] is True
+    result["outcome"] = "SKIPPED" if result["status"] == "skipped" else ("PASS" if result["verified"] else "FAIL")
+    exit_code = 0 if result["passed"] or result["status"] == "skipped" else 1
 
     if args.json:
         print(json.dumps(result, indent=2, ensure_ascii=False))

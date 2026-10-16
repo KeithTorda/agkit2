@@ -1,34 +1,21 @@
-# Mobile Debugging Guide
+# Diagnose mobile failures with evidence
 
-Mobile apps have a native layer under the JavaScript or Dart, so text logs alone are not enough. When the code looks correct but the app still fails, look at the native side. Key differences from web debugging:
+Record device/emulator, OS, app build/variant, framework/native versions, reproduction and observed failure. Compare expected and actual behavior. Inspect relevant client, native and backend logs without dumping tokens or personal records. A red screen versus app exit is a clue, not an infallible JS/native classification.
 
-- A JS error shows a red screen; a native crash drops straight to the home screen.
-- You cannot just refresh — state gets stuck, and a clean native build is often needed.
-- Network is harder to inspect (SSL pinning, proxy setup).
-- `adb logcat` and Xcode's Console are the source of truth for native problems.
+## Locate the failing boundary
 
-## Habits to drop
+- **Build/install:** inspect the first meaningful compiler/package/signing error and actual toolchain compatibility. Dependency resolution, permissions, certificates, architecture and SDK requirements have different remedies.
+- **Runtime crash/ANR:** use platform crash logs, stack traces and appropriate debugger. Android `adb logcat`, Android Studio and Xcode device diagnostics may help when available. Match symbols/source maps to the actual build.
+- **UI/state defect:** reproduce with real content, navigation and accessibility settings; inspect hierarchy, constraints, safe areas, lifecycle and stale async state.
+- **Network/auth:** inspect actual request/status and server correlation evidence. Emulator host routing, device firewall, TLS, provider configuration and session refresh can differ from a desktop browser.
+- **Performance:** profile the affected thread/workload rather than inferring the cause from a deep component tree alone.
 
-- "Add console.logs" — use React Native DevTools or Reactotron instead.
-- "Check the network tab" — use Charles Proxy or Proxyman.
-- "It works on the simulator" — reproduce on a real device; some bugs are hardware-specific.
-- "Reinstall node_modules" — clean the native build (Gradle / Pod cache) when the failure is native.
-- Ignoring native logs — read `logcat` / Xcode logs.
+Use supported tools already available for the installed runtime. Do not assume every React Native version has identical debugger/network features or install a proxy just to see one sanitized API error. If intercepting device traffic is required and authorized, understand certificate/pinning and environment boundaries; do not weaken production TLS to debug.
 
-## 1. Tools
+## Test one hypothesis
 
-React Native / Expo: Reactotron (state, API, Redux), React Native DevTools (console, network, components, profiler — the default debugger on RN 0.76+), Expo's element inspector for quick UI checks.
+Trace the cause, make an explanatory change, and reproduce the failure again. A clean/reinstall can be useful for a demonstrated stale generated artifact or dependency issue, but is not the first universal fix. Preserve diagnostic evidence and user data before destructive cache/app resets. Do not run `pod deintegrate`, remove lockfiles, wipe databases or clean every cache without understanding the affected boundary.
 
-Native layer: `adb logcat` for Android native crashes and ANRs; Xcode Console (via Window > Devices) for iOS native exceptions and memory; Android Studio Layout Inspector and Xcode View Inspector for UI hierarchy bugs.
+For async behavior check cancellation, stale responses, effect/controller cleanup and callbacks after disposal. For native configuration inspect the actual manifest/entitlements/build target and dependency requirements rather than applying generic flags.
 
-## 2. Common workflows
-
-**App crashed.** A red screen is a JS error — read the on-screen stack trace, usually clear (undefined access, bad import). A crash to the home screen is native — filter Android errors with `adb logcat *:E`, or open Xcode > Window > Devices > View Device Logs. A crash immediately on launch is almost always native configuration (Info.plist, AndroidManifest.xml).
-
-**API request failed.** You usually cannot see mobile traffic in a browser devtools panel. Use React Native DevTools or Reactotron to view requests, or a proxy (Charles / Proxyman) to see all traffic including native SDKs — the proxy needs its SSL cert installed on the device.
-
-**UI is laggy.** Measure, do not guess. RN: the Performance Monitor from the shake menu. Android: "Profile GPU Rendering" in Developer Options. A JS FPS drop means heavy work on the JS thread; a UI FPS drop means too many views, a deep hierarchy, or heavy images.
-
-## 3. Platform-specific traps
-
-Android: Gradle sync failures are usually a Java version mismatch or duplicate classes; the emulator reaches the host at `10.0.2.2`, not `127.0.0.1`; `./gradlew clean` clears cached builds. iOS: `pod deintegrate && pod install` for Pod issues; check Team ID and Bundle Identifier for signing errors; Product > Clean Build Folder clears Xcode's cache.
+Recheck the original defect and relevant adjacent behavior. Report root cause, correction, actual build/device checks and exact limitations. A simulator-only fix should not be described as verified on physical hardware.

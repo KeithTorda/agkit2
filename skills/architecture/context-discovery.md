@@ -1,24 +1,34 @@
-# Context Discovery
+# Discover architecture context
 
-Establish this context before proposing a structure. Infer it from the brief, the code, `docs/plans/`, `docs/proplan/`, and project memory; ask only for the items that would change the design (at most 3 questions, each with a recommended default, per `core-protocol`).
+Use this reference when a structural choice depends on constraints that are not yet established. Start from repository/configuration evidence, requirements and existing operations. Avoid inferring the product, country, scale or maintainer's preferences from examples in this kit.
 
-## Context to establish
+## Evidence to gather selectively
 
-1. **Users and scale** - who uses it (public, staff, admins, several roles), how many (10, 1K, 100K+), peak moments (enrolment week, election day, payday sales), data volume.
-2. **Team and operations** - solo developer or team; who maintains it after handover; the client's ability to run a server (shared hosting, VPS, managed platform).
-3. **Timeline** - prototype, MVP with a deadline, or long-lived system.
-4. **Domain** - CRUD-heavy or rule-heavy; money (sales, VAT, receipts); government or personal data (Data Privacy Act of 2012 obligations); audit trail needs; real-time needs.
-5. **Environment** - connectivity (offline or flaky internet at the point of use?), devices (phones, shared desktop, POS terminal, printers), languages (English, Filipino).
-6. **Constraints** - budget, hosting the client already pays for, legacy systems or spreadsheets to import, required integrations (payment gateways, SMS, e-mail, BIR requirements), stack preferences.
+| Area | What changes the decision | Useful evidence |
+|---|---|---|
+| User outcome | Critical workflows, deadlines, availability expectations | Brief, support cases, acceptance criteria |
+| Domain | Facts that must remain consistent, ownership, retention | Rules, schemas, production incidents |
+| Load | Peak concurrency, read/write mix, payloads, growth | Logs, traces, representative data, explicit forecasts |
+| Operations | Deploy cadence, observability, recovery, staffing | CI/deploy config, runbooks, ownership |
+| Environment | Hosting limits, runtime, connectivity, devices | Manifests, infrastructure, actual device/network use |
+| Integrations | Protocols, latency, reliability, external ownership | Client code, contracts, failure reports |
+| Security/data | Tenant boundaries, sensitive assets, access/retention needs | Identity model, data flows, actual requirements |
+| Change cost | Compatibility windows, migration risk, budget | Existing consumers, release constraints, team evidence |
 
-## Project classification
+Do not needlessly investigate every row. A local module split may require only imports and callers; a tenancy migration needs data ownership and rollout evidence.
 
-| | Small site / portal | Business system | SaaS | Larger platform |
-|---|---|---|---|---|
-| Examples | Barangay or school site, LGU info portal, landing page | POS, inventory, enrolment, records system for one client | Multi-tenant product sold to many clients | Many teams, 100K+ active users |
-| Users | Public, few editors | Staff with roles | Tenants with roles | Many audiences |
-| Team | Solo | Solo or 2-3 | 2-10 | 10+ |
-| Structure | Static or server-rendered site | Monolith (Laravel or Next.js) | Modular monolith | Modular monolith, services where proven |
-| Patterns | Minimal | Transactions, audit log, roles | Tenant isolation, background jobs | Chosen per domain |
+## Separate fact from assumption
 
-Most of Nikko's work sits in the first two columns: design for correctness, maintainability and cheap hosting before scale.
+Record material items as confirmed, inferred or unknown. Attach evidence where useful. User counts without workload context are weak predictors: 100 active staff doing complex writes can differ from many anonymous cached readers.
+
+Define measurable quality requirements when possible: acceptable response behavior under a named load, recovery point/time targets, data durability, supported offline duration. Do not manufacture numbers to make a plan look precise.
+
+## Resolve a consequential unknown
+
+Ask when competing reasonable answers would materially change the decision and evidence cannot settle it. Keep the question tied to the outcome, with viable options/trade-offs. For an inexpensive reversible choice, state a grounded assumption and proceed within scope.
+
+An offline requirement needs a real definition: read cached content, create drafts, complete payments, or reconcile independent stock? These imply different storage and conflict contracts.
+
+## Useful output
+
+A concise context summary should identify the current system, intended outcome, decisive constraints, important invariants and unresolved assumptions. No project-size classification or fixed stack follows automatically. Carry this evidence into [pattern-selection.md](pattern-selection.md) and an ADR only when the decision merits one.

@@ -1,386 +1,45 @@
-# 6. Rendering Performance
+# Rendering, hydration and motion
 
-> **Impact:** MEDIUM
-> **Focus:** Optimizing the rendering process reduces the work the browser needs to do.
+Trace the actual browser cost before changing markup, hiding content or adding compositing layers. Preserve focus, semantics and the intended visual result.
 
----
+## Rule 6.1: Animate the appropriate layer
 
-## Overview
+Transforms/opacity often avoid expensive layout, but acceleration depends on browser, element and paint workload. SVG can support accelerated behavior; wrapping every SVG does not guarantee GPU acceleration. Profile the real effect and avoid unnecessary wrappers/layers or blanket `will-change`.
 
-Nine rules for rendering performance.
+## Rule 6.2: Large content needs an appropriate strategy
 
----
+`content-visibility` can defer offscreen rendering when browser support and accessibility behavior fit. Give a suitable intrinsic size where needed and check find-in-page, focus, print and layout jumps. It does not eliminate network/data/DOM cost. Virtualization can help large interactive collections but must preserve navigation, focus, semantics and variable-height behavior.
 
-## Rule 6.1: Animate SVG Wrapper Instead of SVG Element
+## Rule 6.3: Keep render work pure
 
-**Impact:** LOW  
-**Tags:** rendering, svg, css, animation, performance  
+Static JSX can be hoisted when it simplifies a proven hot path, but do not move values that depend on props/context or create shared mutable elements. A supported compiler may already optimize the case. Readability and identity semantics matter more than hoisting every element.
 
-Many browsers don't have hardware acceleration for CSS3 animations on SVG elements. Wrap SVG in a `<div>` and animate the wrapper instead.
+## Rule 6.4: Optimize vector assets without visible damage
 
-**Incorrect (animating SVG directly - no hardware acceleration):**
+Remove unnecessary metadata/precision through the project's asset pipeline when useful. Precision depends on viewBox, size and geometry; a universal one-decimal rule can distort artwork. Compare the actual rendered icon/illustration after optimization and preserve accessible names where needed.
 
-```tsx
-function LoadingSpinner() {
-  return (
-    <svg 
-      className="animate-spin"
-      width="24" 
-      height="24" 
-      viewBox="0 0 24 24"
-    >
-      <circle cx="12" cy="12" r="10" stroke="currentColor" />
-    </svg>
-  )
-}
-```
+## Rule 6.5: Align server and initial client output
 
-**Correct (animating wrapper div - hardware accelerated):**
+Hydration mismatches often come from browser-only state, time/randomness, invalid nesting, locale or external DOM changes. Fix the cause and choose an explicit initial-state strategy. Prefer a server-known preference or a supported framework theme/init mechanism for flicker-sensitive UI.
 
-```tsx
-function LoadingSpinner() {
-  return (
-    <div className="animate-spin">
-      <svg 
-        width="24" 
-        height="24" 
-        viewBox="0 0 24 24"
-      >
-        <circle cx="12" cy="12" r="10" stroke="currentColor" />
-      </svg>
-    </div>
-  )
-}
-```
+An inline pre-hydration script may be appropriate in an established solution, but requires CSP/nonces, safe serialization and agreement with framework ownership. Do not inject unescaped storage values or manipulate arbitrary React DOM as a universal fix.
 
-This applies to all CSS transforms and transitions (`transform`, `opacity`, `translate`, `scale`, `rotate`). The wrapper div allows browsers to use GPU acceleration for smoother animations.
+## Rule 6.6: Suppress only a known limited mismatch
 
----
+Use framework-supported hydration suppression only for a narrow intentionally varying value whose consequences are understood. It does not repair a broken tree or establish correct content. Do not silence a broad mismatch or console error to pass a visual check.
 
-## Rule 6.2: CSS content-visibility for Long Lists
+## Rule 6.7: Hidden state has a lifecycle
 
-**Impact:** HIGH  
-**Tags:** rendering, css, content-visibility, long-lists  
+CSS hiding, unmounting, tabs and supported React visibility APIs differ in effect, memory and focus behavior. APIs such as Activity require the installed React version and intended lifecycle semantics. Do not add a version upgrade solely to keep a small panel mounted. Ensure hidden interactive content is not accidentally focusable/read as active content.
 
-Apply `content-visibility: auto` to defer off-screen rendering.
+## Rule 6.8: Render conditions explicitly
 
-**CSS:**
+Avoid accidental numeric text from expressions such as `count && <List />` when zero should render nothing. Use `count > 0` or another explicit condition. Preserve meaningful zero values when zero is the correct UI, rather than treating every falsy value as missing.
 
-```css
-.message-item {
-  content-visibility: auto;
-  contain-intrinsic-size: 0 80px;
-}
-```
+## Rule 6.9: Pending state belongs to the operation
 
-**Example:**
+Use transition/action pending APIs when supported and semantically appropriate; ordinary request state may still be correct. A transition is not an automatic replacement for every loading flag or error handler. Guard duplicate submissions and show relevant pending/error/empty/success states.
 
-```tsx
-function MessageList({ messages }: { messages: Message[] }) {
-  return (
-    <div className="overflow-y-auto h-screen">
-      {messages.map(msg => (
-        <div key={msg.id} className="message-item">
-          <Avatar user={msg.author} />
-          <div>{msg.content}</div>
-        </div>
-      ))}
-    </div>
-  )
-}
-```
+## Check rendered behavior
 
-For 1000 messages, the browser skips layout/paint for ~990 off-screen items, cutting initial render work substantially.
-
----
-
-## Rule 6.3: Hoist Static JSX Elements
-
-**Impact:** LOW  
-**Tags:** rendering, jsx, static, optimization  
-
-With the React Compiler enabled, static JSX is hoisted automatically; do nothing. Without the compiler, extract large static elements (big SVGs, skeletons) to module scope so they are not recreated on every render:
-
-```tsx
-const loadingSkeleton = <div className="animate-pulse h-20 bg-gray-200" />
-
-function Container({ loading }: { loading: boolean }) {
-  return <div>{loading && loadingSkeleton}</div>
-}
-```
-
----
-
-## Rule 6.4: Optimize SVG Precision
-
-**Impact:** LOW  
-**Tags:** rendering, svg, optimization, svgo  
-
-Reduce SVG coordinate precision to decrease file size. The optimal precision depends on the viewBox size, but in general reducing precision should be considered.
-
-**Incorrect (excessive precision):**
-
-```svg
-<path d="M 10.293847 20.847362 L 30.938472 40.192837" />
-```
-
-**Correct (1 decimal place):**
-
-```svg
-<path d="M 10.3 20.8 L 30.9 40.2" />
-```
-
-**Automate with SVGO:**
-
-```bash
-npx svgo --precision=1 --multipass icon.svg
-```
-
----
-
-## Rule 6.5: Prevent Hydration Mismatch Without Flickering
-
-**Impact:** MEDIUM  
-**Tags:** rendering, ssr, hydration, localStorage, flicker  
-
-When rendering content that depends on client-side storage (localStorage, cookies), avoid both SSR breakage and post-hydration flickering by injecting a synchronous script that updates the DOM before React hydrates.
-
-**Incorrect (breaks SSR):**
-
-```tsx
-function ThemeWrapper({ children }: { children: ReactNode }) {
-  // localStorage is not available on server - throws error
-  const theme = localStorage.getItem('theme') || 'light'
-  
-  return (
-    <div className={theme}>
-      {children}
-    </div>
-  )
-}
-```
-
-Server-side rendering will fail because `localStorage` is undefined.
-
-**Incorrect (visual flickering):**
-
-```tsx
-function ThemeWrapper({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState('light')
-  
-  useEffect(() => {
-    // Runs after hydration - causes visible flash
-    const stored = localStorage.getItem('theme')
-    if (stored) {
-      setTheme(stored)
-    }
-  }, [])
-  
-  return (
-    <div className={theme}>
-      {children}
-    </div>
-  )
-}
-```
-
-Component first renders with default value (`light`), then updates after hydration, causing a visible flash of incorrect content.
-
-**Correct (no flicker, no hydration mismatch):**
-
-```tsx
-function ThemeWrapper({ children }: { children: ReactNode }) {
-  return (
-    <>
-      <div id="theme-wrapper">
-        {children}
-      </div>
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-            (function() {
-              try {
-                var theme = localStorage.getItem('theme') || 'light';
-                var el = document.getElementById('theme-wrapper');
-                if (el) el.className = theme;
-              } catch (e) {}
-            })();
-          `,
-        }}
-      />
-    </>
-  )
-}
-```
-
-The inline script executes synchronously before showing the element, ensuring the DOM already has the correct value. No flickering, no hydration mismatch.
-
-This pattern is especially useful for theme toggles, user preferences, authentication states, and any client-only data that should render immediately without flashing default values.
-
----
-
-## Rule 6.6: Suppress Expected Hydration Mismatches
-
-**Impact:** LOW-MEDIUM  
-**Tags:** rendering, hydration, ssr, nextjs  
-
-In SSR frameworks (e.g., Next.js), some values are intentionally different on server vs client (random IDs, dates, locale/timezone formatting). For these *expected* mismatches, wrap the dynamic text in an element with `suppressHydrationWarning` to prevent noisy warnings. Do not use this to hide real bugs. Don’t overuse it.
-
-**Incorrect (known mismatch warnings):**
-
-```tsx
-function Timestamp() {
-  return <span>{new Date().toLocaleString()}</span>
-}
-```
-
-**Correct (suppress expected mismatch only):**
-
-```tsx
-function Timestamp() {
-  return (
-    <span suppressHydrationWarning>
-      {new Date().toLocaleString()}
-    </span>
-  )
-}
-```
-
----
-
-## Rule 6.7: Use Activity Component for Show/Hide
-
-**Impact:** MEDIUM  
-**Tags:** rendering, activity, visibility, state-preservation  
-
-Use React's `<Activity>` (stable in React 19.2) to preserve state and DOM for expensive components that toggle visibility often. Hidden subtrees keep state, drop their effects, and render at low priority.
-
-**Usage:**
-
-```tsx
-import { Activity } from 'react'
-
-function Dropdown({ isOpen }: Props) {
-  return (
-    <Activity mode={isOpen ? 'visible' : 'hidden'}>
-      <ExpensiveMenu />
-    </Activity>
-  )
-}
-```
-
-Avoids expensive re-renders and state loss.
-
----
-
-## Rule 6.8: Use Explicit Conditional Rendering
-
-**Impact:** LOW  
-**Tags:** rendering, conditional, jsx, falsy-values  
-
-Use explicit ternary operators (`? :`) instead of `&&` for conditional rendering when the condition can be `0`, `NaN`, or other falsy values that render.
-
-**Incorrect (renders "0" when count is 0):**
-
-```tsx
-function Badge({ count }: { count: number }) {
-  return (
-    <div>
-      {count && <span className="badge">{count}</span>}
-    </div>
-  )
-}
-
-// When count = 0, renders: <div>0</div>
-// When count = 5, renders: <div><span class="badge">5</span></div>
-```
-
-**Correct (renders nothing when count is 0):**
-
-```tsx
-function Badge({ count }: { count: number }) {
-  return (
-    <div>
-      {count > 0 ? <span className="badge">{count}</span> : null}
-    </div>
-  )
-}
-
-// When count = 0, renders: <div></div>
-// When count = 5, renders: <div><span class="badge">5</span></div>
-```
-
----
-
-## Rule 6.9: Use useTransition Over Manual Loading States
-
-**Impact:** LOW  
-**Tags:** rendering, transitions, useTransition, loading, state  
-
-Use `useTransition` instead of manual `useState` for loading states. This provides built-in `isPending` state and automatically manages transitions.
-
-**Incorrect (manual loading state):**
-
-```tsx
-function SearchResults() {
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState([])
-  const [isLoading, setIsLoading] = useState(false)
-
-  const handleSearch = async (value: string) => {
-    setIsLoading(true)
-    setQuery(value)
-    const data = await fetchResults(value)
-    setResults(data)
-    setIsLoading(false)
-  }
-
-  return (
-    <>
-      <input onChange={(e) => handleSearch(e.target.value)} />
-      {isLoading && <Spinner />}
-      <ResultsList results={results} />
-    </>
-  )
-}
-```
-
-**Correct (useTransition with built-in pending state):**
-
-```tsx
-import { useTransition, useState } from 'react'
-
-function SearchResults() {
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState([])
-  const [isPending, startTransition] = useTransition()
-
-  const handleSearch = (value: string) => {
-    setQuery(value) // Update input immediately
-    
-    startTransition(async () => {
-      // Fetch and update results
-      const data = await fetchResults(value)
-      setResults(data)
-    })
-  }
-
-  return (
-    <>
-      <input onChange={(e) => handleSearch(e.target.value)} />
-      {isPending && <Spinner />}
-      <ResultsList results={results} />
-    </>
-  )
-}
-```
-
-**Benefits:**
-
-- **Automatic pending state**: No need to manually manage `setIsLoading(true/false)`
-- **Error resilience**: Pending state correctly resets even if the transition throws
-- **Better responsiveness**: Keeps the UI responsive during updates
-- **Interrupt handling**: New transitions automatically cancel pending ones
-
-Reference: [useTransition](https://react.dev/reference/react/useTransition)
-
+Inspect relevant widths, keyboard focus, reduced motion, loading content and hydration/runtime errors. Compare the same interaction trace for performance claims. A smoother animation cannot justify missing content, inaccessible controls or weakened state correctness.

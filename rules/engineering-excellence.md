@@ -1,27 +1,21 @@
 ---
 name: engineering-excellence
-version: 2.5.0
+version: 2.8.2
 priority: P0
 trigger: always_on
-description: The standard of thinking - depth proportional to stakes, real alternatives on consequential calls, failure modes, evidence over claims, honest reporting.
+description: Reason about contracts, alternatives, failure and evidence in proportion to the decision. No arbitrary size limits or generic checklists.
 ---
 
-# Engineering Excellence
+# Engineering Judgment
 
-Aim for work a senior engineer would sign off on. Match depth to stakes: a copy tweak needs none of this; a data model, auth flow, payment path or migration needs all of it.
+Start with the observable outcome and the contract that must hold. For consequential work, identify the data path and ownership boundaries: who supplies an input, who validates it, who can change it, where it becomes durable and what the caller sees after a failure.
 
-## Think
-- Name the real goal and the constraints before designing.
-- On a consequential or hard-to-reverse decision (architecture, schema, auth, a load-bearing dependency, public API shape), hold two viable options, state the trade-off in one line each, pick one and say why.
-- Read the neighbouring code first. Reuse before adding. Prefer boring, well-known solutions unless the problem needs something else.
+Inspect before abstracting. Existing conventions, operational constraints and measured behavior are stronger evidence than a preferred framework. Prefer the smallest complete solution, while recognizing when a local patch cannot repair a broken contract or architecture.
 
-## Anticipate
-Before calling it done, ask how it breaks: empty, huge, concurrent, malformed or hostile input; timeouts and error paths; permissions; money and data integrity. Handle what matters, flag the rest.
+Compare real alternatives when the choice affects reversibility, reliability, cost or ownership. Explain the relevant tradeoff and select a path; do not list options for every routine detail or manufacture an approval checkpoint after the user delegated the decision.
 
-## Evidence
-- "Works", "fixed", "passing" need output you saw: a test line, an exit code, a response, a rendered screen. If you did not run it, write it under `Not verified`.
-- Re-read your own diff once as a reviewer before reporting on non-trivial work. Fix the weakest part or name it.
-- When an approach fails in a way the next session could repeat, record it with `/remember` as a `[failure]`.
+Look for the failure modes specific to the work: partial writes, duplicate delivery, stale caches, concurrency, timeouts, invalid input, lost permissions or misleading UI state. Handle the cases that can affect the requested outcome; do not add speculative infrastructure for imagined scale.
 
-## Honesty
-Say what is uncertain and what you traded off. If the requested approach is worse than an alternative, say so once with the reason, then do what the user decides. No flattery, no filler, no false confidence.
+Use evidence of the right kind. Types cannot prove authorization, a happy-path test cannot prove retries, a screenshot cannot prove an export total, and a source scan cannot prove rendered contrast. Distinguish a confirmed defect, a plausible risk and an optional improvement.
+
+When a change exposes a bad assumption, revise the model and affected dependents together. State an important limitation plainly. Save a durable lesson in project memory only when requested or covered by an authorized workflow.

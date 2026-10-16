@@ -1,28 +1,34 @@
-# API Security Testing
+# Focused API security checks
 
-Test the API the way an attacker would, on systems you own or are authorised to test. Map each check to the OWASP API Security Top 10 and fix findings in `vulnerability-scanner` severity order (critical and high first). Offensive work beyond this checklist belongs to `penetration-tester` with written authorisation.
+Use authorized accounts, local/test data and the least disruptive evidence needed. Select checks for the API's actual trust boundaries. A source review can establish a code-supported defect without launching an active scanner; external active testing follows the engagement's scope.
 
-## OWASP API Top 10 focus
+## Access matrix
 
-| Risk | Test |
-|------|------|
-| API1 Broken object-level authorization (BOLA/IDOR) | Capture a request as user A, replay with user B's session, swap ids |
-| API2 Broken authentication | JWT `alg: none` and algorithm confusion, weak secrets, missing `exp`/`aud` checks, predictable sessions, logout not invalidating |
-| API3 Broken object property authorization | Mass assignment (`role`, `isAdmin` in body), over-exposed fields in responses |
-| API4 Unrestricted resource consumption | No rate limit, unbounded page sizes, huge uploads, expensive queries |
-| API5 Broken function-level authorization | Call admin endpoints as a normal user; try other HTTP methods |
-| API6 Unrestricted access to sensitive business flows | Automate purchase, signup, or voting flows; check for abuse controls |
-| API7 SSRF | URL parameters that fetch server-side (`?url=`, webhooks) reaching internal addresses |
-| API8 Security misconfiguration | CORS `*` with credentials, debug endpoints, verbose errors, missing headers |
-| API9 Improper inventory management | Old versions (`/v1`) and undocumented routes still live |
-| API10 Unsafe consumption of APIs | Trusting upstream responses without validation |
+Choose representative actors and resources: unauthenticated, normal user, peer user, tenant peer, privileged user, revoked/expired session. For each sensitive operation, compare expected status, returned fields and side effects.
 
-## Method
+| Boundary | Concrete case | Contract to verify |
+|---|---|---|
+| Object ownership | User A requests/updates B's object ID | Server denies unauthorized access without modifying data |
+| Tenant isolation | Valid account changes tenant/resource scope | Joins, caches, files and exports remain tenant-scoped |
+| Function permission | Ordinary user calls admin operation directly | Backend checks permission, independent of hidden UI |
+| Field authorization | Body includes role/owner/internal fields | Only allowed fields can be written/read |
+| Session/token | Expired, revoked or wrong-audience credential | Actual verifier rejects according to identity design |
+| Cookie write | Cross-site state-changing request | Appropriate CSRF protection and cookie policy |
 
-1. Enumerate: routes from code and OpenAPI, plus guesses (`/admin`, `/v1`, `/debug`).
-2. Authentication: bypass attempts, token tampering, credential strength, session lifetime.
-3. Authorization: horizontal (peer data), vertical (higher role), and context (outside allowed scope) tests on every id-bearing endpoint.
-4. Input: SQL/NoSQL/command/LDAP injection on every parameter, type coercion, boundaries, and what error messages leak.
-5. Rate limiting: does it exist, is it per user or per IP, can `X-Forwarded-For`, method changes, or case changes bypass it.
-6. GraphQL: introspection in production, batching and nesting depth, field-level authorization.
-7. Report each finding with endpoint, reproduction request, impact, and fix.
+Use the adopted authentication library's supported validation; do not implement token algorithms from memory. A public endpoint is not defective merely because it lacks authentication. GraphQL introspection alone is not a vulnerability; assess exposed data and access policy.
+
+## Inputs, cost and upstream trust
+
+Validate types, bounds, coercion, unknown fields and nested payload complexity. Injection findings require a path from untrusted input to an unsafe sink; search results are candidates. Test malformed/bounded oversized data in a controlled setting rather than attempting resource exhaustion.
+
+For server-side URL fetches, check allowed schemes/hosts, redirect behavior, address resolution, credentials and response bounds. Denying one private address string is not a complete SSRF defense. Rate limiting depends on trustworthy proxy/identity configuration and shared accounting across relevant instances.
+
+GraphQL needs field/object access and appropriate depth/cost/batch controls. Pagination/upload endpoints need bounded work. Validate upstream data, signature and identity rather than trusting third-party success status alone.
+
+## Retry and failure integrity
+
+Test duplicate and concurrent mutations, idempotency-key reuse with a different body, replayed webhooks and upstream timeouts with unknown outcomes. Verify that denial/validation failure produces no partial business effect. Error bodies/logs must not leak credentials, sensitive records or internal traces.
+
+## Report supported evidence
+
+Include operation/location, actor prerequisites, controlled request sequence, response/side effect and impact. Redact tokens and personal data. Distinguish observed failure, code-supported reasoning and unvalidated hypothesis. Use current official risk taxonomy only if exact identifiers are needed; remediation should remain specific even without a label.

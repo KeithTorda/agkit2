@@ -1,27 +1,15 @@
 ---
 name: remember
-description: "/remember - Saves a preference, convention, decision, reference note or failed approach to the project's memory at .agents/memory/MEMORY.md so later sessions reuse it. Use when the user says remember, save this or don't forget, and after a decision or dead end worth keeping."
-version: 2.5.0
+description: "Save or update requested project notes in .agents/memory/MEMORY.md. Use /remember or an explicit memory request; ordinary task completion does not trigger a save."
+version: 2.8.2
 ---
 
 # /remember
 
-**Input:** the text after `/remember` is what to save. If empty, ask what to remember in one line.
-**Agent:** none.
-**Read now:** `KIT/skills/memory-system/SKILL.md` (index format, types, what not to save).
+The text after the command is the requested note. If no note can be identified from context, ask what to remember. Read `KIT/skills/memory-system/SKILL.md` for scope and storage.
 
-## Steps
+Confirm the project and inspect relevant existing entries. Distill the requested decision, convention, preference, reference or durable failure into a concise useful entry with its scope/reason. Preserve exact names and versions where material; avoid arbitrary character limits that destroy meaning.
 
-1. Classify: `user`, `feedback`, `project`, `reference` or `failure`.
-2. Distill to one line of at most 150 characters, keeping the user's exact names and versions. Refuse secrets, tokens, credentials, and facts derivable from code (`package.json`, lockfiles).
-3. Open `<project>/.agents/memory/MEMORY.md`. Missing: create `.agents/memory/` and the file with the index skeleton from `memory-system`. Read-only project root: say so and stop.
-4. Add the entry under its section, or replace the entry on the same subject instead of appending a contradiction.
-5. More than one line of detail: put it in `.agents/memory/<topic>.md` and point the index entry at it.
-6. Index over 200 lines: say so and propose merges; never delete entries without asking.
+Create `.agents/memory/` and its index only as part of this authorized save. Update a matching entry rather than adding contradictions; use a focused topic note only when useful detail warrants it. Do not include secrets, raw personal data or an entire transcript. Do not silently change unrelated notes or a global memory store.
 
-## Output
-
-```
-Saved to .agents/memory/MEMORY.md
-[project] Use bun instead of npm for all scripts
-```
+Report what was saved and where. If the requested location is unwritable, state that it was not saved and provide the concise note for the user; do not claim persistence.

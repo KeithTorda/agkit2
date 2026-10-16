@@ -1,39 +1,34 @@
-# /proplan update <slug> <change>
+# Updating a proplan
 
-Part of `KIT/skills/proplan/SKILL.md`. A plan is a living document: change it through this procedure so IDs, traceability and the changelog stay true.
+Use this procedure for `/proplan update <slug> <change>`. Preserve the record of decisions and completed work while keeping the remaining plan executable.
 
-## Steps
+## Trace the requested change
 
-1. **Read** 00 (version, changelog), TRACEABILITY.md, and the documents the change names. Run the checker first so you start from a known state.
-2. **Classify** the change: new requirement, changed requirement, removed requirement, new constraint or NFR, architecture change, schedule or resource change.
-3. **Impact.** Walk the traceability chain from the entry point (G → R → S/API → T → TC, plus ADRs, TH and RK that cite the ids). Show the user a short table before editing:
+Read 00, the relevant source/plan sections and TRACEABILITY. A baseline checker run can separate existing structural problems from new ones. Identify affected goals, requirements, screen/API contracts, tasks/tests, threats, risks and ADRs.
 
-   ```text
-   | ID | Doc | Effect |
-   | R-013 (new) | 02 | add: loyalty stamps, Should, G-01 |
-   | S-07 (new), API-09 (new) | 06, 05 | add |
-   | T-020..T-022 (new) | 10 | add to M3; M3 +3 d, buffer 5 d -> 2 d |
-   | TC-031 (new) | 08 | add |
-   | RK-06 (new) | 11 | buffer below 10% |
-   ```
+For a material change, explain the impact concisely: what behavior changes, affected IDs/contracts, delivery effect and any consequential decision still open. Do not require a new approval checkpoint when the user already authorized the concrete change. Ask only for a missing product commitment, permission boundary or other decision the user must own.
 
-   An architecture change needs a new ADR that supersedes the old one, and the checkpoint again.
-4. **Edit** through the owning agents (subagents for large changes, yourself for small ones). Never renumber; new ids take the next free number; a removed requirement becomes `Priority: Won't` with "Removed in vX.Y.Z: reason"; completed tasks (`[x]`) are never deleted.
-5. **Version.** MAJOR: architecture or Must scope changed. MINOR: requirements, tasks or estimates changed. PATCH: wording. Bump 00's `version` and add a changelog row with the affected ids; bump `version` and `updated` on each changed document.
-6. **Check.** `--write-traceability`, fix errors. MINOR or MAJOR changes get a plan-reviewer pass on the delta (findings appended to REVIEW.md).
-7. **Report**: what changed, the impact on dates and buffer, new decisions for the user, next step.
+## Edit without losing history
 
-## Upgrading lite to full: `/proplan update <slug> --full`
+Keep existing IDs and allocate the next unused ID for new items. Removed requirements can remain `Priority: Won't` with the removal reason/version. Preserve completed tasks and their evidence; append replacement work instead of rewriting completion history. Use a superseding ADR for a materially changed accepted architecture decision and cross-link the two.
 
-Use when a lite plan outgrows its set (more roles, money or personal data, an integration, a second developer).
+Update contracts in dependency order and assign disjoint paths when delegating. A changed visual direction follows design-rules; an already answered or delegated direction is not asked again. Routine updates within that system do not trigger new intake.
 
-1. **Check first.** Run `python "KIT/scripts/proplan_check.py" docs/proplan/<slug> --lite`; start from a passing lite set.
-2. **Create the missing documents** from the templates: `04-data-model`, `05-api`, `06-ux`, `07-security`, `08-quality`, `09-operations` (Phase 3 agents, one document each, `workspace: share`), then `11-risks`, `12-documentation` (Phase 4 agents), `13-glossary` and `REVIEW.md` (coordinator and plan-reviewer). `adr/` becomes required: make sure ADR-001 exists.
-3. **Move IDs to their home documents without renumbering.**
-   - API rows: each `API-xx` row in 03 "API summary" becomes a `### API-xx` heading in 05 with the same number and its `Serves:` R-ids; 03 keeps a one-line pointer to 05 and cites the ids without defining them (no table whose first column is `ID`).
-   - Risk rows: each `RK-xx` row in 10's risks table moves to the register in 11 with the same number (add category, score, trigger and status); 10 keeps a pointer to 11.
-   - Screens: if 03 defined `S-xx`, move them to 06's screen inventory the same way.
-   - The "Data model summary" in 03 is the input for 04; 03 keeps the summary or a pointer.
-4. **Fill the full-set gaps**: a test case (TC-) for every Must requirement in 08, a threat and matrix row for every Must flow with money, personal data or authorization in 07.
-5. **Switch the set.** Change `set: lite` to `set: full` in 00, bump the MAJOR version, add a changelog row ("upgraded to full set; API-01..API-08 moved to 05, RK-01..RK-04 moved to 11").
-6. **Check.** `python "KIT/scripts/proplan_check.py" docs/proplan/<slug> --full --write-traceability` until it passes (the full set also requires a TC for every Must R and a REVIEW.md), then a plan-reviewer pass on the new documents.
+Use the plan's version convention consistently: major for incompatible architecture/Must-scope changes, minor for compatible requirements/tasks/estimates, patch for clarifications. Update changed document metadata and 00's changelog with affected IDs and rationale; project plan versions are distinct from the kit version.
+
+## Validate the delta
+
+Regenerate traceability with `python "KIT/scripts/proplan_check.py" docs/proplan/<slug> --write-traceability`. Resolve structural errors and assess warnings rather than inventing filler. Review changed assumptions, dependency cycles, criteria and cross-document names/roles. Use an independent review when its value warrants it and tools are available; otherwise state the review scope honestly.
+
+Report the changed behavior/IDs, schedule or contingency effect, actual checker result and remaining decisions/evidence. Continue implementation if the active request already includes it; a plan-only update ends with the updated plan.
+
+## Grow lite into full
+
+For `/proplan update <slug> --full`, check the existing lite set, create missing 04–09 and 11–13 plus REVIEW from their templates, and ensure an ADR exists. Preserve identity while moving definitions to their full-set home:
+
+- API definitions move from the 03 summary to headings in 05; 03 keeps references without redefining them.
+- Risk definitions move from the 10 lite table to the 11 register; 10 links to them.
+- Screen definitions, if present in a lite summary, move to 06 without changing numbers.
+- The 03 data summary supplies 04; actual constraints and lifecycle detail are completed there.
+
+Add full-set Must-requirement test coverage and domain detail, reconcile names/contracts, switch `set: lite` to `set: full` in 00 and record the version/change. Run `proplan_check.py docs/proplan/<slug> --full --write-traceability` and review the resulting set. More documents do not justify invented requirements or presumed legal obligations.

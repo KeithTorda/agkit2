@@ -1,60 +1,46 @@
-# Trade-off Analysis and ADRs
+# Record an architecture decision
 
-Write an ADR (Architecture Decision Record) for decisions that are expensive to reverse: database, auth approach, hosting, multi-tenancy, sync/offline strategy, a load-bearing dependency, a public API shape. Do not write one for choices that a later commit can undo cheaply.
+Record a decision when its rationale, compatibility or recovery cost would otherwise be lost. A database, tenancy boundary, durable queue, identity approach or offline consistency model may deserve an ADR. A small local reversible choice can remain in the task plan or code.
 
-In `/proplan`, use the ADR template in `KIT/skills/proplan/templates/` if it differs from this one; the plan's checker expects its IDs. A worked example: `KIT/skills/proplan/example/pos-lite/adr/`.
+Use the repository's existing ADR location, numbering and metadata. For `/proplan`, preserve its templates and document IDs so supporting scripts/callers remain compatible. Do not add a parallel documentation system.
 
-## Template
+## Practical template
 
 ```markdown
----
-adr: ADR-001
-title: <decision in a few words>
-status: proposed | accepted | superseded by ADR-00X
-date: YYYY-MM-DD
-deciders: <client or owner>, developer
----
+# ADR-<id>: <specific decision>
+Status: Proposed | Accepted | Superseded by <id>
+Date: YYYY-MM-DD
 
-# ADR-001: <decision in a few words>
+## Context and evidence
+The requirement, current behavior, decisive constraints and what forces a choice.
+Link relevant requirements, measurements or existing contracts.
 
-## Context
-The problem, the constraints (team, budget, hosting, deadline, data sensitivity) and what forces a decision now. In a /proplan, cite the requirement IDs it serves (for example NFR-02, R-009).
-
-## Options
-| Option | Pros | Cons | Cost / complexity |
-|---|---|---|---|
-| A | ... | ... | Low |
-| B | ... | ... | Medium |
+## Viable options
+Compare actual alternatives on the dimensions that matter here.
+Include keeping/extending the current system when feasible.
 
 ## Decision
-What we chose, specifically (versions, services, boundaries).
+State the boundary, source of truth, chosen mechanism and supported environment.
 
-## Why
-Two or three reasons tied to the constraints and requirements above.
+## Consequences and safeguards
+Accepted costs, failure semantics, compatibility, rollout and recovery limits.
 
-## Trade-offs accepted
-What we give up and why that is acceptable now.
-
-## Consequences
-- Positive: ...
-- Negative: ...
-- Mitigation: ...
+## Validation
+What test, measurement or rehearsal supports the important assumptions?
+What remains unknown?
 
 ## Revisit when
-The signal that should reopen this decision (for example: more than 5 branches, offline use required, a second client).
+A concrete signal or changed requirement that would reopen this decision.
 ```
 
-## Where ADRs live
+Version/API details belong in the decision when material and verified; do not freeze a guessed "latest" stack into reusable guidance.
 
-| Project | Location |
-|---|---|
-| `/proplan` | `docs/proplan/<slug>/adr/ADR-001-<short-title>.md` |
-| Anything else | `docs/architecture/adr/ADR-001-<short-title>.md` |
+## Compare honestly
 
-Numbers are never reused. To change a decision, write a new ADR and mark the old one "Superseded by ADR-00X".
+Use alternatives the team could actually operate. "Industry standard" is not a reason by itself. Tie each benefit to a requirement and each cost to its owner: coordination, monthly spend, migration risk, failure recovery or maintenance effort. Label estimates rather than inventing exact costs.
 
-## Writing the trade-off well
+Separate a decision from an unresolved experiment. A proposed architecture can include a time-bounded prototype to resolve a question without presenting a hypothesis as a proven capability.
 
-- Name the constraint that decides it; "industry standard" is not a reason.
-- Compare real options the project could build; a straw-man second option is worse than none.
-- State the cost in the client's terms where it matters: hosting per month, time to build, what breaks if the developer leaves.
+## Changing course
+
+Preserve the old rationale and mark it superseded when meaningful history exists. Link the replacement and explain what evidence/requirement changed. Do not retroactively rewrite historical decisions to make the new choice look inevitable.

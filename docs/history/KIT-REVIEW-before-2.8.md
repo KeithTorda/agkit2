@@ -1,3 +1,5 @@
+> Historical document. Current behavior is defined by the 2.7 rules and skills; see README.md and CHANGES.md.
+
 > Historical review of v2.2.2 (2026-09). Its findings were addressed in v2.5.0; see CHANGES.md.
 
 # AG Kit v2 — Health Check & Fix Plan

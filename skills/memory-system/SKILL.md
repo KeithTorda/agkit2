@@ -1,117 +1,33 @@
 ---
 name: memory-system
-description: Per-project persistent memory in <project>/.agents/memory/MEMORY.md — what belongs there (decisions, conventions, gotchas, and failed approaches), the index format, optional topic files, and how to recall without reciting. Use when the user says remember, save this, or don't forget, for /remember, when an approach fails and the cause is durable, and at session start when the file exists.
-version: 2.5.0
+description: "Read and maintain authorized project memory for durable decisions, conventions and lessons. Use for /remember, explicit save/update requests and relevant existing project notes; ordinary work does not imply permission to write memory."
+version: 2.8.2
 ---
 
-# Memory System
+# Project Memory
 
-Persist the decisions, conventions, gotchas and dead ends of a project so they are never re-discovered.
+Project notes live at `<project>/.agents/memory/MEMORY.md`. Existing notes can supply relevant context; verify drift-prone claims against current source. Missing memory is normal and does not block a task.
 
-## Location and lifecycle
+## Read selectively
 
-Memory is per project, at the workspace root: `<project>/.agents/memory/MEMORY.md`. The path is fixed; every kit file and agent reads it from there.
+Read the index when it is relevant to the current work, then only matching topic notes. Give workers the relevant decisions in their brief rather than making every worker read all memory. Treat old notes as context, not authority above the user's current request or actual behavior.
 
-The directory does not exist until first use. `/remember` (or the first save) creates `.agents/memory/` and `MEMORY.md`; nothing else does. This needs a **writable project root**. On a read-only checkout or where the root is not writable, say so and skip the save; never fail the task over it.
+## Write with authorization
 
-Session start: if the file exists, read it once and apply it silently (use bun in commands, keep answers short); if not, do nothing (`universal-rules`). Subagents get the relevant entries in their brief rather than re-reading the whole file. Recite entries only when the user asks what you remember.
+Create or change memory only when the user requests it or explicitly authorizes a project workflow that includes it. A successful fix, a failed experiment or an agent suggestion alone does not authorize a save. Do not write to a global memory store when the request concerns project notes.
 
-## Layout
-
-```
-.agents/memory/
-├── MEMORY.md                index (required, max 200 lines)
-├── project-conventions.md   optional topic file
-├── failures.md              optional; dead ends worth the detail (see Failure memory)
-└── <topic>.md               optional; only when an entry needs detail
-```
-
-Small projects keep everything in `MEMORY.md`. Create a topic file only when a note needs more than one line; the index entry then points at it.
-
-## Index format
-
-- One entry per line, at most 150 characters: `- [type] summary → topic-file.md` (the pointer is optional).
-- Types: `[user]` `[feedback]` `[project]` `[reference]` `[failure]`.
-- Replace an entry when the fact changes; never append a contradiction.
+Keep entries concise and useful without arbitrary character/line limits. Suggested categories are `[user]`, `[feedback]`, `[project]`, `[reference]` and `[failure]`. Store a durable decision with its reason and scope; for a failure record the cause and the approach that worked. Link a focused topic file when detail warrants it.
 
 ```markdown
 # Memory Index
 
-## User
-- [user] Windows 11, PowerShell, prefers concise answers with tables
-
 ## Project
-- [project] Use bun instead of npm for all scripts
-- [project] Migrations must run before seed or the FK constraint fails → project-conventions.md
-
-## Feedback
-- [feedback] Dislikes long explanations before the code
-
-## Reference
-- [reference] Staging API base URL is https://staging.example.com/api
+- [project] Order IDs are generated offline; server deduplicates by client UUID.
 
 ## Failures
-- [failure] Tried Turbopack for the build → OOM on CI's 2GB runner → fix: webpack build in CI only
-- [failure] `expo-secure-store` on web → no-op, tokens silently lost → fix: localStorage adapter behind a platform check
+- [failure] The target printer lacks the browser API; use the native print adapter.
 ```
 
-Topic files start with frontmatter (`type`, `created`, `updated`) followed by short headed sections.
+Update the matching entry instead of appending a contradiction. Preserve useful history when a decision changes; do not silently delete unrelated notes. Never save secrets, raw personal data, entire conversations or readily derived inventories. Avoid temporary debug state and claims not established by evidence.
 
-## What belongs and what does not
-
-| Type | Save | Example |
-|---|---|---|
-| user | Role, tools, communication style | "Senior DevOps, prefers dark mode" |
-| feedback | What the user liked or disliked about output | "Too verbose; prefers tables" |
-| project | Conventions, stack decisions, and gotchas | "bun, not npm; Prisma over Drizzle; seed fails unless migrated first" |
-| reference | Non-secret infrastructure notes, public URLs | "Prod API hostname and port" |
-| failure | An approach that was tried and did not work, with the cause and what worked instead | "Turbopack build OOMs on CI → use webpack in CI" |
-
-| Never save | Why |
-|---|---|
-| Secrets, tokens, passwords, keys | Persistent and possibly shared |
-| Facts derivable from code (`package.json`, lockfiles) | Read the source instead |
-| Temporary debug context | Clutter |
-| Code snippets | Go stale |
-| Whole conversations | Memory holds distilled insights, not transcripts |
-
-## Operations
-
-- **Save** (`/remember`, "remember", "don't forget"): classify → distill to one line → create the directory and index if missing → add or replace the entry → confirm what was saved.
-- **Recall** (session start, "what do you remember about X"): read the index; open a topic file only when its entry matches the task.
-- **Search** ("do I have notes on X"): search `.agents/memory/*.md` and return matching entries with file names.
-- **Prune** (index over 200 lines): warn, propose merges or an `archive/` folder; never delete without asking.
-
-## Failure memory
-
-An agent that does not record its dead ends re-walks them every session. This is the cheapest
-intelligence the kit has: one line, written once, saves the same hour forever.
-
-**Record a `[failure]` when** an approach was tried and abandoned for a *durable* reason — a library
-that does not work on the target platform, a config that breaks the build, a pattern the codebase
-rejects, an API that does not behave as documented. Write it the moment it happens, not at the end.
-
-**Format** — cause and cure, never just the symptom:
-
-```text
-- [failure] <what was tried> → <why it failed> → fix: <what worked instead>
-```
-
-A failure entry without a cause is noise ("the build broke" teaches nothing). The cause is what
-makes it transferable to the next attempt.
-
-**Do not record**: a typo you fixed in the same minute, a one-off environment hiccup, anything the
-error message itself makes obvious on the next run, or a failure specific to a branch that no longer
-exists. Transient trouble is not a lesson.
-
-**On recall**, check failures before proposing an approach in the same area — proposing something
-memory already says does not work is the exact waste this exists to prevent.
-
-## Memory vs plan vs task
-
-| Artifact | Holds | Lives |
-|---|---|---|
-| Memory | What you know across sessions | `.agents/memory/` |
-| Plan | What you will do for this task | `docs/plans/<slug>.md` |
-| Proplan | Goals, design and roadmap for a whole system | `docs/proplan/<slug>/` |
-| Task | What you are doing now | Antigravity task list and Artifacts |
+Confirm what was saved and the path. If writing is unavailable, report the limitation without claiming persistence or blocking independent work.

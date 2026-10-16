@@ -1,52 +1,44 @@
 ---
 name: app-builder
-description: Builds a new application from a request - detects the project type, picks the template and stack, sets the structure, and coordinates specialists through build and verification. Use for /create and any "new app / from scratch" request; for a change to an existing app read feature-building.md only.
-version: 2.5.0
+description: "Build new applications and substantial features by inspecting the product need, existing repository, platform and hosting constraints, then implementing a working vertical slice. Use templates selectively; existing applications keep their supported stack."
+version: 2.8.2
 ---
 
-# App Builder
+# Application building
 
-From request to running app: detect, size, design tokens, build, verify by tier, run.
+Turn the user's requested outcome into a working application, with the smallest architecture that can support its real requirements. A kit template is a starting reference, not a stack assignment based on a keyword or a visual style.
 
-Read only the file the current step needs:
+## Inspect before selecting
 
-| File | Read when |
+Read repository instructions, tracked and uncommitted work, manifests and lockfiles, scripts, configuration, entrypoints, and the nearest existing feature. Identify the actual platform, users, primary workflow, data, identity boundaries, deployment environment, and integrations. Do not scaffold over existing files or replace a healthy app to match this kit.
+
+For every new visual design, ask one short style-and-reference question and wait before selecting or implementing its look. Already supplied answers or explicit delegation satisfy this; maintenance matching the approved system does not repeat it. Independent code and asset inspection may continue while waiting.
+
+Resolve missing facts only when they change a consequential decision. Hosting on shared PHP, native device access, offline transactions, sensitive records, and payment settlement can affect architecture. A generic “modern” or “professional” look does not choose a framework, provider, component package, or paid service.
+
+## Choose a useful path
+
+| Need | Read |
 |---|---|
-| [project-detection.md](./project-detection.md) | Mapping the request (or an existing folder) to a project type and template |
-| [tech-stack.md](./tech-stack.md) | Choosing or confirming technologies |
-| [templates/README.md](./templates/README.md) | Scaffolding: pick one template and read only its `TEMPLATE.md` |
-| [scaffolding.md](./scaffolding.md) | Next.js directory structure and core files |
-| [agent-coordination.md](./agent-coordination.md) | Which specialists, in what order, for a new app |
-| [feature-building.md](./feature-building.md) | Adding a feature to an existing project (`/enhance`) |
+| Identify the deliverable and existing foundation | [project-detection.md](project-detection.md) |
+| Compare technologies using concrete constraints | [tech-stack.md](tech-stack.md) |
+| Start a genuinely new project | [templates/README.md](templates/README.md), then only the relevant template |
+| Lay out code and safe setup | [scaffolding.md](scaffolding.md) |
+| Implement within an existing application | [feature-building.md](feature-building.md) |
+| Divide work across specialists when available | [agent-coordination.md](agent-coordination.md) |
 
-## Which template, and what to change first
+## Build a complete slice
 
-`templates/README.md` maps project type → template. The judgment calls it does not make for you:
+State the important assumptions and a plan proportional to the task. A small page can use a short in-chat plan; a substantial application benefits from a durable plan with acceptance conditions and dependencies. Do not require a planning command or a document for every task.
 
-- **Nikko's common builds.** LGU, barangay, school or COMELEC portal with admin: Laravel if the client hosts on shared PHP hosting or the team knows it, otherwise `nextjs-fullstack`. Plain brochure or landing site: `nextjs-static`, `astro-static`, or plain HTML/CSS/JS when the client wants files they can upload anywhere. POS or inventory: `nextjs-fullstack` or Laravel with Postgres/MySQL, and offline needs settled in the questions.
-- **API with no web UI** → `node-api` (Hono) or `python-fastapi`. A Next.js app that only needs its own routes uses Route Handlers + Server Actions, not a separate API.
-- **SaaS with billing** → `nextjs-saas` (Stripe wired), not `nextjs-fullstack` plus hand-rolled billing.
-- **Mostly static** (marketing, blog, docs) → `nextjs-static` or `astro-static`; `nextjs-fullstack` only when you need a database and mutations.
-- **Vue team or codebase** → `nuxt-app`. **Mobile** → `react-native-app` (Expo) unless the brief asks for Flutter.
+Settle interfaces that make parallel work safe: data shape, authorization, API errors, ownership of state, and the primary user flow. Implement a useful path end to end, including real persistence or explicitly identified demo behavior. Add adjacent cases that follow from the feature: validation, unauthorized access, duplicate requests, loading, empty results, and recovery where relevant.
 
-After scaffolding, change the expensive-to-reverse things first, before any UI: (1) data model and ID strategy (UUIDv7 or the framework default), (2) auth, (3) the data-fetching boundary (Server Components for reads, Server Actions for writes in Next.js). Names and copy come last. Pin every dependency to its current stable line; the stack baseline is in `code-rules`.
+Preserve existing package managers and supported versions. Introduce dependencies for concrete functionality, compatibility, or maintainability; inspect current official setup guidance when creating or upgrading a foundation. Never imply an integration works merely because its environment-variable names or buttons exist. Keep secrets out of source, client bundles, fixtures, and logs.
 
-## Process
+For UI, use `frontend-design` or `mobile-design`; record a new substantial visual system with `design-spec`. For an export use `document-generation`. Use backend, data, security, or deployment workflows when the requested feature needs them. Avoid loading every specialist or running every scanner for an ordinary change.
 
-1. Questions only if blocked: at most 3, each with a default (`brainstorming` for format).
-2. Detect the type and template; confirm the stack.
-3. Size it (`/create` step 2): small site → short plan in the reply; bigger → offer `/proplan --lite`, else a `docs/plans/<slug>.md` (`plan-writing`).
-4. UI projects: `DESIGN.md` at the project root before UI code (`design-spec`), from the brief and the client's taste.
-5. Build in the order in `agent-coordination.md`, delegating independent parts with `invoke_subagent`.
-6. Verify by `code-rules` tier, start the dev server, report the URL.
+## Verify and hand off
 
-## Example
+Run relevant project checks and exercise the changed user flow. New web UI needs actual rendered inspection; native work needs the available simulator/device workflow. Verify permission and failure paths when the feature depends on them. Fix issues introduced by the change and distinguish environmental or pre-existing failures.
 
-```
-"Barangay clearance request portal with an admin page"
-→ type: admin portal · template: nextjs-fullstack (or Laravel if hosted on cPanel)
-→ offer /proplan --lite: residents, requests, statuses, roles, printable clearance
-→ DESIGN.md → database-architect (residents, requests, officials) → backend-specialist (actions, auth, PDF)
-  → frontend-specialist (request form, admin table) → test-engineer (status transitions, permissions)
-→ tier 2 (roles and personal data): checklist.py --full, tests, /review → npm run dev
-```
+Run the local preview when useful and possible; confirm the served project and route before reporting its URL. Report the working outcome, meaningful technical decisions, actual validation, setup still needed, and exact limitations. “Fresh”, “clean”, and a successful build do not mean zero defects or production readiness.

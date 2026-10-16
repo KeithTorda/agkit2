@@ -1,111 +1,58 @@
 ---
 name: tailwind-patterns
-description: Tailwind CSS v4 mechanics - CSS-first configuration with @theme tokens, the @custom-variant dark setup, container queries, responsive and layout utilities, component extraction, and v3-to-v4 differences. Use when writing or reviewing Tailwind v4 code, wiring DESIGN.md tokens into @theme, setting up dark mode, or migrating a v3 config. Visual decisions live in frontend-design; this skill covers how Tailwind expresses them.
-version: 2.5.0
+description: "Implement and maintain Tailwind styling in the version actually installed. Covers version-aware setup, semantic theme mapping, responsive and state variants, class discovery, component reuse and deliberate migration without choosing the visual direction."
+version: 2.8.2
 ---
 
-# Tailwind CSS v4 Patterns
+# Tailwind in the existing project
 
-Tailwind v4 is CSS-first: configuration lives in the CSS entry file, tokens are CSS variables, the config file is optional. Design decisions (fonts, palette, radius) come from `DESIGN.md` (see `design-spec`); this file covers the mechanics.
+Translate the approved design using the installed Tailwind version and the project's existing build pipeline. This skill does not select a visual style, require Tailwind, or authorize a version migration. Read the manifest, lockfile, CSS entrypoint, config, plugins and representative components before changing syntax.
 
-## 1. Setup and entry file
+## Match the version
 
-```css
-@import "tailwindcss";
-@import "./theme.css";                      /* @theme block generated from DESIGN.md */
-@plugin "@tailwindcss/typography";           /* plugins still exist; declared in CSS */
-@custom-variant dark (&:where(.dark, .dark *));
-@source "../node_modules/some-ui-lib";       /* extra content paths when auto-detection misses them */
-```
+Tailwind v3 commonly uses JavaScript configuration and `@tailwind` directives. v4 uses a CSS-first `@import "tailwindcss"` setup with theme variables and supported integration packages. Keep a working v3 project on compatible syntax unless migration is actually requested or necessary. Check official version-specific docs before a new install or configuration change.
 
-- PostCSS: `@tailwindcss/postcss` in `postcss.config.mjs` (the old `tailwindcss` PostCSS plugin no longer works). Vite: `@tailwindcss/vite`. Both drive the same engine; PostCSS is not deprecated.
-- `tailwind.config.js` is optional. Keep one only for a legacy plugin that needs it, loaded with `@config "./tailwind.config.js"`; do not split tokens between CSS and JS.
-- Content detection is automatic; `@source` adds paths, `@source not` excludes them.
+For v4, inspect whether the project uses the Vite integration, PostCSS integration or another supported path; do not install both by habit. Legacy JavaScript configuration may coexist through supported compatibility mechanisms. Generated output/config must derive from an understandable source rather than drift independently.
 
-## 2. Tokens with `@theme`
+## Semantic roles and local values
 
-Values below are examples; the real ones come from `DESIGN.md`.
+Reuse existing roles and agreed tokens. A v4 example, with values chosen for the actual design:
 
 ```css
-@theme {
-  --color-primary: #1a1c1e;        /* colors.*          → bg-primary, text-primary, border-primary */
-  --color-surface: #fbfaf7;
-  --color-surface-dark: #131316;   /* DESIGN.md -dark counterpart, applied in §3 */
-  --font-body-md: "Public Sans";   /* typography.*      → font-body-md */
-  --text-headline-lg: 48px;        /* fontSize          → text-headline-lg */
-  --radius-md: 8px;                /* rounded.*         → rounded-md */
-  --spacing-md: 16px;              /* spacing.*         → p-md, gap-md */
-  --breakpoint-3xl: 1920px;        /* adds 3xl: */
+@theme inline {
+  --color-surface: var(--surface);
+  --color-on-surface: var(--on-surface);
+  --color-action: var(--action);
+}
+:root {
+  --surface: #fbfaf7;
+  --on-surface: #1a1c1e;
+  --action: #194b3a;
 }
 ```
 
-- Namespaces decide the utilities: `--color-*`, `--font-*`, `--text-*`, `--font-weight-*`, `--tracking-*`, `--leading-*`, `--radius-*`, `--shadow-*`, `--spacing-*`, `--breakpoint-*`, `--container-*`, `--animate-*`, `--ease-*`.
-- Font family is whatever `DESIGN.md` specifies; do not hardcode a house font here.
-- Reset a default scale before replacing it: `--color-*: initial;` then your own colors.
-- `@theme inline` for values that reference other variables (`--color-brand: var(--brand)`); `@theme static` to emit every variable even when unused.
-- OKLCH (`oklch(0.7 0.15 250)`) for hand-tuned palettes; `DESIGN.md` hex values are exported as-is, which is fine.
-- Utilities compile to `var(--color-primary)`, so overriding a variable later in the cascade (`.dark`, a theme class) changes every utility that uses it.
+Then `bg-surface text-on-surface` uses semantic decisions. Map font families, text size, spacing, radius and motion through supported namespaces when reuse helps. Do not reset an entire default scale just to add a token. An arbitrary value or inline custom property can be correct for a one-off, calculated layout or dynamic position; repeated numbers alone do not require a new token.
 
-**The round-trip, wrong vs right.** With each `DESIGN.md` token mapped once, components name it instead of re-typing the value:
+Theme scope comes from the brief and existing product. If multiple themes exist, preserve its single switch mechanism and semantic overrides. v4 can define a manual dark variant with `@custom-variant`; v3 uses its supported config. Do not add a toggle or dark palette to a single-theme task. Section contrast can inherit local semantic variables without changing the global preference.
 
-```tsx
-// v3 habit: tokens in JS config, arbitrary values in markup — hex drifts, no dark swap, invisible to the theme
-<button className="bg-[#1a1c1e] text-[#fbfaf7] rounded-[8px] px-[16px]">Save</button>
+## Layout and state
 
-// v4: DESIGN.md token → @theme (above) → semantic utility; overriding the variable once reskins every use
-<button className="bg-primary text-surface rounded-md px-md">Save</button>
-```
+Use content-driven breakpoints and intrinsic layout. Base/unprefixed utilities are not intrinsically “phone-only”; they apply until overridden. Container queries can help reusable components adapt to their own width when supported. Use grid for two-dimensional relationships, flex for one-dimensional flow, and native layout where appropriate.
 
-Reach for an arbitrary value (`p-[13px]`) only for a genuine one-off; a value used twice is a missing token — add it to `@theme`.
+Check shrinkability (`min-w-0`/`min-h-0`), overflow boundaries, wrapping and readable content before compensating with arbitrary widths. Choose `svh`, `dvh`, ordinary viewport units or content sizing from the desired browser behavior. A viewport-height utility is not categorically wrong, but fixed height can clip real content or interact poorly with mobile browser UI.
 
-## 3. Dark mode
+Provide focus-visible, selected, disabled, invalid and pending states relevant to the actual control. Keep hover enhancements available to keyboard/touch equivalents. Apply `motion-reduce`/`motion-safe` or the existing motion approach without leaving essential content hidden when effects are skipped.
 
-Default behaviour without any setup: `dark:` follows `prefers-color-scheme`. For a class-driven scheme (toggle, per-page lock), declare the variant once:
+## Class discovery and reuse
 
-```css
-@custom-variant dark (&:where(.dark, .dark *));
-.dark { --color-surface: var(--color-surface-dark); --color-on-surface: var(--color-on-surface-dark); }
-```
+Ensure the compiler sees complete class names. Prefer a finite mapping such as `{ success: 'text-success', error: 'text-error' }` instead of `text-${status}`. Use the installed version's source inclusion/safelist mechanism when classes originate outside normal scanning. Verify emitted CSS when a class appears to do nothing.
 
-- Put `.dark` on `<html>`; set it from `prefers-color-scheme` on load and from the toggle afterwards.
-- Swap semantic token values under `.dark` (above) and write components once (`bg-surface text-on-surface`); use `dark:` utilities only for one-off exceptions. One mechanism per project.
-- A `data-theme` attribute works the same way: `@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));`.
-- Which schemes ship (light, dark, both) is decided by `DESIGN.md` `colorScheme`, not here.
+Extract components or variants when they express stable behavior or a reusable design contract, not when a repetition counter reaches a fixed number. Use existing conditional/merge helpers; add a class-composition package only for a concrete need. Remember that conflicting utility classes are resolved by generated CSS and variant ordering, not simply the last string in markup.
 
-## 4. Responsive, container queries, layout
+For a conflict, inspect the cascade, layers, specificity, imports and computed value. Avoid repeated `!` modifiers as unexplained patches; narrow overrides are valid when a vendor boundary genuinely requires them. See `css-architecture` for ownership.
 
-- Mobile-first: unprefixed = base, `sm 640 / md 768 / lg 1024 / xl 1280 / 2xl 1536`. Ranges: `md:max-lg:hidden`.
-- Container queries are built in: `@container` on the parent, `@sm:` / `@md:` / `@lg:` on children, `@container/card` + `@md/card:` for named containers, `@max-md:` for max-width queries. Use viewport breakpoints for page layout, container queries for components that must work in any column.
-- Grid: `grid-cols-[repeat(auto-fit,minmax(16rem,1fr))]` for fluid card grids, `grid-cols-[2fr_1fr]` / `col-span-*` for asymmetric and bento layouts, `grid-cols-[auto_1fr]` for sidebars, `grid gap-px bg-border` for hairline-divided cells. Grid over percentage flex math; flex for one-axis rows and stacks.
-- Full-height sections: `min-h-dvh` (v4 ships `dvh` / `svh` / `lvh` utilities), never `h-screen`.
+## Deliberate migration and verification
 
-## 5. v4 utility changes worth knowing
+For an authorized version migration, check browser support, plugins, theme/config compatibility, reset/default changes, class/variant changes and build integration. Use the official migration tooling appropriate to the actual versions, review its changes, and preserve a recoverable baseline. Do not copy upgrade commands blindly from this skill.
 
-- Renames: `shadow-sm` → `shadow-xs`, `shadow` → `shadow-sm`, `rounded-sm` → `rounded-xs`, `rounded` → `rounded-sm`, `outline-none` → `outline-hidden`, `ring` is 1px (`ring-3` for the old look), `bg-opacity-*` → `bg-black/50`.
-- Variants stack left to right; `hover:` applies only on hover-capable devices. New: `not-*`, `starting:` (`@starting-style` entry transitions), `inert:`, `in-*`, `nth-*`, arbitrary variants `[&>*]:p-4`.
-- New utilities: 3D transforms (`rotate-x-*`, `perspective-*`), gradient angles and interpolation (`bg-linear-45`, `bg-linear-to-r/oklch`), `field-sizing-content`, `text-balance` / `text-pretty`.
-- `@keyframes` inside `@theme` register `animate-*` utilities; `motion-safe:` / `motion-reduce:` gate them.
-
-## 6. Component extraction
-
-- Same class combination 3+ times, complex state variants, or a design-system atom → extract a component (React / Vue), not a CSS class.
-- Shared classes that markup cannot express as a component (a status badge used from Blade and React, a card skin, third-party markup) go in `@layer components` in the CSS entry file, so utilities still win by layer order. `@apply` works there; keep it to short, stable combinations. `@utility` defines a real utility with variant support: `@utility scrollbar-hidden { scrollbar-width: none; }`.
-- Class lists: merge conditionally with `cn()` / `clsx`; never build class names at runtime (`bg-${color}-500` is invisible to the compiler; map to full class names). `cva` / `tailwind-variants` for size and intent props.
-
-## 7. Migrating from v3
-
-`npx @tailwindcss/upgrade` handles most of it (config → `@theme`, renamed utilities, `@tailwind base/components/utilities` → `@import "tailwindcss"`, PostCSS plugin swap). Then replace the old `darkMode` config key with `@custom-variant dark`, and check `border-*` defaults (now `currentColor`) and `ring` widths. Never mix a v3 config token set with `@theme`.
-
-## 8. Anti-patterns
-
-| Avoid | Do instead |
-|---|---|
-| Arbitrary values everywhere (`p-[13px]`) | The `@theme` scale; add a token if one is missing |
-| `!important` / `!` modifiers as a habit | Fix the layer order; a `!` utility is a last resort for third-party CSS you cannot configure, with a comment (`css-architecture`) |
-| Inline `style=` for static values | Utilities; inline only for runtime values (`style={{ '--index': i }}`) |
-| Two token sources (JS config + `@theme`) | `@theme` only, generated from `DESIGN.md` |
-| `h-screen` heroes | `min-h-dvh` |
-
-## Organisation
-
-Where CSS lives is decided by `css-architecture`, not here: what `globals.css` may contain, co-located component files, custom CSS in the right `@layer` (a `vendor` layer for third-party CSS) instead of `!important`, BEM class and custom-property naming, and deleting the rule you replace. This file covers how Tailwind expresses a style; that one covers where it goes.
+Run relevant build checks and inspect the affected browser output, including responsive and state differences. Compilation proves class generation, not visual quality. Report the installed version, meaningful configuration changes and actual validation when they matter to the handoff.

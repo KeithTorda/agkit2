@@ -1,34 +1,13 @@
-# Reading computed styles against the tokens
+# Inspect the computed result
 
-Read when checking token conformance on a project for the first time, or when you need the dump snippet. The protocol is in [SKILL.md](./SKILL.md) §4.
+Use computed styles when the render differs from source intent. Inspect the actual element and relevant ancestors, including pseudo-elements when they create the visible treatment. A class name or authored value is not evidence of the winning declaration.
 
-Do not eyeball this. Antigravity's JavaScript execution policy is on, so collect the real values
-with `getComputedStyle` and compare them as data:
+For layout inspect bounding rectangles, display, position, containing block, min/max width/height, grid/flex tracks, shrink/grow, overflow, box sizing and transforms. For visual treatment inspect resolved foreground/background, opacity, fonts and actual loaded face, line height, letter spacing, shadows and relevant media/pseudo-element layers.
 
-```js
-// Dump computed values for the region you changed, then diff against DESIGN.md
-[...document.querySelectorAll('main *')].slice(0, 80).map(el => {
-  const s = getComputedStyle(el);
-  return {
-    el: el.tagName.toLowerCase() + (el.className ? '.' + String(el.className).split(' ')[0] : ''),
-    color: s.color, bg: s.backgroundColor, size: s.fontSize,
-    pad: s.padding, gap: s.gap, radius: s.borderRadius,
-  };
-});
-```
+Trace a mismatch to origin/importance, layer order, specificity, scope, source order, inheritance, a conditional query, generated utility or runtime style. Inspect animation ownership too: a script can overwrite an otherwise correct CSS transform.
 
-Then reduce to the distinct values per property — a page using nine different font sizes or six
-greys has a token problem regardless of how any single element looks.
+Compare repeated components using their intended semantic role. A different computed pixel value may be a responsive, content-driven or optical choice; it is not automatically a token violation. A shared token resolving to the wrong value across many screens is a real ownership concern.
 
-```text
-WRONG (what source review concludes)
-  "className='text-slate-600 p-5' — looks consistent with the design."
+Measure contrast on actual backgrounds and states. A static scanner cannot fully resolve an image crop, backdrop filter, translucent stack, inherited theme or a moving gradient. Record uncertainty rather than treating an unresolved color as a pass.
 
-RIGHT (what the render actually reports)
-  Computed: color rgb(71,85,105) · padding 20px · font-size 15px
-  DESIGN.md scale (example values): text-secondary #5A6472 · spacing 16/24 · type 14/16/20
-  → 3 token violations: color off-scale, 20px not on the spacing scale, 15px not on the type scale.
-```
-
-Off-scale values are how a design drifts into mush one component at a time. Catch them at the
-render or they ship.
+Change the owner of the demonstrated problem and recheck the real render. Do not accumulate increasingly specific patches just to make a screenshot match once.

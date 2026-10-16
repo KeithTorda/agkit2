@@ -1,98 +1,23 @@
----
-name: electron-desktop
-description: Electron desktop app template principles. Cross-platform, React, TypeScript.
-version: 2.5.0
----
+# Electron desktop product
 
-# Electron Desktop App Template
+## Fit and inspection
 
-> Pin to the current stable line when scaffolding.
+Use when Electron is chosen for desktop delivery and its resource/distribution tradeoffs fit. An existing native or other desktop stack need not migrate.
 
-## Tech Stack
+Inspect existing work before scaffolding. For a new foundation, use current official setup guidance and compatible versions; do not copy historical CLI flags blindly. Preserve the requested package manager, deployment constraints and user changes.
 
-| Component | Technology |
-|-----------|------------|
-| Framework | Electron, current stable major (a new major ships every 8 weeks; stay within the 3 supported) |
-| UI | React 19 |
-| Language | TypeScript |
-| Styling | Tailwind CSS v4 |
-| Bundler | electron-vite + electron-builder |
-| IPC | Type-safe communication (contextBridge) |
+## Implementation decisions
 
----
+- Keep the renderer isolated from privileged Node APIs. Expose a narrow validated preload/IPC contract and authorize privileged operations.
 
-## Directory Structure
+- Use supported secure window defaults and deliberate navigation/link handling. Do not disable sandbox/context isolation to work around an unexplained integration problem.
 
-> electron-vite layout: main / preload / renderer separation is the current standard.
+- Define file locations, persistence, window state, update/signing/distribution and offline needs from the actual product. A website preview does not establish packaged behavior.
 
-```
-project-name/
-├── src/
-│   ├── main/            # Main process (lifecycle, windows, IPC handlers)
-│   │   └── index.ts
-│   ├── preload/         # contextBridge — type-safe IPC surface
-│   │   ├── index.ts
-│   │   └── index.d.ts   # Ambient types shared with renderer
-│   └── renderer/        # React app
-│       ├── index.html
-│       └── src/
-│           ├── main.tsx
-│           ├── App.tsx
-│           └── components/
-├── resources/           # App icons / static (build-time)
-├── build/               # Builder assets (entitlements, icons)
-├── electron.vite.config.ts
-├── electron-builder.yml
-└── package.json         # scripts: electron-vite dev | build | preview
-```
+For new visual design, complete the shared short style/reference intake and wait unless already answered or delegated. Reuse accepted tokens and design components; this template does not select an aesthetic or install a styling package. API/CLI-only work needs no visual questionnaire.
 
----
+## Verify and hand off
 
-## Process Model
+Run the app and relevant IPC/security boundaries, test file paths and persistence, and validate a packaged target when available. Report signing or platform-specific packaging not performed.
 
-| Process | Role |
-|---------|------|
-| Main | Node.js, system access |
-| Renderer | Chromium, React UI |
-| Preload | Bridge, context isolation |
-
----
-
-## Key Concepts
-
-| Concept | Purpose |
-|---------|---------|
-| contextBridge | Safe API exposure |
-| ipcMain/ipcRenderer | Process communication |
-| nodeIntegration: false | Security |
-| contextIsolation: true | Security |
-
----
-
-## Setup Steps
-
-1. `npm create @quick-start/electron@latest {{name}} -- --template react-ts`
-2. `cd {{name}} && npm install`
-3. Add Tailwind v4: `npm install tailwindcss @tailwindcss/vite`
-4. Define IPC types in `src/preload/index.d.ts`
-5. `npm run dev`
-
----
-
-## Build Targets
-
-| Platform | Output |
-|----------|--------|
-| Windows | NSIS, Portable |
-| macOS | DMG, ZIP |
-| Linux | AppImage, DEB |
-
----
-
-## Best Practices
-
-- `contextIsolation: true` (default v12+), `sandbox: true` (default v20+), `nodeIntegration: false` (default v5+) — never enable Node for remote content
-- Expose a narrow API via `contextBridge.exposeInMainWorld`, never raw `ipcRenderer`
-- Validate IPC `sender` against an allowlist; set a restrictive CSP (`script-src 'self'`)
-- Type-safe IPC: share types from `preload/index.d.ts` into the renderer
-- Auto-updates with electron-updater
+Report the actual run command, implemented outcome, checks performed and concrete remaining setup. Starter code, a mocked integration or a successful dependency install is not proof of a working end-to-end product.

@@ -9,6 +9,8 @@ updated: 2026-09-27
 
 # Roadmap
 
+> Example context: This fictional schedule demonstrates task ownership/dependencies and parseable fields. Its dates, estimates and buffer are not a universal planning recipe, and planned external actions still require applicable authorization.
+
 ## Approach
 
 One developer, weekdays only, starting 2026-09-28. Estimates are developer days for a developer who knows Laravel and React. The dependency chain is schema, then shared money rules, then the selling screens, then offline sync, then control and reports. The riskiest unknown (Bluetooth printing) is tested on day 1 of T-010, not at the end.
@@ -144,5 +146,5 @@ gantt
 ## Definition of done (every task)
 
 - The verify line was run and its output is recorded in the task's PR or `/orchestrate` report.
-- Tier per `code-rules`: money, auth, sync and migrations are tier 2 (full checks, tests, `/review`); UI-only tasks tier 1 with a look at 390 px and 1280 px.
+- Use shared `code-rules` and `verify-changes`: meaningful money/auth/sync/migration boundary checks and relevant UI renders. The widths in this fictional plan describe its target devices, not a universal gate.
 - No task is marked done with a failing test in CI.

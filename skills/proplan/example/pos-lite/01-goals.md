@@ -9,6 +9,8 @@ updated: 2026-09-27
 
 # Goals
 
+> Example context: These baselines and targets belong to the fictional example. Do not copy its coverage, timing or accessibility numbers as universal goals; establish actual project evidence and requirements.
+
 ## Problem
 
 Checkout is slow at the morning rush (about 90 seconds per order, measured over 20 orders on 2026-09-22), the end-of-day cash count is often off by several hundred pesos with no way to find why, SC/PWD discounts are computed by hand and sometimes wrongly, and the owner spends about an hour every night tallying paper slips.

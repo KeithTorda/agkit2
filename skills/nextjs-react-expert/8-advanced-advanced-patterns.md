@@ -1,104 +1,25 @@
-# 8. Advanced Patterns
+# Initialization and external callback lifetimes
 
-> **Impact:** VARIABLE
-> **Focus:** Advanced patterns for specific cases that require careful implementation.
+Use these patterns when a real lifecycle/subscription problem exists. Avoid clever global state or dependency suppression simply to make an effect run less often.
 
----
+## Rule 8.1: Initialize once at the correct scope
 
-## Overview
+"Once" needs an owner: per process, request, browser tab, user session, component instance or external resource. A module-level flag may be process-wide on a server and leak assumptions across users; module reloads or multiple bundles can also invalidate it.
 
-Two rules for specific cases.
+A lazy process-level client/pool may be appropriate when documented by the runtime and safe to share. Per-request identity/data should remain scoped to its request. Browser-only initialization should not execute through a server import. Component setup needs symmetric cleanup and must tolerate the framework's supported mount/reconnect behavior.
 
----
+Do not disable Strict Mode or add a global `initialized` flag just to silence repeated development effects. Determine whether the effect duplicates a real write, omits cleanup, or is placed at the wrong boundary. Idempotent setup and resource ownership usually solve the underlying issue more reliably.
 
-## Rule 8.1: Initialize App Once, Not Per Mount
+For an irreversible user action, trigger it from the operation boundary and use business idempotency as needed; a component mount is not an exactly-once guarantee.
 
-**Impact:** LOW-MEDIUM  
-**Tags:** initialization, useEffect, app-startup, side-effects  
+## Rule 8.2: Read current callbacks without hiding dependencies
 
-Do not put app-wide initialization that must run once per app load inside `useEffect([])` of a component. Components can remount and effects will re-run. Use a module-level guard or top-level init in the entry module instead.
+External subscriptions may need a stable connection while their callback observes current values. Start with the framework's supported effect/dependency model. A stable wrapper/ref or a supported API such as `useEffectEvent` can serve a documented non-reactive callback case.
 
-**Incorrect (runs twice in dev, re-runs on remount):**
+Verify the installed React version and restrictions before using `useEffectEvent`. It is not a general dependency-array escape hatch or a replacement for every callback. Do not pass an effect-only callback into arbitrary components or events if its contract forbids that.
 
-```tsx
-function Comp() {
-  useEffect(() => {
-    loadFromStorage()
-    checkAuthToken()
-  }, [])
+When using refs deliberately, update/read them in a lifecycle-safe way and document why the referenced value should not resubscribe. Values that change the resource identity, permission or subscription target usually remain real dependencies. A callback seeing fresh values does not resolve a stale resource connection.
 
-  // ...
-}
-```
+## Prove the lifecycle
 
-**Correct (once per app load):**
-
-```tsx
-let didInit = false
-
-function Comp() {
-  useEffect(() => {
-    if (didInit) return
-    didInit = true
-    loadFromStorage()
-    checkAuthToken()
-  }, [])
-
-  // ...
-}
-```
-
-Reference: [Initializing the application](https://react.dev/learn/you-might-not-need-an-effect#initializing-the-application)
-
----
-
-## Rule 8.2: `useEffectEvent` for Callbacks Read Inside Effects
-
-**Impact:** LOW  
-**Tags:** advanced, hooks, useEffectEvent, refs
-
-When an effect calls a callback (a prop handler, a logger) that should always see the latest values but should not re-run the effect when it changes, wrap it in `useEffectEvent` (stable in React 19.2).
-
-**Incorrect (re-subscribes or restarts whenever the parent passes a new function):**
-
-```tsx
-function useWindowEvent(event: string, handler: (e: Event) => void) {
-  useEffect(() => {
-    window.addEventListener(event, handler)
-    return () => window.removeEventListener(event, handler)
-  }, [event, handler])
-}
-
-function SearchInput({ onSearch }: { onSearch: (q: string) => void }) {
-  const [query, setQuery] = useState('')
-  useEffect(() => {
-    const timeout = setTimeout(() => onSearch(query), 300)
-    return () => clearTimeout(timeout)
-  }, [query, onSearch])   // restarts the debounce when onSearch changes
-}
-```
-
-**Correct:**
-
-```tsx
-import { useEffect, useEffectEvent, useState } from 'react'
-
-function useWindowEvent(event: string, handler: (e: Event) => void) {
-  const onEvent = useEffectEvent(handler)
-  useEffect(() => {
-    window.addEventListener(event, onEvent)
-    return () => window.removeEventListener(event, onEvent)
-  }, [event])
-}
-
-function SearchInput({ onSearch }: { onSearch: (q: string) => void }) {
-  const [query, setQuery] = useState('')
-  const onSearchEvent = useEffectEvent(onSearch)
-  useEffect(() => {
-    const timeout = setTimeout(() => onSearchEvent(query), 300)
-    return () => clearTimeout(timeout)
-  }, [query])
-}
-```
-
-Effect Events are called only from inside effects; do not pass them to child components or other hooks. On React versions before 19.2, the older pattern is a ref updated in an effect (`handlerRef.current = handler`) and read inside the listener.
+Exercise mount/unmount, identity changes, reconnects, navigation and repeated events. Confirm only intended resources persist, callbacks see the correct state and old subscriptions cannot modify the current session. Check cleanup after failure/cancellation. Compare profiler evidence when reduced work is a goal; correctness comes before minimizing effect counts.

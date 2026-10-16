@@ -7,29 +7,17 @@ owner: product-manager
 updated: YYYY-MM-DD
 ---
 
-<!--
-Owner: product-manager (Phase 1).
-IDs defined here:
-  G-01, G-02 ...   business goals (two digits). Define each as a heading: "### G-01 Faster checkout".
-  DG-01 ...        development goals: engineering and quality targets the team commits to.
-  KPI-01 ...       success metrics, defined as the first cell of the metrics table.
-Rules:
-- Every G must be traced by at least one requirement in 02 (the checker fails otherwise). A goal nothing serves is either missing requirements or not a goal.
-- Goals are SMART: specific, measurable (a number and a baseline), achievable, relevant to the client, time-bound. "Improve the user experience" is not a goal; "median checkout time 45 s or less by the second week after launch (baseline 90 s)" is.
-- 2-5 business goals is normal for a small system. More usually means features written as goals.
-- Development goals are the engineering promises: test coverage, performance budgets, accessibility level, uptime, security baseline, maintainability. Each should be picked up by an NFR in 02 (write "Traced by NFR-xx").
--->
+<!-- AGKIT2 2.8.0 planning scaffold. Keep machine-readable IDs/fields and use only relevant content. Replace illustrative rows and examples with the actual brief. Do not invent evidence, approvals, dates or locale-specific obligations. Shared core/design/verification rules govern decisions and checks; this template adds no universal approval or task-count gate. -->
+
 
 # Goals
 
 ## Problem
 
-<!-- What hurts today, for whom, and how you know. Use numbers you measured or the client gave (time per order, errors per month, hours spent). State the source. -->
-
+<!-- State the problem, audience and evidence source. Label unknown baselines honestly; do not invent research or measurements. -->
 ## Business goals
 
-<!-- One heading per goal. Keep the four lines; they make the goal testable after launch. -->
-
+<!-- Define the useful business outcomes with stable G IDs. Include a measurable target when meaningful and a source/review plan; no goal quota applies. -->
 ### G-01 <Short goal name>
 
 - Target:
@@ -39,29 +27,17 @@ Rules:
 
 ## Development goals
 
-<!--
-Pick what matters for this system; skip what does not. Typical set:
-- Tested logic: line coverage on the modules money, auth or data integrity depend on (e.g. 80%), and one feature test per Must requirement.
-- Performance budget: e.g. LCP 2.5 s or less on a mid-range phone over 4G; API p95 300 ms or less; a key interaction 100 ms or less.
-- Accessibility: WCAG 2.2 AA for public and staff screens (AAA only if the client needs it).
-- Availability: e.g. 99.5% monthly for a cloud app; "works offline for 8 h" for a counter system; planned maintenance window.
-- Security baseline: OWASP ASVS level 1 (level 2 for money or personal data at scale), no High findings open at release.
-- Maintainability: one-command setup, CI on every push, README runbook, dependency update routine.
-- Operability: backups with a tested restore, RPO/RTO stated, alerts to a named person.
--->
-
+<!-- Choose only engineering outcomes relevant to the system: reliability, integrity, performance, accessibility, maintainability or operations. Proposed budgets need a reason and an observation method; coverage percentage is not a universal quality target. -->
 ### DG-01 <Short development goal>
 
-<!-- One or two sentences with a number. End with "Traced by NFR-xx." -->
 
 ## Success metrics
 
-<!-- How each goal is measured after launch. Source must be something the system or the client already records. -->
-
+<!-- Use metrics that can actually be observed. Separate target, baseline and source; do not require analytics the system does not need. -->
 | KPI | Metric | Source | Target | Review |
 |---|---|---|---|---|
 | KPI-01 | | | | |
 
 ## Non-goals
 
-<!-- Outcomes the client might expect but this plan does not promise (e.g. "increase sales"; the system can only make checkout faster). Prevents scope creep later. -->
+<!-- Explain material outcomes this plan does not promise without adding unrelated exclusions. -->

@@ -36,6 +36,8 @@ def analyze_package(root: Path) -> dict[str, Any]:
     if pkg.is_file():
         try:
             data = json.loads(pkg.read_text("utf-8"))
+            if not isinstance(data, dict) or not isinstance(data.get("scripts", {}), dict):
+                raise ValueError("package.json and its scripts must be objects")
         except (OSError, ValueError) as exc:
             info["error"] = f"package.json unreadable: {exc}"
         else:
@@ -46,10 +48,12 @@ def analyze_package(root: Path) -> dict[str, Any]:
     if composer.is_file():
         try:
             data = json.loads(composer.read_text("utf-8"))
+            if not isinstance(data, dict) or not isinstance(data.get("require", {}), dict):
+                raise ValueError("composer.json and its require section must be objects")
             info.setdefault("composer", {})["name"] = data.get("name")
             info["composer"]["require"] = sorted((data.get("require") or {}).keys())[:15]
-        except (OSError, ValueError):
-            pass
+        except (OSError, ValueError) as exc:
+            info["composer_error"] = str(exc)
     pyproject = root / "pyproject.toml"
     if pyproject.is_file():
         m = re.search(r'^name\s*=\s*"([^"]+)"', pyproject.read_text("utf-8", errors="replace"), re.M)
@@ -94,12 +98,13 @@ def git_info(root: Path) -> dict[str, Any] | None:
 
     if run("rev-parse", "--is-inside-work-tree") is None:
         return None
-    status = run("status", "--porcelain") or ""
-    log = run("log", "-5", "--pretty=format:%h %ad %s", "--date=short") or ""
+    status = run("status", "--porcelain")
+    log = run("log", "-5", "--pretty=format:%h %ad %s", "--date=short")
     return {
         "branch": (run("branch", "--show-current") or "").strip() or None,
-        "uncommitted": len([ln for ln in status.splitlines() if ln.strip()]),
-        "recent_commits": [ln for ln in log.splitlines() if ln.strip()],
+        "uncommitted": len([ln for ln in status.splitlines() if ln.strip()]) if status is not None else None,
+        "recent_commits": [ln for ln in (log or "").splitlines() if ln.strip()],
+        "not_verified": [name for name, value in (("worktree status", status), ("recent history", log)) if value is None],
     }
 
 
@@ -126,6 +131,7 @@ def snapshot(root: Path) -> dict[str, Any]:
         "project": analyze_package(root),
         "path": str(root),
         "stack": stack.names,
+        "manifest_errors": stack.manifest_errors,
         "features": detect_features(root),
         "files": count_files(root),
         "git": git_info(root),
@@ -148,7 +154,10 @@ def print_status(snap: dict[str, Any]) -> None:
     print(f"Files:    {files['total']} ({exts})")
     git = snap["git"]
     if git:
-        print(f"Git:      branch {git['branch'] or '(detached)'}, {git['uncommitted']} uncommitted change(s)")
+        count = git['uncommitted'] if git['uncommitted'] is not None else 'unknown'
+        print(f"Git:      branch {git['branch'] or '(unknown/detached)'}, {count} uncommitted change(s)")
+        if git.get('not_verified'):
+            print(f"Not verified: {', '.join(git['not_verified'])}")
         for line in git["recent_commits"]:
             print(f"          {line}")
     else:

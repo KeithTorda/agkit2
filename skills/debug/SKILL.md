@@ -1,26 +1,15 @@
 ---
 name: debug
-description: "/debug - Investigates a bug systematically: reproduce, isolate, find the root cause, fix, verify, add a regression test. Use when something errors, crashes, misbehaves or a test fails and the cause is not obvious."
-version: 2.5.0
+description: "Diagnose and repair errors, regressions or incorrect behavior with discriminating evidence. Use /debug when a cause is uncertain or a direct fix needs confirmation."
+version: 2.8.2
 ---
 
 # /debug
 
-**Input:** the text after `/debug` is the symptom (error text, failing test, or behaviour).
-**Agent:** `KIT/agents/debugger.md`.
-**Read now:** `KIT/skills/systematic-debugging/SKILL.md` (the four phases). Regression test: `KIT/skills/testing-patterns/SKILL.md` when needed.
+Use `KIT/agents/debugger.md` and `KIT/skills/systematic-debugging/SKILL.md`. The text after the command supplies the symptom; infer missing context from the current task before asking for it.
 
-Run the four phases in order; do not jump to a fix. For an obvious cause (a typo in the stack trace line), fix it directly and say so.
+Establish expected versus observed behavior, triggering input and environment. Reproduce when practical, then trace to the first incorrect value or decision. Test hypotheses with checks that distinguish them. Fix an obvious localized cause directly; do not turn a typo into a required investigation ceremony.
 
-## Output
+When experiments fail, remove ineffective changes and reassess from new evidence. Use `problem-solving` for competing hypotheses or repeated failure. A tool/service unavailable in the environment is a limitation to diagnose, not proof of an application bug.
 
-```markdown
-## Debug: <issue>
-Symptom: <what happens> · Reproduced with: `<command>` → <output>
-Root cause: <why, file:line>
-Fix: <what changed and why>
-Verified: `<command>` → <result> · Regression test: <path or "not added: reason">
-Also checked: <same mistake elsewhere, or none found>
-```
-
-No random edits: every change follows a confirmed hypothesis. If the cause is outside the reported area, say so.
+Verify the corrected case and a relevant neighboring success/failure path. Add a regression test when it protects meaningful behavior, following `testing-patterns`. Report the cause with source references, the change, execution evidence and what remains uncertain. Save a durable lesson only under requested or otherwise authorized project memory work.

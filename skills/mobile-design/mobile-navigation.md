@@ -1,136 +1,25 @@
-# Mobile Navigation Reference
+# Navigation, back and restoration
 
-> Navigation patterns, deep linking, back handling, and tab/stack/drawer decisions.
-> Navigation is the skeleton of the app; get it wrong and everything feels broken.
+Model destinations and task relationships before choosing chrome. Frequent peer destinations can suit tabs or a rail; hierarchical detail can suit a stack; a focused temporary task may suit a sheet/modal; larger windows can support list-detail or sidebars. Item counts inform fit but do not force a drawer/tab architecture or a fixed bar height.
 
----
+Use the project's supported router and platform conventions. Keep navigation state authoritative there rather than mirroring the whole stack into a global store. Preserve useful per-destination state and scroll position where users expect it; an explicit reset can still be a legitimate product action.
 
-## 1. Navigation Selection Decision Tree
+## Back and dismissal
 
-```
-WHAT TYPE OF APP?
-        │
-        ├── 3-5 top-level sections (equal importance)
-        │   └── Tab Bar / Bottom Navigation (Social, E-commerce, Utility)
-        │
-        ├── Deep hierarchical content (drill down)
-        │   └── Stack Navigation (Settings, Email folders)
-        │
-        ├── Many destinations (>5 top-level)
-        │   └── Drawer Navigation (Gmail, complex enterprise)
-        │
-        ├── Single linear flow
-        │   └── Stack only (wizard/onboarding: checkout, setup)
-        │
-        └── Tablet/Foldable
-            └── Navigation Rail + List-Detail (Mail, Notes on iPad)
-```
+Respect platform system-back and interactive navigation behavior. Back may dismiss a dialog, hide the keyboard, return through a stack or exit a task depending on the platform/state; it does not universally mean pop one screen. Handle unsaved changes and cancellation deliberately without trapping users. Confirm predictive-back support and APIs for the actual Android target/runtime rather than hardcoding an old OS baseline.
 
----
+Sheets, dialogs and full-screen tasks need an accessible close/cancel path and appropriate focus behavior. Decide whether outside-tap/swipe dismisses from the task's consequences. Avoid blocking dismissal merely because it is easier than preserving a draft.
 
-## 2. Tab Bar Navigation
+## Deep links and notifications
 
-Use a tab bar for 3-5 equally important top-level destinations the user switches between often, each with its own navigation stack. Avoid it for more than 5 destinations, clear hierarchy, or a linear sequence.
+Implement links when the product needs external entry, sharing or notification destinations. Validate route parameters, identity and resource authorization. Do not trust a link to grant access. Define cold-start and warm-session behavior, invalid/deleted resource recovery and post-login continuation. The correct back stack depends on the entry context; do not always synthesize a Home stack or always push over the current flow.
 
-- iOS tab bar: 49 pt tall (plus home indicator), max 5 items, SF Symbols, labels always shown, tint for the active item.
-- Android bottom navigation: 80 dp tall, 3-5 items, Material Symbols (24 dp), labels shown, pill indicator plus filled icon for active.
+Use current platform Universal/App Link configuration where needed. Test actual target behavior, redirects, app-not-installed fallback and relevant domain association. A local router URL test alone does not establish OS link association.
 
-### Tab State Preservation
+## Restore appropriately
 
-Each tab keeps its own navigation stack: drilling into Home, switching to Profile, and returning to Home must land back on the drilled-in screen, not the Home root. React Navigation gives each tab its own navigator; Flutter uses `IndexedStack`. Never reset a tab's stack on switch.
+Persist only useful state within its account/privacy boundary. Version stored navigation data, tolerate invalid JSON/obsolete routes and reconcile it with incoming links/session state. Sensitive route parameters and drafts can leak through naive persistence. Clear or isolate state on account switch as appropriate.
 
----
+Transitions should support spatial understanding, fit the brand and respect motion preferences. Use native defaults when suitable; custom transitions can be appropriate when they preserve gestures, accessibility and interruption. Avoid a universal duration ceiling or a shared-element library requirement.
 
-## 3. Stack Navigation
-
-Push adds a screen, pop removes the top (back), replace swaps the current screen, reset clears the stack and sets a new root. New screens slide in from the trailing edge.
-
-| Pattern | Use Case | Implementation |
-|---------|----------|----------------|
-| Simple Stack | Linear flow | Push each step |
-| Nested Stack | Sections with sub-navigation | Stack inside a tab |
-| Modal Stack | Focused tasks | Present modally |
-| Auth Stack | Login vs main | Conditional root |
-
-Back handling: iOS uses the interactive edge-swipe from the left plus an optional nav-bar button; Android uses the system back button/gesture with predictive back (Android 14+). Back always pops the stack, never hijack it, confirm before discarding unsaved data, and let deep links build a stack the user can back out of.
-
----
-
-## 4. Drawer Navigation
-
-Use a drawer for more than 5 destinations, less-frequent destinations, or a large screen with a persistent drawer; avoid it when 5 or fewer equally important destinations fit a tab bar (drawers hide navigation and hurt discoverability). Modal drawers slide over content with a scrim (hamburger trigger); permanent drawers stay visible on large screens; a navigation rail (80 dp) is the tablet-portrait option.
-
----
-
-## 5. Modal Navigation
-
-Push (horizontal slide, part of the hierarchy, back returns) versus modal (vertical slide, a separate self-contained task, dismiss returns). Use modals for creating content, settings, transactions, and quick actions.
-
-| Type | iOS | Android | Use Case |
-|------|-----|---------|----------|
-| Sheet | `.sheet` | Bottom Sheet | Quick tasks |
-| Full Screen | `.fullScreenCover` | Full Activity | Complex forms |
-| Alert | Alert | Dialog | Confirmations |
-| Action Sheet | Action Sheet | Menu / Bottom Sheet | Choose from options |
-
-Let users dismiss modals by close button, swipe down (sheet), scrim tap (non-critical), or system back (Android); only block dismissal to protect unsaved data.
-
----
-
-## 6. Deep Linking
-
-Plan deep links from day one; retrofitting them forces a navigation refactor. They power push-notification navigation, sharing, marketing, search integration, and widgets.
-
-URL structure mirrors navigation: `myapp://home/product/123/reviews` and the Universal/App Link `https://myapp.com/product/123`. Rules:
-
-1. Full stack construction: a deep link to a product puts Home at the root and pushes Product, so back returns to Home.
-2. Auth awareness: save the destination, send the user to login, then continue to it.
-3. Invalid links: fall back to home with a message, never crash or blank-screen.
-4. Stateful navigation: during an active session, push on top rather than blowing away the current stack.
-
----
-
-## 7. Navigation State Persistence
-
-Persist the current tab, list scroll positions, form drafts, and the recent stack; do not persist modal state, transient UI, stale data (refresh on return), or auth (use secure storage).
-
-```javascript
-// React Navigation state persistence
-const [initialState, setInitialState] = useState();
-useEffect(() => {
-  (async () => {
-    const saved = await AsyncStorage.getItem('NAV_STATE');
-    if (saved) setInitialState(JSON.parse(saved));
-  })();
-}, []);
-
-<NavigationContainer
-  initialState={initialState}
-  onStateChange={(state) => AsyncStorage.setItem('NAV_STATE', JSON.stringify(state))}
->
-```
-
----
-
-## 8. Transition Animations
-
-Use platform defaults for most navigation (iOS: slide from trailing edge, modal from bottom, interactive swipe-back; Android: fade-through, shared-element hero animations). Customize only for brand identity or shared-element connections, keep it under 300 ms, and use defaults on performance-critical paths. Shared-element transitions: React Navigation shared-element libraries, Flutter `Hero`, SwiftUI `matchedGeometryEffect`, Compose shared-element transitions.
-
----
-
-## 9. Navigation Anti-Patterns
-
-| Anti-pattern | Problem | Fix |
-|--------------|---------|-----|
-| Inconsistent back | User cannot predict it | Always pop the stack |
-| Hidden navigation | Features undiscoverable | Visible tab or drawer trigger |
-| Deep nesting | User gets lost | Max 3-4 levels; breadcrumbs |
-| Breaking swipe-back | iOS users frustrated | Never override the gesture |
-| No deep links | Cannot share; broken notifications | Plan from the start |
-| Tab stack reset | Work lost on switch | Preserve tab state |
-| Modal for a primary flow | Cannot back-track | Use stack navigation |
-
-AI tends to use modals for everything, forget tab-state preservation, skip deep linking, override platform back, and ignore predictive back (Android 14+). Use platform navigation patterns; do not reinvent navigation.
-
----
-> Navigation is invisible when done right. Users should not think about how to get somewhere; if they notice navigation, something is wrong.
+Verify the actual flow on available targets: back/dismiss, tab switching, keyboard, deep links, background/relaunch and larger-window layout where relevant. Report device/emulator coverage and any OS integration not checked.

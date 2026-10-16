@@ -6,8 +6,7 @@ TypeScript
     configs with "files": [] run their references instead). Compiler errors fail.
     Skipped, not failed, when node_modules/.bin/tsc is missing.
   - Counts explicit escape hatches (`: any`, `as any`, `<any>`, @ts-ignore,
-    @ts-nocheck). Above a project-size threshold they fail; below it they are
-    warnings. Inferred return types are never counted against you.
+    @ts-nocheck) as review guidance, never as a fixed pass/fail quota.
 Python
   - Parses every file with ast: syntax errors fail.
   - Reports the share of fully annotated functions and Any usage as warnings
@@ -16,15 +15,14 @@ Python
 Usage:
     python type_coverage.py <project> [--json] [--skip-compiler] [--timeout SECONDS]
 
-Exit codes: 0 ok, 1 compiler errors / syntax errors / escape hatches above
-threshold, 2 usage error.
+Exit codes: 0 no compiler/syntax failure (including skipped/incomplete runs),
+1 compiler or syntax failure, 2 usage error. Read outcome/verified for coverage.
 """
 from __future__ import annotations
 
 import argparse
 import ast
 import json
-import math
 import os
 import re
 import shutil
@@ -197,17 +195,11 @@ def check_typescript_coverage(project_path: Path, run_compiler: bool = True, tim
         stats["files_with_any"] += int(any_count > 0)
         stats["suppression_count"] += len(suppression_pattern.findall(content))
 
-    any_threshold = max(10, math.ceil(len(files) * 0.25))
-    suppression_threshold = max(3, math.ceil(len(files) * 0.05))
-    if stats["any_count"] > any_threshold:
-        result["errors"].append(f"{stats['any_count']} explicit 'any' usages (threshold {any_threshold} for {len(files)} files)")
-    elif stats["any_count"]:
+    if stats["any_count"]:
         result["warnings"].append(f"{stats['any_count']} explicit 'any' usage(s) in {stats['files_with_any']} file(s)")
     else:
         result["ok"].append("no explicit 'any'")
-    if stats["suppression_count"] > suppression_threshold:
-        result["errors"].append(f"{stats['suppression_count']} @ts-ignore/@ts-nocheck (threshold {suppression_threshold})")
-    elif stats["suppression_count"]:
+    if stats["suppression_count"]:
         result["warnings"].append(f"{stats['suppression_count']} @ts-ignore/@ts-nocheck comment(s)")
 
     if run_compiler:
@@ -215,8 +207,9 @@ def check_typescript_coverage(project_path: Path, run_compiler: bool = True, tim
     for run in stats["compiler_runs"]:
         if run["status"] == "passed":
             result["ok"].append(f"tsc passed: {run['config']}")
-        elif run["status"] == "skipped":
-            result["warnings"].append(f"tsc not run for {run['config']}: {run['reason']} (NOT VERIFIED)")
+        elif run["status"] in {"skipped", "error"}:
+            reason = run.get("reason") or run.get("output") or "compiler could not run"
+            result["warnings"].append(f"tsc not run for {run['config']}: {reason} (NOT VERIFIED)")
         else:
             detail = f"{run['errors']} error(s)" if run.get("errors") else run["status"]
             result["errors"].append(f"tsc failed for {run['config']}: {detail}")
@@ -277,14 +270,32 @@ def main() -> int:
     results = [r for r in (check_typescript_coverage(project, not args.skip_compiler, args.timeout),
                            check_python_coverage(project)) if r["files"]]
     failed = any(r["errors"] for r in results)
+    not_verified = []
+    for result in results:
+        if result["type"] != "typescript":
+            continue
+        runs = result["stats"]["compiler_runs"]
+        if args.skip_compiler:
+            not_verified.append("TypeScript compiler intentionally skipped; source scan only")
+        elif not runs:
+            not_verified.append("TypeScript source found but no tsconfig.json compiler target")
+        else:
+            for run in runs:
+                if run["status"] in {"skipped", "error"}:
+                    not_verified.append(f"{run['config']}: {run.get('reason') or run.get('output') or 'compiler unavailable'}")
+    outcome = "FAIL" if failed else "INCOMPLETE" if not_verified else "PASS" if results else "SKIPPED"
+    scope = ["Python syntax/source annotation scan" if r["type"] == "python"
+             else "TypeScript compiler/source escape-hatch scan" for r in results]
     if args.json:
-        print(json.dumps({"script": "type_coverage", "project": str(project), "passed": not failed,
+        print(json.dumps({"script": "type_coverage", "project": str(project), "passed": outcome == "PASS",
+                          "outcome": outcome, "verified": outcome == "PASS", "not_verified": not_verified,
+                          "scope": scope,
                           "results": results}, indent=2, ensure_ascii=False))
         return 1 if failed else 0
 
     print(f"Type safety: {project}")
     if not results:
-        print("No TypeScript or Python files found.")
+        print("No TypeScript or Python files found. Result: SKIPPED")
         return 0
     for r in results:
         print(f"\n{r['type']} ({r['files']} files)")
@@ -297,7 +308,9 @@ def main() -> int:
         for run in r["stats"].get("compiler_runs", []):
             if run["status"] in {"failed", "timeout", "error"} and run.get("output"):
                 print("    " + tail(run["output"], 15).replace("\n", "\n    "))
-    print(f"\nResult: {'FAIL' if failed else 'PASS'}")
+    for item in not_verified:
+        print(f"  not verified: {item}")
+    print(f"\nResult: {outcome}")
     return 1 if failed else 0
 
 

@@ -1,89 +1,23 @@
----
-name: cli-tool
-description: Node.js CLI tool template principles. Commander.js, interactive prompts.
-version: 2.5.0
----
+# Command-line product
 
-# CLI Tool Template
+## Fit and inspection
 
-> Pin to the current stable line when scaffolding.
+Use when the deliverable is a command-line tool. Select language/runtime and parser from the existing environment, distribution path and command complexity; Commander is an option.
 
-## Tech Stack
+Inspect existing work before scaffolding. For a new foundation, use current official setup guidance and compatible versions; do not copy historical CLI flags blindly. Preserve the requested package manager, deployment constraints and user changes.
 
-| Component | Technology |
-|-----------|------------|
-| Runtime | Node.js 24 (Krypton LTS) |
-| Language | TypeScript (ESM) |
-| CLI Framework | Commander.js (v15, needs Node ≥22.12) |
-| Prompts | @inquirer/prompts (modular) |
-| Output | chalk + ora |
-| Config | cosmiconfig |
+## Implementation decisions
 
----
+- Define inputs, help, exit codes, output and noninteractive behavior. Keep machine-readable output separate from progress/log output.
 
-## Directory Structure
+- Validate paths/options, protect secrets and handle cancellation. Avoid overwriting files or performing remote mutations merely because a parser accepted a flag.
 
-```
-project-name/
-├── src/
-│   ├── index.ts         # Entry: #!/usr/bin/env node shebang, wires Commander
-│   ├── commands/        # One file per command (factory functions)
-│   ├── lib/             # Core logic (framework-agnostic, testable)
-│   ├── utils/           # logger (chalk/ora), prompt wrappers
-│   └── config.ts        # cosmiconfig loader
-├── dist/                # Build output (tsup/tsc)
-└── package.json         # "type":"module", "bin":{...}
-```
+- Support the relevant operating systems and shell quoting. Use the project packaging model; test an installed or built entrypoint where appropriate.
 
----
+For new visual design, complete the shared short style/reference intake and wait unless already answered or delegated. Reuse accepted tokens and design components; this template does not select an aesthetic or install a styling package. API/CLI-only work needs no visual questionnaire.
 
-## CLI Design Principles
+## Verify and hand off
 
-| Principle | Description |
-|-----------|-------------|
-| Subcommands | Group related actions |
-| Options | Flags with defaults |
-| Interactive | Prompts when needed |
-| Non-interactive | Support --yes flags |
+Exercise help, success, invalid input, failure exit codes and relevant filesystem behavior in an isolated task directory. Test idempotency or dry-run behavior when the command offers it.
 
----
-
-## Key Components
-
-| Component | Purpose |
-|-----------|---------|
-| Commander | Command parsing (use a local `new Command()` for testability) |
-| @inquirer/prompts | Modular interactive prompts (`input`, `select`, `confirm`) |
-| Chalk | Colored output |
-| Ora | Spinners/loading |
-| Cosmiconfig | Config file discovery |
-
----
-
-## Setup Steps
-
-1. Create project directory
-2. `npm init -y` then set `"type": "module"`
-3. Install deps: `npm install commander @inquirer/prompts chalk ora cosmiconfig`
-4. Point `bin` at compiled `./dist/index.js`, keep `#!/usr/bin/env node` shebang
-5. `npm link` for local testing
-
----
-
-## Publishing
-
-```bash
-npm login
-npm publish
-```
-
----
-
-## Best Practices
-
-- Keep `src/index.ts` thin; attach commands via `.addCommand()` factories in `src/commands/`
-- Put business logic in `lib/`/`utils/` so commands stay testable wrappers
-- ESM by default; build with tsup/esbuild
-- Support both interactive and non-interactive (`--yes`) modes
-- Validate inputs with Zod; exit with proper codes (0 success, 1 error)
-- Alternatives worth knowing: @clack/prompts (polished prompts), citty (lightweight ESM command framework)
+Report the actual run command, implemented outcome, checks performed and concrete remaining setup. Starter code, a mocked integration or a successful dependency install is not proof of a working end-to-end product.

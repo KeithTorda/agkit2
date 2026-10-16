@@ -1,65 +1,29 @@
-# Editable documents — DOCX (and when not to)
+# Editable Word documents
 
-Read when the recipient must **open the file and change it**. If they only need to read, print or
-file it, produce a PDF instead ([pdf.md](./pdf.md)) — a Word document sent as a final deliverable
-will be reformatted by whatever version of Word opens it.
+Produce DOCX when requested or when the recipient needs an editable prose artifact, template workflow, comments or tracked changes. PDF can be an additional reading/print copy when useful; do not replace the requested Word file without agreement.
 
-## When DOCX is the right answer
+## Use the right source
 
-- A government or institutional submission whose template is a Word file and must stay one.
-- A contract, memo, or letter the recipient will edit, comment on, or track changes in.
-- A document that enters someone else's workflow where Word is the tool — HR, legal, records.
+If a supplied template controls the layout, preserve its structure, styles, headers/footers, fields, numbering and content controls. For a new document, build a suitable structure with named paragraph/character/table styles rather than direct-formatting every run. Both template filling and programmatic authoring are valid; choose from fidelity, repeatability and editing needs.
 
-Everything else is a PDF. "Send them the Word file so they can print it" is a PDF.
+For a new visual design complete the shared style/reference intake before inventing the look. An established approved template does not need a duplicate questionnaire. Use real content to test headings, lists, tables and pagination.
 
-## Fill a template — never build from scratch
+## Library boundaries and traps
 
-Generating a complex document element by element is slow to write, impossible to restyle, and
-produces files that look subtly wrong. Instead: take the real `.docx`, put placeholders in it, and
-fill them.
+Choose an available supported tool: template engines and document-object libraries have different strengths. Verify the installed library's escaping and text/run handling rather than double-escaping XML blindly. User data containing `&`, `<`, line breaks or non-ASCII names should remain text without corrupting the package.
 
-- **Node** — `docxtemplater`: placeholders are `{name}`, `{#items}…{/items}` for loops.
-- **Python** — `docxtpl` (Jinja syntax inside the document) over raw `python-docx` for templates;
-  `python-docx` when you must construct structure.
-- **PHP** — `PHPWord`'s `TemplateProcessor`: `setValue`, `cloneRow` for tables.
+Word may split a visible placeholder across multiple XML runs. Test actual templates, repeated sections and optional content; use the engine's supported mechanism or inspect the document structure when a replacement fails. Do not use naive ZIP-wide search/replace that can corrupt relationships or formatting.
 
-The template is maintained by whoever owns the document's design — usually not you — in Word. Keep
-it in the repo, versioned, and treat a template change like a code change.
+Use supported paragraph/line-break and table APIs. Keep image aspect ratio and explicit dimensions where needed, preserve alt text for meaningful images, and maintain sensible heading and table semantics. Field codes, page numbers, references and the table of contents may require an actual office application update; distinguish an inserted field from a verified updated result.
 
-```php
-// PHPWord — fill a template, clone a table row per item
-$tpl = new \PhpOffice\PhpWord\TemplateProcessor(storage_path('templates/coe.docx'));
-$tpl->setValue('employee_name', htmlspecialchars($employee->full_name, ENT_XML1));
-$tpl->setValue('issued_on', now('Asia/Manila')->format('F j, Y'));
-$tpl->cloneRow('item_desc', count($items));
-foreach ($items as $i => $item) {
-    $tpl->setValue('item_desc#'.($i+1), htmlspecialchars($item->description, ENT_XML1));
-    $tpl->setValue('item_amount#'.($i+1), number_format($item->centavos / 100, 2));
-}
-$tpl->saveAs($path);
-```
+## Editing quality
 
-## The traps
+Make the final document comfortable to maintain. Use coherent margins, section breaks, page numbering, widow/orphan and keep-with-next controls where useful. Test long titles, large tables, empty optional fields and multiple pages. Avoid forcing pagination with blank paragraphs or placing the whole report inside one giant table.
 
-1. **Escape every value.** A `&`, `<`, or `>` from user data corrupts the document XML and Word
-   refuses to open the file — with a message that does not say why. Escape as XML, always.
-2. **A placeholder Word split across runs never matches.** Typing `{name}` while autocorrect or
-   spellcheck is active can store it as three separate runs, and the library will not find it. Type
-   placeholders in one go, or paste as plain text, and test the template with real data before
-   trusting it.
-3. **Line breaks are not `\n`.** Use the library's break element, or the text runs together.
-4. **Images need explicit dimensions** or they arrive at the wrong scale.
-5. **Fonts follow the recipient's machine.** If the template uses a font they lack, Word substitutes
-   and the layout shifts. Stick to fonts that are actually installed everywhere the document goes.
-6. **DOCX → PDF is not free.** LibreOffice headless can convert, but it is a separate binary, a
-   separate failure mode, and it re-flows the layout. If a PDF is the real deliverable, generate the
-   PDF directly instead of converting.
+Check font availability/embedding permissions and realistic fallback; no font is installed everywhere. A LibreOffice render, Microsoft Word render and browser preview may paginate differently. DOCX-to-PDF conversion is a useful verification/delivery path but its result should be inspected, especially when a template requires exact placement.
 
-## Done
+## Verify and deliver
 
-- The file opens in Word without a repair prompt — tested with real data, including a value
-  containing `&` and a name with `ñ`.
-- Every placeholder is filled; none is left visible in the output.
-- Tables with repeated rows were tested at 0, 1, and many items.
-- The template lives in the repo and its origin is recorded, so the next change starts from the
-  authority's current version.
+Open/parse the final DOCX, confirm required content, absence of unresolved placeholders and appropriate styles. Render pages with available office/document tools and inspect actual layout. Check repeated tables and fields as relevant. Do not claim that Word opened without a repair prompt unless Word was actually used.
+
+The compatible document helper can collect structural/render results, with limited automated scope and reported artifact paths. Review its outcome and actual page images; missing rendering is an unverified part, not a visual pass. Deliver the editable file plus an optional verified PDF if requested, and state the tools and compatibility limits actually observed.

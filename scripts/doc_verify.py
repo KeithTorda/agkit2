@@ -24,6 +24,7 @@ import argparse
 import json
 import sys
 import unicodedata
+import uuid
 from pathlib import Path
 
 PAGE_SIZES_MM = {           # name: (width, height) portrait, millimetres
@@ -35,12 +36,12 @@ PAGE_SIZES_MM = {           # name: (width, height) portrait, millimetres
 }
 PT_PER_MM = 72.0 / 25.4
 
-# Guaranteed present in every PDF viewer; not embedding them is normal, not a defect.
+# Standard base-font names are handled separately; visual glyph/metrics checks still matter.
 STANDARD_14 = {
     "Helvetica", "Helvetica-Bold", "Helvetica-Oblique", "Helvetica-BoldOblique",
     "Times-Roman", "Times-Bold", "Times-Italic", "Times-BoldItalic",
     "Courier", "Courier-Bold", "Courier-Oblique", "Courier-BoldOblique",
-    "Symbol", "ZapfDingbats", "Arial", "Arial-Bold", "Arial,Bold",
+    "Symbol", "ZapfDingbats",
 }
 
 
@@ -55,12 +56,9 @@ def _strip_subset(base_font: str) -> str:
 
 def render_pages(pdf: Path, outdir: Path, dpi: int, prefix: str) -> list[Path]:
     """Render each page to PNG. pypdfium2 first; poppler's pdftoppm as fallback."""
-    outdir.mkdir(parents=True, exist_ok=True)
-    for stale in outdir.glob(f"{prefix}-*.png"):   # never report last run's pages as this run's
-        try:
-            stale.unlink()
-        except OSError:
-            pass
+    # Fresh artifact directory avoids deleting user images or counting a prior render's pages.
+    outdir = outdir / f"{prefix}-render-{uuid.uuid4().hex[:10]}"
+    outdir.mkdir(parents=True, exist_ok=False)
     try:
         import pypdfium2 as pdfium
 
@@ -72,7 +70,7 @@ def render_pages(pdf: Path, outdir: Path, dpi: int, prefix: str) -> list[Path]:
             img.save(path)
             out.append(path)
         return out
-    except ImportError:
+    except Exception:  # optional renderer/invalid PDF can fail; try the alternate backend
         pass
     import shutil
     import subprocess
@@ -80,12 +78,15 @@ def render_pages(pdf: Path, outdir: Path, dpi: int, prefix: str) -> list[Path]:
     exe = shutil.which("pdftoppm")
     if not exe:
         return []
+    fallback_dir = outdir / "poppler"
+    fallback_dir.mkdir()
     try:
-        subprocess.run([exe, "-png", "-r", str(dpi), str(pdf), str(outdir / prefix)],
+        subprocess.run([exe, "-png", "-r", str(dpi), str(pdf), str(fallback_dir / prefix)],
                        check=True, capture_output=True, timeout=300)
     except (OSError, subprocess.SubprocessError):
         return []
-    return sorted(outdir.glob(f"{prefix}-*.png"))
+    return sorted(fallback_dir.glob(f"{prefix}-*.png"),
+                  key=lambda path: int(path.stem.rsplit("-", 1)[-1]))
 
 
 def diff_pages(generated: list[Path], reference: list[Path], outdir: Path) -> list[dict]:
@@ -158,9 +159,8 @@ def inspect(pdf: Path, expect_size: str | None, glyphs: list[str], margin_mm: fl
                 pass
             if desc and any(k in desc for k in ("/FontFile", "/FontFile2", "/FontFile3")):
                 embedded.add(base)
-    # The PDF standard-14 fonts are present in every viewer, so "not embedded" is expected for
-    # them and is not a defect. Generators often leave an unused Helvetica resource behind;
-    # failing on that is noise. A NON-standard font that is not embedded is a real defect.
+    # Do not treat unused base-font resources as missing custom fonts. This does not prove
+    # every requested glyph is supported or that text will have identical metrics everywhere.
     missing_embed = {f for f in named - embedded if _strip_subset(f) not in STANDARD_14}
     standard_used = sorted({f for f in named - embedded if _strip_subset(f) in STANDARD_14})
     report["fonts"] = {
@@ -276,17 +276,28 @@ def main(argv: list[str] | None = None) -> int:
         report["notes"].append("could not render pages (pip install pypdfium2 pillow, or install poppler) - "
                                "the visual check did not run")
 
+    reference_checked = not bool(args.reference)
     if args.reference:
         ref = render_pages(args.reference, args.outdir, args.dpi, "reference")
         if ref and pages:
             report["templateDiff"] = diff_pages(pages, ref, args.outdir)
+            reference_checked = bool(report["templateDiff"])
             if not report["templateDiff"]:
                 report["notes"].append("template diff skipped: Pillow is not installed")
             if len(ref) != len(pages):
                 report["issues"].append(f"page count differs from the template: {len(pages)} vs {len(ref)}")
+        else:
+            report["notes"].append("requested reference comparison could not run")
 
     nothing_checked = not report.get("checked") and not pages
-    report["status"] = "fail" if report["issues"] else ("not-verified" if nothing_checked else "pass")
+    incomplete = not report.get("checked") or not pages or not reference_checked
+    expected_pages = report.get("pageCount")
+    if pages and expected_pages is not None and len(pages) != expected_pages:
+        report["issues"].append(f"only {len(pages)} of {expected_pages} document pages were rendered")
+    report["status"] = "fail" if report["issues"] else ("not-verified" if incomplete else "pass")
+    report["outcome"] = "FAIL" if report["issues"] else ("INCOMPLETE" if incomplete else "PASS")
+    report["verified"] = report["outcome"] == "PASS"
+    report["verificationScope"] = "Automated PDF structure/render artifacts only; rendered pages still require visual inspection."
 
     out = args.report or (args.outdir / "doc-verdict.json")
     out.parent.mkdir(parents=True, exist_ok=True)

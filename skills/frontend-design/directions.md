@@ -1,53 +1,29 @@
-# Directions and the style menu (frontend-design §0.D)
+# Design conversation and reference palette
 
-Read when: starting a new page or app and the brief leaves the look open. Core SKILL.md first (§0.B signals, §0.C design read). `DESIGN.md` or a named direction from the user skips this file: build what was asked.
+Before every new visual design or intentional redesign, ask one short question covering style and references, then wait. Adapt naturally to the user's language and project:
 
-## Offering 2-3 directions
+> Para sa app na ito, anong style ang gusto mo at may site o screenshot ka bang reference? Puwede mo ring sabihin na ako ang pumili.
 
-One message, before any code. Each direction must be something you would be glad to build, and the set must be genuinely different: change at least two of palette logic, type, layout structure and effects between them. Three shades of the same clean SaaS page is one direction.
+Explicit existing answers, “no reference”, and delegation to choose satisfy intake. Silence does not. A small repair or a component matching an approved system does not reopen it. Existing `DESIGN.md` is useful context when asking about an intentional redesign. Inspect code, assets and constraints while waiting, without inventing the new look.
 
-```markdown
-Design read: <page kind>, <audience>, <device>.
+## Help with meaningful options
 
-**A. <Name>** (recommended) - <one line of feel>.
-References: <Product> (<what you borrow>), <Product> (<what you borrow>).
-Palette: <logic, not hex: "deep green ink on warm paper, one saffron accent">. Type: <display + body>.
-Signature move: <the one thing people will remember>. Dials: V<n> M<n> D<n>.
+When the user wants ideas, describe a few distinct directions through purpose, hierarchy, typography, composition, imagery, materials and motion. Give a recommendation tied to their audience/content. Do not force a menu, a numeric dial, a reference count, or a stereotyped industry look. Mixed directions are valid when the relationships remain coherent.
 
-**B. <Name>** - ...
-**C. <Name>** - ...
+| Possible direction | Qualities to develop | Execution to watch |
+|---|---|---|
+| Quiet/editorial | Type hierarchy, rhythm, tactile surfaces, purposeful imagery | Empty composition or weak emphasis |
+| Expressive magazine | Columns, captions, image-led narrative, contrast in scale | Narrow-screen reading order and long text |
+| Swiss/brutalist | Grid, rules, strong type, deliberate asymmetry | Small metadata, clipped display type, excess competing emphasis |
+| Dark operations | Surface hierarchy, useful density, semantic status | Muted contrast, color-only meaning, glowing noise |
+| Glass/aurora | Translucency, atmospheric depth, color fields | Real-backdrop contrast, blur cost, solid fallback |
+| Playful/graphic | Illustration, character, color blocking, tactile feedback | Understandable controls and optional motion |
+| Bold/media-led | Full-bleed assets, confident type, memorable transitions | Competing focal points, asset weight, blocked scroll |
+| Civic/professional | Trustworthy content, clear tasks, brand continuity | Institutional stereotypes and interchangeable copy |
+| Commerce | Product focus, price/availability hierarchy, useful filtering | Promotion obscuring purchase and invented urgency |
 
-I will build A unless you pick another. <At most 2 other blocking questions, each with a default.>
-```
+## Optional resources
 
-- Recommend the one that best fits the audience, not the one that is safest.
-- A civic or trust-first brief still gets range: for example civic-official, warm community, and bold public-information poster.
-- A playful or premium brief should include at least one direction that uses effects (gradient, glass, glow, motion) well.
-- After the choice, write it into `DESIGN.md` (`design-spec`), including the effects that are in and out.
-- If the user says "just build it", pick the recommendation and state the design read in one line.
+Use the user's actual reference first. The kit's style examples and `design-spec/collection.md` offer starting points when helpful. The [BrewedOps Motion Library](https://brewedops.cloud/motionlibrary/) is now an explicit option for interface/motion inspiration and selected code patterns. It includes self-contained HTML examples and prompts across categories such as heroes, dashboards, login views, mobile layouts and 3D/GSAP treatments. Categories and availability can change; inspect the relevant current example rather than hardcoding a catalog count.
 
-## The style menu
-
-Starting points, not templates. Each can be quiet or loud; the dials and references decide. Hex values anywhere in the style files are labelled examples; `DESIGN.md` tokens replace them.
-
-| Direction | Feels like | Fits | Signature moves | Watch |
-|---|---|---|---|---|
-| Minimal / warm editorial (`style-minimalist.md`) | Notion, Linear docs, a good book | Tools, studios, writing, SaaS for calm users | Serif display + sans body, hairline dividers, generous space | Can go empty; needs real imagery and one strong accent |
-| Editorial / magazine | Guardian, NYT, a print annual | News, publications, portfolios, cultural orgs, long reads | Strong type scale, columns, big pull quotes, image-led spreads | Measure (60-75 ch), heading hierarchy, image rights |
-| Brutalist / Swiss (`style-brutalist.md`) | Machinery manuals, terminals, poster design | Studios, dev tools, telemetry, art projects | Heavy grotesk, visible grid, mono data, zero radius | Contrast of accent colours at small sizes |
-| Dark dashboard (`style-dark-dashboard.md`) | Grafana, trading and ops consoles | Monitoring, POS back office, admin used in low light | Bright text on deep surfaces, luminous status badges, dense tables | Colour must carry state; keep the palette small |
-| Glass / aurora (`style-glass-aurora.md`) | visionOS, premium consumer apps, music/event sites | Consumer products, launches, events, portfolios, AI products | Layered translucent panels, aurora or mesh gradients, soft glow | Text contrast over moving backgrounds, blur cost on phones |
-| Playful / expressive | Duolingo, Headspace, Gumroad | Consumer apps, kids and education, community, food | Chunky shapes, bright palette, illustrated moments, bouncy motion | Keep controls conventional; reduced-motion fallbacks |
-| Bold / maximal | Agency sites, fashion drops, Awwwards pages | Brands, launches, creative portfolios | Oversized type, colour blocking, full-bleed media, scroll storytelling | Performance, one focal point per view still applies |
-| Government / civic | GOV.UK, USWDS, Singpass, Service NSW | LGU, barangay, school, COMELEC, public services | Plain language, one task per page, large targets, official identity (seal, colours) | Low bandwidth, old phones, print; decoration must not slow the task |
-| Corporate / professional | Stripe marketing, Deloitte, bank sites | B2B services, firms, cooperatives, enterprise | Measured grid, confident photography, restrained accent, clear proof | Stock-photo blandness; give it one distinctive element |
-| Retail / marketplace | Shopee, Lazada, Shopify Dawn | Stores, catalogues, promos in PH/SEA | Dense product cards, price and badge hierarchy, promotional rails | Density is expected here; keep it scannable |
-
-Short recipes for the directions without their own file:
-
-- **Editorial**: display serif or high-contrast grotesk at 3-4 sizes, body at 18-20 px, 12-column grid with deliberate asymmetry, images at real aspect ratios with captions, section rules instead of cards. Motion minimal.
-- **Playful**: rounded radius scale (12-24 px), 2-3 saturated brand colours on a light or tinted base, a custom illustration or icon style, springy motion on feedback (press, success), friendly but still specific copy. Contrast checks on every coloured surface.
-- **Bold / maximal**: one oversized type moment per section, colour blocks or full-bleed media, scroll-driven reveals (motion.md), a strict underlying grid so the loudness reads as intent.
-- **Government / civic**: official colours and seal from the agency's identity, public-service type (for example Public Sans, Source Sans, Noto Sans), announcement lists with dates, a prominent lookup or search, bilingual labels where the audience needs them (`anti-template` part 09). Modern and well-crafted is allowed; noise is not.
-- **Corporate**: 12-column grid, one accent, photography of real people and places, proof near claims (client logos, numbers with sources), calm motion. One distinctive element (a type choice, a colour, an illustration style) keeps it from reading as stock.
-- **Retail**: product image first, price second, badges third; filters as a first-class surface; sticky cart; promotional banners allowed but capped per view.
+Ask which quality matters only if it is unclear. A pattern can inspire timing or layering without imposing its colors, layout, framework, package or full animation intensity. Follow [motion.md](motion.md) for implementation, reduced motion, performance and pattern-adoption boundaries. Offering this resource does not trigger another style question after intake is answered.

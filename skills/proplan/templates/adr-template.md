@@ -6,37 +6,27 @@ date: YYYY-MM-DD
 deciders: <names and roles>
 ---
 
-<!--
-Owner: solution-architect (Phase 2), or any agent that makes a hard-to-reverse decision later (schema shape, auth model, a load-bearing dependency).
-File name: adr/ADR-NNN-kebab-slug.md, numbered from 001 with no gaps. The H1 starts with the same ADR id.
-Status: proposed -> accepted (after the user's choice at the Phase 2 checkpoint) -> superseded by ADR-NNN / deprecated. Never edit an accepted
-decision's substance; write a new ADR that supersedes it and link both ways.
-Format: Michael Nygard's ADR with an explicit Options section. Keep it to one or two pages.
-Write an ADR when the decision is costly to reverse, affects several components, or someone will later ask "why did we do it this way".
--->
+<!-- AGKIT2 2.8.0 planning scaffold. Keep machine-readable IDs/fields and use only relevant content. Replace illustrative rows and examples with the actual brief. Do not invent evidence, approvals, dates or locale-specific obligations. Shared core/design/verification rules govern decisions and checks; this template adds no universal approval or task-count gate. -->
+
 
 # ADR-001: <Decision in a short phrase>
 
 ## Status
 
-<!-- Proposed / Accepted on YYYY-MM-DD by whom / Superseded by ADR-NNN. -->
-
+<!-- Record proposed, accepted or superseded status with the actual decision authority/date. A delegated technical choice can be accepted without a new universal user checkpoint. -->
 ## Context
 
-<!-- The forces: requirements and NFRs involved (by id), constraints (team, budget, deadline, hosting), facts that matter. Neutral: no option is favoured here. -->
-
+<!-- State the constraints, relevant evidence and linked requirements without prejudging the alternatives. -->
 ## Options
 
-<!-- 2-3 real options. A straw man that nobody would choose is not an option. For each: how it works in one or two lines, pros, cons, cost (money and effort), and what it rules out later. -->
-
+<!-- Compare credible alternatives when the decision has them; keep existing approach when it is viable. No fixed option count or page count is required. -->
 ### Option A: <name>
 
 ### Option B: <name>
 
 ## Decision
 
-<!-- "We choose Option X because ..." in terms of the drivers in Context. Say which trade-off is accepted. -->
-
+<!-- Explain the chosen boundary and tradeoff in terms of the context. Mark a recommendation proposed until its actual decision process is complete. -->
 ## Consequences
 
-<!-- What becomes easier, what becomes harder, new work it creates (T-ids when 10 exists), risks it creates (RK-ids), and when to revisit. -->
+<!-- Describe costs, benefits, migration/operational effects and revisit conditions. Preserve history through superseding ADRs for material changes. -->

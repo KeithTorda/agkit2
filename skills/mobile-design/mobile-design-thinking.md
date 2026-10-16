@@ -1,56 +1,24 @@
-# Mobile Design Thinking
+# Structure a mobile screen around its job
 
-Choose mobile patterns for the project in front of you, not the pattern you have seen most often. Before building a screen, run the decomposition below and question any default you reach for.
+Complete the shared style/reference intake before a new visual design and wait unless already answered or delegated. For an existing-screen repair, keep the approved direction. Read the actual content, platform and user task; do not select tabs, a floating button, global state or a particular list package by habit.
 
-## Question the defaults
+## Screen read
 
-Common AI defaults and the question that should precede each:
+Establish what the person needs on arrival, the main next action, related content groups and what success means. A cashier's repeated task, a long article, a media player and an onboarding flow have different hierarchies. “One primary action” can be useful emphasis, but does not mean hiding valid parallel actions or forcing every page into a wizard.
 
-| Default | Question | Alternative to weigh |
-|---------|----------|----------------------|
-| Tab bar for everything | How many top-level destinations, and are they equal? | 3 or fewer: minimal tabs; 6+: drawer or hybrid |
-| Redux for all state | How complex is the shared state? | Zustand or Jotai for shared client state; React Context only for rarely-changing values; TanStack Query for server state |
-| Global state by default | Is this state really global? | Local state, lifted only when shared |
-| FlatList as the list | Is this the New Architecture? | FlashList v2 is the default there |
-| FAB bottom-right | Which hand, which reach? | Position for the primary flow and accessibility |
-| Pull-to-refresh on every list | Does this data change on demand? | Only where a manual refresh helps |
-| Bottom sheet for every modal | How much content and interaction? | Full-screen for complex tasks |
-| BLoC for every Flutter app | Is the boilerplate worth it here? | Riverpod for less code |
+Consider reach, device size, orientation, keyboard, safe areas, reading order, larger text and interruption. A primary action can move with content or sit in an appropriate persistent area; bottom-right is not ideal for every hand, language or flow. Do not use difficulty of reach as the sole protection for destructive actions; use clear consequences, undo or confirmation as the task warrants.
 
-If you chose something "because that's how it's always done", stop and name one alternative before deciding.
+## Pattern questions
 
-## Decompose the screen
+- Do top-level destinations need frequent switching, or is this a hierarchical/linear flow? Choose navigation from that relationship rather than a fixed item-count rule.
+- Does the region hold a small fixed set or a growing dataset? Choose a suitable scrolling/list strategy and keep state/key ownership stable.
+- Is data authoritative, cached, queued or local? Feedback should distinguish these states honestly.
+- Is a sheet useful for the focused task, or will long content/keyboard require another presentation?
+- Does a gesture conflict with system navigation or require an alternative for assistive input?
+- Does the current component already provide platform semantics and state handling?
 
-For each screen, answer:
+Use familiar patterns when they serve the task and customize their visual treatment to the accepted brand. A conventional component is not inherently generic; originality can come from content, typography, materials, imagery and composition rather than inventing a new control grammar.
 
-- Primary action: what is it, and is it reachable one-handed (thumb zone)?
-- Touch targets: every tappable element at least 44 pt / 48 dp, with at least 8 pt spacing?
-- Scrollable content: is it a list? Which list component, and why? Fixed height (so `getItemLayout` helps)?
-- State: local, lifted, or global, and why?
-- Platform differences: does iOS or Android need anything different here?
-- Offline: should this screen work offline? What is cached?
-- Performance: any heavy component, image, or animation to plan for?
+## Validate the idea
 
-## Analyze each gesture
-
-Before adding a gesture:
-
-- Discoverability: how does the user find it, and is there a visible button alternative? (Always provide one.)
-- Platform meaning: what does this gesture already mean on iOS and on Android? Are you fighting a convention?
-- Accessibility: can a motor-impaired user perform it? Is there a screen-reader and switch-control path?
-- Conflicts: does it clash with system gestures (iOS edge-swipe back, Android back, home-indicator swipe)?
-- Feedback: haptic, visual, or both on success?
-
-## Think by project type
-
-Different app types push different defaults; use these as starting points, not rules:
-
-- E-commerce: tab bar (Home, Search, Cart, Account); product grids with cached images; cart persistence; secure, short checkout.
-- Social / content: tab bar with a create action; infinite feeds; media upload queue; real-time notifications; feed cache and draft posts.
-- Productivity / SaaS: drawer or adaptive navigation (tabs on phone, rail on tablet); data tables and forms; full offline editing with conflict resolution.
-- Utility: minimal, often stack-only navigation; fast startup; core feature working offline; widgets and shortcuts.
-- Media / streaming: tab bar; horizontal carousels and vertical feeds; preloading and buffering; background playback and download management.
-
-## Honest self-check
-
-Passing a checklist is not the goal; good mobile UX is. Ask the harder version of each check: not "is the target 44 pt" but "can the user reach it one-handed"; not "did I use FlashList" but "is the scroll smooth on a low-end device"; not "is there a loading state" but "does the user know how long to wait". If you cannot describe the project's platform, one default you are deliberately not using, and the area you will optimize, you do not understand it well enough yet: re-read the brief or ask.
+Use realistic names, labels, amounts and long/empty content. Inspect actual native output and exercise the important action, not just a web-shaped mock. Test relevant loading, failure, permission and offline behavior without manufacturing nonexistent states. Refine observed weaknesses and record what remains unverified.

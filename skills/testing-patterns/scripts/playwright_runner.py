@@ -90,7 +90,7 @@ def run_test(url: str, screenshot: bool, accessibility_only: bool, timeout_ms: i
              mobile: bool = False, screenshot_dir: Path | None = None) -> dict:
     result: dict = {"url": url, "timestamp": datetime.now(timezone.utc).isoformat()}
     if sync_playwright is None:
-        return {**result, "status": "skipped", "passed": True, "reason": "Playwright is not installed", "fix": INSTALL_HINT}
+        return {**result, "status": "skipped", "passed": False, "verified": False, "reason": "Playwright is not installed", "fix": INSTALL_HINT}
 
     try:
         with sync_playwright() as runtime:
@@ -99,7 +99,7 @@ def run_test(url: str, screenshot: bool, accessibility_only: bool, timeout_ms: i
             except Exception as exc:  # browser binary missing or cannot start
                 message = str(exc).splitlines()[0][:300]
                 if "Executable doesn't exist" in str(exc) or "playwright install" in str(exc):
-                    return {**result, "status": "skipped", "passed": True, "reason": "Chromium for Playwright is not installed",
+                    return {**result, "status": "skipped", "passed": False, "verified": False, "reason": "Chromium for Playwright is not installed",
                             "fix": "python -m playwright install chromium"}
                 return {**result, "status": "error", "passed": False, "error": f"browser launch failed: {message}"}
             viewport = {"width": 390, "height": 844} if mobile else {"width": 1440, "height": 900}
@@ -176,7 +176,9 @@ def main() -> int:
     parser.add_argument("--timeout-ms", type=int, default=30000)
     args = parser.parse_args()
     result = run_test(args.url, args.screenshot, args.a11y, args.timeout_ms, args.mobile, args.screenshot_dir)
-    code = 0 if result.get("passed") else 1
+    result["verified"] = result.get("status") == "passed" and result.get("passed") is True
+    result["outcome"] = "SKIPPED" if result.get("status") == "skipped" else ("PASS" if result["verified"] else "FAIL")
+    code = 0 if result.get("passed") or result.get("status") == "skipped" else 1
 
     if args.json:
         print(json.dumps(result, indent=2, ensure_ascii=False))

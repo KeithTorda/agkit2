@@ -1,120 +1,46 @@
 ---
 name: document-generation
-description: "Generating files people download or receive: spreadsheet exports (CSV, XLSX), PDFs (reports, receipts, invoices, certificates, official forms), and editable Word documents. Covers which format to produce, where generation runs, streaming large exports, and the correctness rules money and official documents require. Use for: export, download, generate report, invoice, receipt, certificate, payslip, printable, print view."
-version: 2.5.0
+description: "Create and integrate useful PDF, DOCX, CSV and XLSX output, from one-off files to application exports. Match requested format and templates, preserve data accuracy and authorization, then inspect actual content and layout in the appropriate viewer."
+version: 2.8.2
 ---
 
-# Document Generation
+# Documents and exports
 
-> A file someone downloads is a product surface. It outlives the page that made it: it gets emailed,
-> printed, filed, audited, and opened in software you do not control. Bugs in it are permanent.
+Treat a document as a usable deliverable. Identify who reads or edits it, the requested format, content source, template, page or sheet structure, locale, and delivery path. A single generated report and a production export endpoint need different engineering.
 
-| File | Read when |
+## Match the requested artifact
+
+Honor an explicit format: “Excel” may mean an actual `.xlsx` workbook, and a request for editable Word should produce `.docx`. Do not silently substitute CSV for a workbook or a PDF image for editable text. If the request is open, use PDF for stable reading/printing, DOCX for editable prose, XLSX for structured worksheets/formulas, and CSV for a simple interoperable data table.
+
+For every new visual document design, ask one short style-and-reference question and wait unless already answered or delegated. A supplied template can answer the reference part; ask only for a remaining material style choice. Maintenance within an approved template follows it without repeat intake. Do not recreate an authority's form from memory.
+
+| Output | Read |
 |---|---|
-| [spreadsheets.md](./spreadsheets.md) | Any CSV or XLSX export, or data going into Excel |
-| [pdf.md](./pdf.md) | Any PDF: report, receipt, invoice, certificate, official form, print view |
-| [office-docs.md](./office-docs.md) | The recipient must open it and **edit** it (DOCX) |
-| [official-forms.md](./official-forms.md) | The output must match a form an authority publishes (COMELEC, BIR, DepEd, LGU, registrar) |
+| CSV, XLSX and application data exports | [spreadsheets.md](spreadsheets.md) |
+| PDF, print layouts, receipts and certificates | [pdf.md](pdf.md) |
+| Editable Word documents | [office-docs.md](office-docs.md) |
+| Exact official templates and fillable forms | [official-forms.md](official-forms.md) |
 
-## 1. Decide three things, in this order
+## Preserve meaning and correctness
 
-### 1.A Which format
+Use supplied or authoritative data and truthful wording. Keep identifiers with leading zeros as text, exact money as a domain-appropriate decimal or minor-unit representation, and formulas distinct from displayed values. Distinguish date-only values from instants; use the intended locale and time zone where interpretation matters. Include currency, units, period, source or generation date when useful to the recipient.
 
-- The recipient will **re-analyse the numbers** (sort, filter, pivot, import) → **CSV or XLSX**.
-  Never a PDF table someone has to retype.
-- The recipient will **read, print, file, or must not alter it** → **PDF**.
-- The recipient must **fill in or edit and return it** (a government submission, a contract) →
-  **DOCX from a template**.
-- Unsure → **CSV**. It is the smallest, it streams, it never breaks, and every tool opens it.
+Choose fonts that cover the content and embed them when the format/pipeline supports it. Check language-specific characters, names and symbols such as `ñ` and `₱` when present. Escape untrusted template content and mitigate spreadsheet formula injection for untrusted text fields without destroying legitimate typed numeric cells or requested formulas.
 
-Asking for "Excel" almost always means "the data, in a thing Excel opens". CSV satisfies that.
-Reach for XLSX only when you need multiple sheets, formulas, number or date formatting, frozen
-headers, or column widths — reasons that come from the document, not from the word "Excel".
+## For an application export
 
-### 1.B Where it runs
+Authorize generation and download at the real data boundary; input may select permitted scope but cannot grant access. Preserve tenant and row restrictions, protect stored files, sanitize filenames and avoid sensitive data in public URLs or logs. A signed expiring link is a bearer capability; choose revocation/access behavior appropriate to the product.
 
-- **Server-side** is the default for anything carrying money, personal data, or authority. The
-  server already holds the truth and the permissions.
-- **Client-side** only when the data is already loaded, already the user's own, small, and carries
-  no authority — a table the user is looking at, dumped to CSV.
-- **Never client-side** for a receipt, invoice, payslip, certificate, or anything official. A file
-  the browser assembles is a file the user can trivially forge before it is sent on.
+Choose client or server generation from trust, data location, volume and reproducibility. Server-issued financial or official records require authoritative server inputs and identifiers; server rendering alone does not make them tamper-proof. Offline or local document creation can be valid when its role is explicit. A browser-generated convenience copy must not masquerade as an authoritative issued record.
 
-### 1.C In the request, or as a job
+Bound work and memory. Small exports can be generated directly; large or expensive jobs may need chunking, streaming, cancellation, queueing, retention, and retry behavior. Estimate and measure the relevant dataset rather than imposing a universal time threshold or always counting a huge query first.
 
-- Bounded rows and under ~2 seconds → generate in the request, stream the response.
-- Anything else → **queue a job**, return an id immediately, and deliver by notification plus a
-  download link (expiring, authorised on fetch).
-- "Bounded" means you counted. A report that is fine on 200 rows is a gateway timeout on 200,000,
-  and it always reaches 200,000 in production, not in your test.
+For issued records, preserve the rendered file or sufficient immutable inputs/versioned rules to reproduce it when the product requires an audit trail. Taxes, fields, numbering and retention depend on current applicable requirements; verify those rather than inventing compliance.
 
-## 2. Rules every generated file follows
+## Verify the deliverable
 
-1. **Authorise the export exactly like the screen.** This is the most common real defect in this
-   area: the UI filters to the user's branch, the export endpoint takes `?branch=` and trusts it.
-   Re-apply every row-level rule server-side, from the session, not from the query string.
-2. **Stream, do not accumulate.** Iterate a cursor or chunk the query and write as you go. Building
-   the whole file in memory is what takes the server down on month-end.
-3. **Money is never a float.** Integer minor units or decimal all the way through; format once, at
-   the edge, with an explicit currency and locale.
-4. **State the timezone.** Render dates in the user's zone and print the zone in the header. A
-   report whose "today" is UTC is wrong for everyone reading it locally.
-5. **Encoding is explicit.** UTF-8 with a BOM for CSV (or Excel mangles `ñ`), and embedded fonts in
-   PDF (or `₱` and `ñ` come out as boxes).
-6. **The filename carries scope and date**: `sales-2026-09-01_2026-09-07-branch-tuguegarao.csv`.
-   `export.csv` in a Downloads folder is worthless a week later.
-7. **Financial and official documents are immutable.** Store the rendered file, or a complete
-   snapshot of its inputs. Regenerating a January receipt with September's prices and tax rates
-   produces a different document with the same number — which is an audit finding, not a bug report.
-8. **Never interpolate user data into a cell or a template without escaping it.** A spreadsheet cell
-   beginning `=`, `+`, `-`, or `@` executes when opened (`spreadsheets.md`); an unescaped value in an
-   HTML-to-PDF template is the same injection you would never allow on a page.
+Open or parse the final file to confirm format, content, row/page counts, formulas, totals, dates and identifiers. Render page-oriented output and inspect actual pages, including long content, tables, headers, page breaks and the last page. For workbooks inspect relevant sheets, formulas and cached/recalculated values with compatible tooling; test a round trip when the receiving software matters.
 
-## 3. What this looks like wrong and right
+Use available document-specific tools and project checks. `python "KIT/scripts/doc_verify.py" <file>` may help gather evidence for supported formats; inspect its actual output and rendered pages. A generated verdict is not a substitute for visual review or numeric validation. State which viewer/render pipeline was used and any compatibility, recalculation or printing limits.
 
-```text
-WRONG — the shape most export endpoints start as
-  GET /api/reports/sales.xlsx?branch=3&from=2026-01-01
-  rows = db.query("... WHERE branch_id = :branch")        # branch from the query string
-  wb = new Workbook(); rows.forEach(r => sheet.addRow(r)) # whole result set in memory
-  return wb.write()                                       # in the request, 40s, no timeout budget
-  → any user reads any branch; the box falls over at month-end; the total is a float sum.
-
-RIGHT
-  POST /api/reports/sales            { from, to }         # scope comes from the session, never input
-  → authorise(user, "report.sales"), resolve branch from the user, count rows first
-  → small: stream CSV in the response
-  → large: dispatch a job; return { reportId }; job streams a cursor into the file,
-    stores it, and notifies with an expiring, authorised download URL
-  → totals summed as integer minor units, formatted once at write time, timezone in the header.
-```
-
-## 4. Stack defaults
-
-One line each; the libraries, their traps, and the code live in the sub-files.
-
-- **PHP / Laravel** — `maatwebsite/excel` (`FromQuery` + chunking) for spreadsheets;
-  `barryvdh/laravel-dompdf` for simple documents or Browsershot for CSS-heavy ones; `PHPWord` for
-  DOCX. Generation belongs in a queued Job, not a controller.
-- **Node / TypeScript** — `exceljs` streaming writer (or plain CSV) for spreadsheets; Puppeteer or
-  Playwright for HTML-to-PDF, `pdfkit` for programmatic layout; `docxtemplater` for DOCX.
-- **Python** — `openpyxl` in `write_only` mode or `xlsxwriter`; WeasyPrint for HTML-to-PDF,
-  ReportLab for exact placement; `python-docx` / `docxtpl` for DOCX.
-
-## 5. Done
-
-Documents carrying money or authority (receipts, invoices, payslips, certificates, official forms)
-are `code-rules` tier 2: verify them fully. A throwaway internal CSV is tier 0-1: open it once and
-report. Match the effort to what the file does.
-
-1. The export re-applies the caller's permissions server-side; it cannot be widened by input.
-2. Generation streams or chunks; the row count it was tested at is stated, and a large run was tried.
-3. Anything slow runs as a job with a download link, not in the request.
-4. Money, dates, and timezone are correct in the file itself, not only on screen.
-5. `ñ`, `₱`, and long identifiers with leading zeros survive a round trip through Excel and a PDF
-   viewer — opened and checked, not assumed.
-6. Official or financial documents are reproducible: the file or its complete inputs are stored.
-7. For a tier-2 document, verify it (`/see-doc`, or `python "KIT/scripts/doc_verify.py" <file>`):
-   render it, confirm `doc-verdict.json` says `pass`, and look at the page images. A verdict is not
-   a substitute for opening the file.
-8. Open it in the software the recipient actually uses before reporting it done.
+Deliver the actual artifact or implemented export with a meaningful filename, verification result and any remaining setup. Never promise a perfect layout, legal compliance, formula correctness or error-free behavior from a successful save alone.

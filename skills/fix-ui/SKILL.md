@@ -1,37 +1,17 @@
 ---
 name: fix-ui
-description: "/fix-ui - Diagnoses and fixes existing web UI that renders wrong (misplaced, overlapping, clipped, collapsed, unresponsive): locates the parent's layout mode and computed box model, names the root cause, fixes the container at the source, and checks the result in proportion to risk. Use when a page or component that exists looks broken."
-version: 2.5.0
+description: "Repair an existing visual or interaction defect from observed layout/state evidence. Use /fix-ui for clipping, overlap, placement, responsiveness or similar UI failures."
+version: 2.8.2
 ---
 
 # /fix-ui
 
-**Input:** the text after `/fix-ui` is the route plus the defect in the user's words (`/fix-ui /dashboard the sidebar renders under the header`). If either is missing and you cannot infer it from the recent conversation, ask for both in one line.
-**Agent:** work as `KIT/agents/frontend-specialist.md`.
-**Skills:** `KIT/skills/ui-repair/SKILL.md` (the protocol, the eight root causes, `components.md`); `KIT/skills/browser-verification/SKILL.md` when a dev server is running; `KIT/skills/css-architecture/SKILL.md` when CSS files change.
+Use `KIT/agents/frontend-specialist.md` and `KIT/skills/ui-repair/SKILL.md`. Identify the route, state, device/width and reported defect from available context. Read the relevant component guidance only for the affected structure.
 
-## Steps
+Observe the actual render when possible; otherwise distinguish source-based diagnosis from visual evidence. Inspect the element and its ancestors: layout mode, size constraints, overflow, positioning, stacking and breakpoint behavior. Consider data/state defects as well as CSS. Name the cause before accumulating fixes.
 
-1. **Observe.** With a dev server running, open the route at the reported width (`/see`) and screenshot it. Otherwise use the user's screenshot or description and read the code. State the defect in one sentence of observation.
-2. **Locate.** Find the misplaced element and its parent; read computed layout values for the element and its ancestors (`ui-repair` §2), or the same chain in source when there is no browser.
-3. **Name the cause.** Pick one of the eight root causes (`ui-repair` §3), or name the other cause you found, before editing. For a shell, sidebar, header, modal, dropdown, table, form or toast, read `components.md` first.
-4. **Fix at the source.** Change the container's constraint or the token in the file that owns it (`ui-repair` §4). An override only when the source is outside your control, narrow and commented.
-5. **Clean up.** Delete the rule, variant or wrapper your fix replaced. For a colour defect, `python "KIT/scripts/css_audit.py" .` often names the line (a token defined twice, a `var()` nothing defines).
-6. **Check.** Per the `code-rules` tier. With a dev server running: look at the broken width plus one other (~390 and ~1440; add ~768 for breakpoint bugs) and click the region's primary action once. Before/after screenshots in `.agents/verify/<task-slug>/` are useful evidence on a repair; `python "KIT/scripts/ui_verify.py" .agents/verify/<task-slug> --require-before` checks them if you saved them. No server: say so under `Not verified`.
+Correct the owning constraint or state transition. A narrow documented override is acceptable when upstream code cannot be configured, but do not mask an unexplained parent defect with repeated offsets or !important. Clean up rules and wrappers made obsolete by the correction.
 
-## Output
+Recheck the reported state and relevant neighboring widths/states with `browser-verification`; exercise the affected interaction. Preserve the approved direction. A repair does not need new style intake unless the user also requests a new design.
 
-```markdown
-Fixed: <defect> at <width>. Cause: <number + name> in <file:line of the container>.
-- Changed: <file:line → the new constraint>
-- Deleted: <rule / variant / wrapper, or none>
-- Checked: <widths looked at and what you saw, or commands run>
-- Not verified: <what you did not see, or none>
-```
-
-## Rules
-
-- Name the cause before editing. It is what keeps the fix to one change instead of a pile of tweaks.
-- If the fix does not hold at a second width, the cause was probably wrong: go back to step 3.
-- If the cause is in a shared shell or layout file, fix it there and say so: every route that uses it had the bug.
-- Overrides (`!important`, inline style, a wrapper added only to win, a margin hack on the child) are a last resort with a one-line comment naming why, not the first move.
+Report what was wrong, its source, the changed constraint and the actual evidence. If runtime/browser access is unavailable, state the visual limit and continue applicable source or automated checks. Before/after screenshots and ui_verify are useful evidence when the task warrants them, not proof by file existence alone.

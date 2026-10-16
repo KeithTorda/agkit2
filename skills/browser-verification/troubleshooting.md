@@ -1,38 +1,11 @@
-# Browser verification — preconditions and failure modes
+# When browser verification cannot run
 
-Read this when a browser step is refused, when a check behaves oddly, or before reporting that the
-visual check could not run. The protocol itself is in [SKILL.md](./SKILL.md).
+Check the precondition that failed before changing application code. Confirm the project directory, normal command, port, route, server readiness and required environment configuration. An occupied port can belong to another app; do not kill unrelated processes to free it.
 
-## Preconditions (check these before blaming the code)
+Inspect relevant server output and browser errors. A missing dependency, unauthorized API, unavailable database, certificate issue, unsupported tool or failed asset path needs its own remedy. Avoid disabling authentication, security policy or certificate checks to make the preview appear healthy.
 
-Antigravity drives a real Chrome through its browser subagent. Three settings decide whether this
-skill can run at all, and each fails in a way that looks like a code problem:
+If output is stale, confirm the served build and route, cache/service worker and actual running project before restarting. Preserve useful logs. A new page screenshot of an error or a stale site is not evidence that the intended design rendered.
 
-| Requirement | Where | If missing |
-|---|---|---|
-| **Google Chrome installed** | system | The browser subagent cannot start at all |
-| **Settings → Browser → Enable Browser Tools** | Antigravity settings | No navigation, no screenshot, no DOM |
-| **Browser Actuation Rules allow the dev-server URL** | Settings → Browser → Actuation Permissions | Navigation to `localhost` is refused — looks like the server is down when it is a permission |
+Use available supported browser tools. Do not imply that an unavailable Playwright, browser subagent or screenshot command ran. When the app cannot run, continue useful source/build checks and clearly separate those from the missing render/interaction inspection.
 
-If a browser step is refused, check the actuation rules for `http://localhost:*` **before** touching
-the app. Report the blocked precondition under `Not verified`; do not fall back to reading source and call
-it verified.
-
-## Failure modes to watch for
-
-- **Screenshotting the wrong thing** — an old port, a cached build, a route that redirected. Confirm
-  the URL in the report matches what you meant to check.
-- **Declaring it fine because it looks fine** — the screenshot is one of six checks. A page can look
-  perfect and be throwing console errors, failing its data fetch, and unusable by keyboard.
-- **Checking only desktop**: the width you developed at is the width least likely to be broken; look at ~390 too.
-- **Reading source styles instead of computed styles** — a class name is an intention; the computed
-  value is the fact. Tailwind arbitrary values, cascade order, and specificity all break the link
-  between them.
-- **Verifying the happy path only** — empty, error, and long-content states are where UI actually
-  fails in production.
-- **Treating a console error as noise**: an uncaught exception or a failed request on the route you
-  changed is a must-fix.
-- **Mistaking a blocked precondition for a passing check** — if browser actuation refused the URL or
-  Chrome is not installed, you verified nothing. Report it as not verified with the reason, never
-  as a pass.
-
+Record the exact block, any partial output, the checks completed and what remains unverified. Evidence files should honestly say skipped/incomplete when appropriate. The evidence helper can validate that record; it cannot repair the environment or turn a skipped inspection into a visual pass.

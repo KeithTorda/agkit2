@@ -129,36 +129,63 @@ def has_python_tests(project: Path) -> bool:
     return False
 
 
-def plan_suites(project: Path, coverage: bool) -> tuple[list[dict[str, Any]], list[str]]:
+def _plan_node_suites(project: Path, coverage: bool) -> tuple[list[dict[str, Any]], list[str]]:
+    """Keep Node metadata failures local so other ecosystems can still run."""
     suites: list[dict[str, Any]] = []
     not_run: list[str] = []
 
     package = project / "package.json"
     if package.is_file():
-        pkg = read_json(package)
+        try:
+            pkg = json.loads(read_text(package))
+            if not isinstance(pkg, dict):
+                raise ValueError("top-level value must be an object")
+        except ValueError as exc:
+            return [], [f"node: package.json is unreadable or malformed ({exc}); tests NOT RUN"]
+        if not all(isinstance(pkg.get(key, {}), dict) for key in ('scripts','dependencies','devDependencies')):
+            return [], ['node: malformed scripts/dependency fields; tests NOT RUN']
         scripts = pkg.get("scripts") or {}
         deps = {**(pkg.get("dependencies") or {}), **(pkg.get("devDependencies") or {})}
         test_script = scripts.get("test", "")
+        if not isinstance(test_script, str):
+            return [], ['node: test script must be a string; tests NOT RUN']
         real_script = bool(test_script) and not NPM_PLACEHOLDER.search(test_script)
+        coverage_script = scripts.get("test:coverage", "")
+        if not isinstance(coverage_script, str):
+            return [], ['node: test:coverage script must be a string; tests NOT RUN']
         has_modules = (project / "node_modules").is_dir()
         vitest = find_executable("vitest", project, local_only=True)
         jest = find_executable("jest", project, local_only=True)
-        npm = find_executable("npm")
+        declared = str(pkg.get('packageManager') or '').split('@', 1)[0]
+        manager = declared if declared in {'npm','pnpm','yarn','bun'} else next(
+            (name for lock,name in [('pnpm-lock.yaml','pnpm'),('yarn.lock','yarn'),('bun.lock','bun'),('bun.lockb','bun')]
+             if (project/lock).is_file()), 'npm')
+        manager_exe = find_executable(manager)
         if real_script or "vitest" in deps or "jest" in deps:
-            if not has_modules:
+            if coverage and coverage_script and manager_exe:
+                suites.append({"name": f"{manager} run test:coverage", "cmd": [manager_exe, "run", "test:coverage"]})
+            elif real_script and manager_exe:
+                command = [manager_exe, 'test', '--silent'] if manager == 'npm' else [manager_exe, 'run', 'test']
+                suites.append({"name": f"{manager} test", "cmd": command})
+                if coverage:
+                    not_run.append("node coverage: no test:coverage script; configured tests run without claiming coverage")
+            elif not has_modules:
                 not_run.append("node: node_modules missing; run npm install (tests NOT RUN)")
             elif coverage and vitest:
                 suites.append({"name": "vitest --coverage", "cmd": [vitest, "run", "--coverage"]})
             elif coverage and jest:
                 suites.append({"name": "jest --coverage", "cmd": [jest, "--coverage"]})
-            elif real_script and npm:
-                suites.append({"name": "npm test", "cmd": [npm, "test", "--silent"]})
             elif vitest:
                 suites.append({"name": "vitest run", "cmd": [vitest, "run"]})
             elif jest:
                 suites.append({"name": "jest", "cmd": [jest]})
             else:
                 not_run.append("node: test tool not found (npm/vitest/jest); tests NOT RUN")
+    return suites, not_run
+
+
+def plan_suites(project: Path, coverage: bool) -> tuple[list[dict[str, Any]], list[str]]:
+    suites, not_run = _plan_node_suites(project, coverage)
 
     if (project / "composer.json").is_file():
         php = shutil.which("php")
@@ -183,12 +210,18 @@ def plan_suites(project: Path, coverage: bool) -> tuple[list[dict[str, Any]], li
             cmd = [sys.executable, "-m", "pytest", "-q"]
             if coverage and importlib.util.find_spec("pytest_cov") is not None:
                 cmd += ["--cov", "--cov-report=term-missing"]
+            elif coverage:
+                not_run.append("python coverage: pytest-cov unavailable; tests run without claiming coverage")
             suites.append({"name": "pytest", "cmd": cmd})
         elif shutil.which("pytest"):
             suites.append({"name": "pytest", "cmd": [shutil.which("pytest"), "-q"]})
+            if coverage:
+                not_run.append("python coverage: external pytest coverage capability not established")
         else:
             start = "tests" if (project / "tests").is_dir() else "."
             suites.append({"name": "unittest", "cmd": [sys.executable, "-m", "unittest", "discover", "-s", start, "-t", "."]})
+            if coverage:
+                not_run.append("python coverage: unittest runner has no configured coverage command")
     return suites, not_run
 
 
@@ -201,7 +234,20 @@ def parse_counts(output: str) -> dict[str, int]:
     ran = re.search(r"Ran (\d+) tests?", output)  # unittest
     if ran:
         failures = sum(int(v) for v in re.findall(r"(?:failures|errors)=(\d+)", output))
-        counts = {"passed": int(ran.group(1)) - failures, "failed": failures}
+        skipped = sum(int(v) for v in re.findall(r"\bskipped=(\d+)", output))
+        counts = {"passed": max(0, int(ran.group(1)) - failures - skipped), "failed": failures}
+        if skipped:
+            counts["skipped"] = skipped
+    # Native node:test uses TAP or the spec reporter. The latter uses the info
+    # symbol instead of '#'; both print one final tests/pass/fail summary.
+    node_summary = dict(re.findall(
+        r"(?m)^\s*(?:#|ℹ\ufe0f?)\s*(tests|pass|fail|cancelled|skipped|todo)\s+(\d+)\s*$", output))
+    if all(key in node_summary for key in ("tests", "pass", "fail")):
+        counts = {"total": int(node_summary["tests"])}
+        for source, target in (("pass", "passed"), ("fail", "failed"),
+                               ("skipped", "skipped"), ("cancelled", "cancelled"), ("todo", "todo")):
+            if source in node_summary:
+                counts[target] = int(node_summary[source])
     return counts
 
 
@@ -219,11 +265,19 @@ def main() -> int:
     results = []
     for suite in suites:
         result = run_command(suite["cmd"], project, args.timeout, env={"CI": "true", "FORCE_COLOR": "0", "NO_COLOR": "1"})
-        results.append({"name": suite["name"], "counts": parse_counts(result["output"]), **result})
-    failed = [r for r in results if r["status"] != "passed"]
+        counts = parse_counts(result["output"])
+        completed_tests = counts.get('passed', 0) + counts.get('failed', 0)
+        if result['status'] == 'passed' and counts and completed_tests == 0:
+            result['status'] = 'skipped'
+            not_run.append(f"{suite['name']}: command completed but reported no executed tests (zero, skipped or pending only)")
+        results.append({"name": suite["name"], "counts": counts, **result})
+    failed = [r for r in results if r["status"] not in {"passed", "skipped"}]
+    outcome = 'FAIL' if failed else ('INCOMPLETE' if not_run else ('PASS' if results else 'SKIPPED'))
 
     if args.json:
-        print(json.dumps({"script": "test_runner", "project": str(project), "passed": not failed,
+        print(json.dumps({"script": "test_runner", "project": str(project), "passed": outcome == 'PASS',
+                          "success": not failed, "verified": outcome == 'PASS', "outcome": outcome,
+                          "scope": "Executed suite commands only; coverage and unexecuted scenarios are not established.",
                           "suites": results, "not_run": not_run}, indent=2, ensure_ascii=False))
         return 1 if failed else 0
 
@@ -237,8 +291,8 @@ def main() -> int:
         print(f"  {r['status'].upper():<7}  {r['name']} ({r['seconds']}s){' - ' + counts if counts else ''}")
         if r["status"] != "passed" and r["output"]:
             print("    " + tail(r["output"], 30).replace("\n", "\n    "))
-    if results:
-        print(f"\nResult: {'FAIL' if failed else 'PASS'} ({len(results) - len(failed)}/{len(results)} suite(s) passed)")
+    completed = sum(r['status'] == 'passed' for r in results)
+    print(f"\nResult: {outcome} ({completed}/{len(results)} suite command(s) passed)")
     return 1 if failed else 0
 
 

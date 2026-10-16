@@ -9,6 +9,8 @@ updated: 2026-09-27
 
 # Architecture
 
+> Example context: This is an illustrative architecture for the sample constraints. Framework versions, provider costs and printer compatibility are not current recommendations; validate actual target devices and integrations.
+
 ## Context
 
 One counter tablet sells; the owner reads reports from anywhere; the internet at the café drops several times a week for minutes to hours. The architecture decision is recorded in ADR-001: an offline-capable PWA on the tablet, a Laravel API on a small VPS, and a Bluetooth receipt printer driven from the browser.

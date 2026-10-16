@@ -1,88 +1,29 @@
-# Dynamic Question Generation
+# Questions that change a decision
 
-Questions reveal architectural consequences. Each one connects to a decision that changes cost, complexity or scope. When to ask (only when blocked, max 3, each with a default) is in [SKILL.md](./SKILL.md).
+Use this reference when the request leaves a consequential ambiguity. It supplements [SKILL.md](./SKILL.md), not a mandatory interview script.
 
-## Principles
+## Decide whether to ask
 
-1. **Consequence, not preference.** Not "Which auth method?" but "Email/password (reset flow, hashing, 2FA) or social login (OAuth providers, profile mapping)? Trade-off: control vs. delivery time."
-2. **Context first.** Greenfield → foundation (stack, hosting, scale). Feature → integration points, existing patterns, breaking changes. Refactor → what is broken and why. Debug → symptom → reproduction → cause.
-3. **Minimum viable questions.** Before: paths A (5 min) / B (15 min) / C (1 h). After: one path. If a question doesn't reduce implementation paths, delete it.
-4. **Data, not assumptions.** "Stripe (best docs, US-centric) or Lemon Squeezy / Paddle (merchant of record, handles VAT)?" beats "probably Stripe".
+First inspect the brief, accepted choices and relevant current files. Then name what would change with each plausible answer. If the answer would not change the deliverable or an important constraint, use a sensible implementation choice and continue.
 
-## Generation
+Ask now for product commitments, missing permission/data boundaries, incompatible constraints or expensive-to-reverse choices. Defer details until the affected work is near. Do not ask the user to select a database, library or storage vendor merely because several exist; explain the consequential requirement instead.
 
-```
-1. Parse   → domain, explicit and implied features, scale indicators
-2. Decide  → blocking (needed before code) · high-leverage (shapes >30% of the build) · deferable
-3. Rank    → blocking first, then high-leverage; deferable points become stated assumptions
-4. Format  → question · why it matters · options with trade-offs · default if unanswered
-```
+New visual designs have a specific user preference: ask one conversational question about style and references and wait unless that answer or explicit delegation already exists. Example: “Anong style ang gusto mo, at may site o screenshot kang reference? Puwede rin akong pumili kung gusto mo.” Do not repeat this intake for each screen, worker or repair within the approved direction.
 
-Deferable points are not questions; they are assumptions written into the plan.
+## Useful question shape
 
-## Domain question banks
+Give enough context to make the choice understandable: the decision, why it affects the outcome, credible alternatives if helpful and a recommendation. A conversational sentence often does this better than a numbered questionnaire. A proposed default is not accepted through silence; an explicitly delegated choice is sufficient.
 
-### E-commerce
-| Question | Why it matters |
-|---|---|
-| Single or multi-vendor? | Commission logic, vendor dashboards, split payments |
-| Inventory tracking? | Stock tables, reservations, low-stock alerts |
-| Digital or physical products? | Download links vs. shipping APIs and tracking |
-| Subscription or one-time? | Recurring billing, dunning, proration |
+| Context | Ask about the consequence | Avoid premature machinery |
+|---|---|---|
+| Orders/inventory | Must a sale reserve stock immediately, or can staff resolve a shortage later? | “Which database do you want?” |
+| Offline tool | Which tasks must continue without a connection, and how should conflicts be resolved? | “Should we add a service worker?” |
+| Approval flow | Who may approve, and may they approve their own request? | “RBAC or ABAC?” |
+| Content editing | Can editors publish directly, or does someone review changes first? | “Which CMS package?” |
+| Payments | What payment outcome must be confirmed before access is granted? | “Which webhook framework?” |
 
-### Authentication
-| Question | Why it matters |
-|---|---|
-| Social login? | OAuth providers vs. password-reset infrastructure |
-| Roles and permissions? | RBAC tables, policy enforcement, admin UI |
-| 2FA? | TOTP/SMS, backup codes, recovery flow |
-| Email verification? | Tokens, email service, resend logic |
+These are examples, not questions to ask every project. Read the request first; it may already settle them.
 
-### Real-time
-| Question | Why it matters |
-|---|---|
-| WebSocket or polling? | Connection management and scaling vs. simplicity and latency |
-| Concurrent users? | <100 single server · >1k pub/sub · >10k dedicated infrastructure |
-| Message persistence? | History tables, storage, pagination |
+## Keep work moving
 
-### Content / CMS
-| Question | Why it matters |
-|---|---|
-| Rich text or Markdown? | Sanitization and XSS surface vs. simple rendering |
-| Draft/publish workflow? | Status field, scheduling, versioning |
-| Media uploads? | Upload endpoints, storage, optimization |
-| Multi-language? | i18n tables, translation UI, fallbacks |
-
-## Worked example
-
-Request: "Build an Instagram clone."
-
-```
-Parse     → social media; photo sharing, likes, comments, profiles; implied feed, follows, auth; scale may spike
-Blocking  → photo storage, feed type, auth method
-Leverage  → real-time notifications, media processing
-Deferable → video/reels, direct messages (assumption: v2)
-```
-
-Message sent (three questions, one round):
-
-```markdown
-**1. Photo storage** — Where are photos stored and served?
-Why: hosting cost, load speed, CDN complexity (1k users × 10 photos × 2 MB = 20 GB).
-Options: Cloudinary (fast, low setup) · S3 + CloudFront (cheapest at scale, more setup) · Supabase Storage (simple, small scale)
-Default: Cloudinary.
-
-**2. Feed** — Chronological, follow-only, or algorithmic?
-Why: query complexity and caching; algorithmic needs ranking signals and precomputed tables.
-Default: follow-only.
-
-**3. Auth** — Email/password, social only, magic link, or an auth library (Better Auth self-hosted, Clerk hosted)?
-Why: effort, security posture, sign-up friction.
-Default: Better Auth (self-hosted, no per-user fee).
-
-Assumptions unless you object: polling instead of WebSockets for notifications; video and DMs deferred to v2.
-```
-
-## Later rounds
-
-Do not front-load everything. When implementation reveals a fork, ask at the moment it matters, in the same format and with a default: "This implies X — handle the edge case now or defer?"
+When a required answer is pending, continue independent research, source inspection or preparation that does not choose for the user. Later discoveries can justify a focused follow-up; do not reopen settled choices without new evidence. Record material assumptions in the work artifact, and save them to memory only when that persistence is authorized.

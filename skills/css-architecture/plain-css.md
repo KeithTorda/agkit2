@@ -1,68 +1,42 @@
-# Plain CSS / SCSS mode
+# Plain CSS and SCSS
 
-Read when the project is not Tailwind: Laravel Blade, a legacy CSS or SCSS codebase, a static site. Everything in `SKILL.md` still holds (one home per style, layers over specificity, no override files); this file gives the file order, the naming, and the migration.
+Use the project's established stylesheet conventions. Plain CSS with custom properties, CSS modules, component-prefixed selectors, SCSS partials or a small layered entrypoint can all be maintainable. Do not require Sass, BEM, a fixed partial tree or a framework migration for a local change.
 
-## Entry file order (ITCSS)
+## Ownership and imports
 
-One entry file imports every partial once, lowest specificity first. No other file imports CSS.
+Start with the actual import graph and winning rules. Keep global resets/base defaults narrow, shared semantic decisions in the existing token source, and component/page rules near their owners. A small site may need one file; split when responsibilities become hard to locate. Import each intended source once and investigate duplicate resets before removing them.
 
-```scss
-// resources/css/app.scss — the only file that imports
-@use "settings/tokens";            // 1 settings: custom properties only, no selectors
-@use "tools/mixins";               // 2 tools: mixins and functions, no output
-@use "generic/reset";              // 3 generic: reset, box-sizing, base font
-@use "elements/typography";        // 4 elements: bare h1, p, a, table — no classes
-@use "elements/forms";
-@use "objects/layout";             // 5 objects: .o-stack, .o-grid, .o-container — layout only
-@use "components/invoice-table";   // 6 components: one file per block, BEM
-@use "components/app-sidebar";
-@use "components/order-form";
-@use "utilities/spacing";          // 7 utilities: single-purpose .u-*, last so they win
-@use "utilities/visibility";
-```
-
-Partials are `_<name>.scss` inside their layer folder: `settings/_tokens.scss`, `components/_invoice-table.scss`. One component per file, named after its block. Adding a partial means adding one `@use` line in order; a partial imported twice or out of order is a bug.
-
-## BEM
-
-Block = the component, element = a part of it (`__`), modifier = a variant or state (`--`). The block name is the file name.
-
-| Rule | Example |
-|---|---|
-| Block is a component name; two words when one word is generic | `.invoice-table`, `.app-sidebar` — not `.table`, `.sidebar` |
-| Element belongs to its block, never nested twice | `.invoice-table__row`, `.invoice-table__total` — not `.invoice-table__row__cell` |
-| Modifier changes one thing and sits beside the block or element class | `.invoice-table--compact`, `.invoice-table__row--overdue` |
-| JS state is a modifier or `is-*` on the block only | `.order-form--submitting` or `.order-form.is-submitting` |
-| Space between components is an object, not a component rule | `.o-stack > * + * { margin-top: var(--space-md) }` — never `.invoice-table { margin-top }` |
-| A component does not style another component's elements | Avoid `.app-sidebar .invoice-table__row`; add a modifier to `invoice-table` |
-
-Selectors stay flat: one class, at most one combinator. Specificity is (0,1,0) almost everywhere, so order decides and the layers stay meaningful.
-
-## Cascade layers in plain CSS
-
-Declare the order once, on the first line of the entry file, and wrap every partial's rules in its layer:
+If cascade layers are useful, establish their order deliberately. For example:
 
 ```css
-@layer settings, base, layout, components, utilities;
-
-@layer base { *, *::before, *::after { box-sizing: border-box; } body { margin: 0; font: var(--font-body); } }
-@layer components { .invoice-table { display: grid; gap: var(--invoice-table-gap, var(--space-sm)); } }
-@layer utilities { .u-hidden { display: none; } }
+@layer reset, vendor, base, components, utilities;
+@import url('./vendor.css') layer(vendor);
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+}
+@layer components {
+  .invoice-table { width: 100%; border-collapse: collapse; }
+}
 ```
 
-With SCSS, each partial wraps its own body in `@layer components { ... }` (Sass emits it where the `@use` sits; `@use` itself cannot be nested in a layer). Third-party CSS goes into `@layer vendor`, declared before `components`. Unlayered rules beat every layer — a rule outside `@layer` is the next override.
+Adapt this to actual browser/build support and import rules. Normal unlayered CSS outranks normal layered CSS; important declaration precedence reverses across layers. Layers are optional when existing scoping already gives clear ownership.
 
-## Migrating an override-heavy stylesheet
+## Reuse without rigidity
 
-1. **Inventory** — list every selector with file and line (`grep -n "{" resources/css`), count `!important` and duplicate selectors (`python "KIT/scripts/naming_check.py" .`). If a dev server runs, screenshot the affected routes at ~390 and ~1440 with `/see` as a baseline.
-2. **Group by component** — assign each rule to a block (`invoice-table`, `app-sidebar`), an object, a token, or "dead". A rule with no owner is dead or belongs to a page-level object.
-3. **Move into layers** — create one partial per block with the BEM names; move the rules in, replacing raw values with tokens; wrap each partial in its `@layer`.
-4. **Delete duplicates** — where two rules set the same property on the same block, keep the one the markup needs and delete the other; remove `!important` where layer order makes it unnecessary (keep, with a comment, only the ones fighting third-party CSS); delete the override files once empty.
-5. **Verify** in proportion to the change: the same routes at the same widths compared with the step-1 screenshots when you took them; the unused-CSS check if the project has one; `naming_check.py` for duplicate classes.
+Use semantic custom properties for decisions that change together. Component-prefixed naming can avoid collisions, but preserve a coherent existing convention. Scope global element styles so an embedded editor or administrative screen does not inherit a marketing reset unexpectedly.
 
-## Laravel notes
+```css
+.report-panel {
+  --report-panel-gap: clamp(1rem, 3vw, 2rem);
+  display: grid;
+  gap: var(--report-panel-gap);
+  color: var(--text-primary);
+  background: var(--surface-raised);
+}
+```
 
-- Vite entry: `resources/css/app.css` (or `app.scss` with `sass` installed) is the only stylesheet in the `vite.config.js` `input` list; Blade layouts load it with `@vite(['resources/css/app.css', 'resources/js/app.js'])`.
-- Blade components map to BEM blocks: `<x-invoice-table>` is `resources/views/components/invoice-table.blade.php` plus `resources/css/components/_invoice-table.scss`, block `.invoice-table`. Props map to modifiers (`compact` → `.invoice-table--compact`).
-- Page views (`resources/views/invoices/index.blade.php`) should not carry `<style>` blocks or `@push('styles')` for anything reusable; a page-only rule is usually an object or a modifier.
-- Tokens: `resources/css/settings/_tokens.scss` holds `:root { --color-*; --space-*; --radius-*; ... }` from `DESIGN.md`. No `$scss-variables` for values the browser should own at runtime (theme swaps, dark mode).
+A local responsive calculation is not automatically a missing global token. Intentionally inherited variables can create section themes without duplicating a full palette. Document one-off vendor overrides when their source cannot be changed.
+
+With SCSS, follow installed module support (`@use`/`@forward` when suitable), existing build order and framework integration. Do not rewrite an older import system during a narrow repair unless necessary. Keep nesting shallow enough that selector ownership stays clear; a fixed nesting-depth number is not the measure of quality.
+
+After an edit search markup, script-added classes and template consumers before removing old rules. Run appropriate build/style checks and inspect the affected render, including state and responsive behavior. Source auditors are heuristics, particularly around runtime variables, themes, third-party CSS and contrast.

@@ -1,59 +1,35 @@
-# Pattern Selection
+# Select boundaries and patterns
 
-Decision trees for the common architecture questions. They give the default; the project's real constraints can override them, and the override goes in an ADR.
+Choose a pattern because it resolves an observed or required problem. Compare with a simpler viable option; include ongoing failure/operating cost, not only a diagram's neatness. The same system may combine several patterns.
 
-## Decision tree
+## Deployment boundary
 
-```
-What is the main concern?
+A single deployment keeps coordination and transactions straightforward. Modules can provide ownership without introducing a network. Separate services may be justified by independent release, scaling, isolation, runtime or organizational requirements. Validate that the team can operate their authentication, tracing, rollout, retries and recovery.
 
-Data access complexity
-  LOW (CRUD, one database)        -> use the ORM directly (Eloquent, Prisma, Drizzle, SQLAlchemy)
-  HIGH (complex queries, several sources, heavy testing needs)
-                                  -> repository or query objects around the hard parts only
-     Check: will the data source really change, or do tests need the seam? If not, stay direct.
+A modular monolith is often a candidate, not a universal answer. Service extraction is easier only when data/contract boundaries are real; it can require substantial migration even with tidy folders.
 
-Business rule complexity
-  LOW (validation, simple CRUD)   -> transaction script: one action or service function per use case
-  HIGH (rules vary by context, many invariants)
-                                  -> rich domain model around the core (pricing, stock, grading, ballots)
-     Check: are the rules stable and understood? Partial DDD (entities with behaviour,
-     clear module boundaries) is usually enough; full DDD needs domain experts in the loop.
+## Data access boundary
 
-Independent scaling or deployment
-  NO                              -> modular monolith (extract later if proven)
-  YES                             -> separate services are worth it when most of these hold:
-                                     clear domain boundaries, separate teams, different scaling
-                                     or release needs, and the ops capacity to run them
+Direct ORM/query usage can be the clearest option. Query objects help encapsulate complex/important reads. A repository/interface is useful when it expresses a domain boundary, multiple implementations or a genuine test seam. Wrapping every ORM method one-to-one often adds little, but a single implementation can still protect an important architectural boundary.
 
-Real-time or async needs
-  Updates must reach users instantly (dashboards, queues, chat)
-                                  -> push: WebSocket / SSE / Laravel Reverb / a provider (Pusher, Ably, Supabase Realtime)
-  Work can finish later (e-mail, SMS, reports, imports)
-                                  -> background jobs (Laravel queues, BullMQ, Celery/ARQ)
-  Several systems react to one event
-                                  -> event-driven, only if eventual consistency is acceptable;
-                                     otherwise synchronous calls
-  Otherwise                       -> synchronous request/response
+Use an actual transaction for state changes that must commit together. Avoid external calls inside a retriable transaction unless semantics are deliberately safe. An outbox/job system can bridge durable state and asynchronous work when the requirements justify it.
 
-Unreliable connectivity at the point of use (POS, field data collection)
-                                  -> local-first client (IndexedDB / SQLite) with a sync queue and
-                                     server-side idempotency keys; decide conflict rules up front
-```
+## Business logic boundary
 
-## The three questions (before any pattern)
+A transaction script/action can express a straightforward use case. Richer domain objects or state machines help when multiple operations share invariants and transitions. Do not select full domain-driven design for prestige or reject a useful state machine because its state count is small. Choose the representation that makes valid transitions explicit and testable.
 
-1. **Problem solved:** what specific problem does this pattern solve here?
-2. **Simpler alternative:** what is the simplest thing that would work, and why is it not enough?
-3. **Deferred complexity:** can this be added later, when the need is proven?
+## Communication and asynchronous work
 
-## Over-engineering signs
+- Synchronous calls suit a result needed before responding; define latency/dependency failure behavior.
+- Durable jobs suit work that must outlive a request; define delivery, duplicate handling, deadlines and visible failure state.
+- Events suit independent consumers when eventual consistency is acceptable; define ownership, schema evolution and replay.
+- SSE/WebSocket/polling are alternatives for UI freshness; compare directionality, update frequency, proxy support and cost. Real time does not require a broker by default.
+- In-process post-response helpers may lose work; they are not equivalent to a durable queue.
 
-| Pattern | Sign it is premature | Simpler alternative |
-|---|---|---|
-| Microservices | One team, one deploy cadence, shared database | Modular monolith |
-| Clean / hexagonal layers | Interfaces with one implementation, mapping code everywhere | Concrete code first, extract a seam when a second implementation or a test needs it |
-| Event sourcing | Only needed an audit trail | Append-only audit log table |
-| CQRS | Reads and writes use the same shape | One model; a read-optimised query or view where needed |
-| Repository | Wraps simple ORM calls one-to-one | Use the ORM directly |
-| Message broker | Work fits in the request or a DB-backed queue | Laravel database queue, a jobs table, or `after()` |
+## Offline and local state
+
+Identify the operations available offline and their source of truth. Specify local storage, pending status, credentials, encryption/retention where needed, sync retry, deduplication and conflict resolution. "Use IndexedDB" does not settle conflicting sales or server validation.
+
+## Decision test
+
+State the problem, simpler option, evidence against that option, selected boundary, failure semantics and revisit signal. If no important difference supports a complex pattern, keep the simpler viable structure. See [patterns-reference.md](patterns-reference.md) for costs and [trade-off-analysis.md](trade-off-analysis.md) for documenting material decisions.

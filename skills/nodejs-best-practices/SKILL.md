@@ -1,242 +1,41 @@
 ---
 name: nodejs-best-practices
-description: Node.js 24 LTS backend guidance - Hono by default for a standalone API, Fastify when Node-heavy, Express or NestJS in existing code, ESM and native TypeScript, layering, error handling, async and queues, validation with Zod, security and testing. Use when building or reviewing a Node.js server, API, worker or CLI, or choosing a TypeScript backend framework.
-version: 2.5.0
+description: Implement and review Node.js services, workers and CLIs with sound async behavior, resource lifetimes, validation and failure handling. Use for Node/TypeScript backend work; follow the installed runtime and framework.
+version: 2.8.2
 ---
 
-# Node.js Best Practices
+# Node.js Engineering
 
-Decision guidance for Node.js 24 LTS services. The project's existing framework and structure win. For new code: choose the framework for the deployment target (ask once if it changes the architecture; otherwise state the default), keep business logic out of HTTP handlers, and validate at every boundary. API contract (status codes, error envelope, pagination): `api-patterns`.
+Read runtime constraints, package manager, module type, build pipeline, framework and deployment before changing code. Keep a suitable existing framework. Select a new one from integration, workload, support and team needs rather than a mandatory Hono/Express/Fastify default.
 
----
+## Runtime and modules
 
-## 1. Framework Selection
+Use the runtime selected by the project/deployment and verify supported syntax, Web APIs, test runner and TypeScript execution. Native type stripping, a transpiler and the TypeScript compiler provide different guarantees; executing a file does not typecheck it. Do not change ESM/CommonJS, package exports or file extensions without inspecting consumers and tooling.
 
-### Decision Tree
+Treat environment variables as untrusted strings and validate required configuration at an appropriate startup boundary. Keep credentials out of logs and source. Connection pools and clients should have deliberate process/request lifetimes rather than being recreated for every query.
 
-```
-What are you building?
-│
-├── Backend inside a Next.js app
-│   └── Route Handlers + Server Actions (tRPC in a TypeScript monorepo)
-│
-├── Standalone Node API (default)
-│   └── Hono — edge-capable, runs unchanged on Node, Workers, Vercel, Bun
-│
-├── Node-heavy API (long-lived connections, streams, heavy plugins, raw throughput)
-│   └── Fastify (~5x req/sec of Express in Fastify's own hello-world benchmark; benchmark your own workload)
-│
-└── Existing code
-    └── Express or NestJS stay where they already are
-```
+## Requests and domain operations
 
-### The trade-off, in one line each
+Parse external input with the project's validation library or equivalent explicit validation. A type assertion is not validation. A handler owns protocol concerns; extract domain logic when it creates a useful test/ownership boundary. Avoid mandatory controller/service/repository layers for a small endpoint.
 
-- **Hono by default.** One Web-standard (`Request`/`Response`) codebase runs unchanged on Node, Workers, Deno, Bun, and serverless/edge; smallest cold start; native TS end to end. Reach past it only for a concrete reason below.
-- **Fastify when the workload is Node-heavy** and wants its plugin/hooks ecosystem, JSON-Schema-based serialization, or raw throughput on a long-lived Node process. Not portable to edge runtimes.
-- **Express or NestJS to match existing code**, or when the team knows them well and the deadline matters more than the framework. Express 5 fixed async error handling and is a reasonable upgrade for existing apps; for a new API, Hono or Fastify is usually the better start. NestJS suits large teams that want its module and DI structure.
+Apply authentication and resource/tenant authorization at protected operations. Format expected domain failures consistently, with user-safe messages and correlation IDs; retain underlying causes in redacted diagnostics. Do not turn every exception into a successful response or keep running after unrecoverable state corruption.
 
-If the deployment target is unknown and it flips the choice (edge vs long-lived Node), ask once; otherwise default to Hono and say so.
+## Async work and capacity
 
----
+- Await dependent work in order. Start independent work concurrently when access, capacity and failure semantics permit; bound fan-out instead of launching unbounded requests.
+- `Promise.all` fails early but does not cancel its siblings. `Promise.allSettled` suits independent outcomes. `Promise.race` ending a wait does not stop the losing operation: use supported abort signals and clean up resources.
+- Blocking I/O and CPU-heavy work can stall request handling. Use async APIs/streams for I/O and worker/process/job boundaries for demonstrated CPU costs. Async syntax does not make CPU work parallel.
+- Set deadlines on external calls, respect upstream limits and retry only eligible failures with bounded backoff. Unknown write outcomes need status reconciliation/idempotency.
+- Streams need backpressure, error handling, cancellation and limits. Upload size checks must hold during streaming, not after buffering an unlimited body.
 
-## 2. Runtime Considerations
+## Background work and lifecycle
 
-### Native TypeScript
+In-process post-response work is suitable only when its loss is acceptable and the host supports its lifetime. Durable email delivery, payment processing, imports and scheduled work usually need a persistent queue/outbox or platform equivalent. Consumers handle duplicate delivery, poison messages and partial failure; do not promise exactly-once execution from retries alone.
 
-```
-Node.js 24 LTS runs .ts files directly (type stripping, no flag needed)
-├── Erasable syntax only: no enums, runtime namespaces, or parameter properties
-├── Types are stripped, not checked: run `tsc --noEmit` separately
-├── Non-erasable syntax or bundling: use tsx or build with tsc/esbuild
-└── Good for: scripts, CLIs, small services; still bundle for production deploys
-```
+On shutdown, stop accepting new work, allow/drain bounded in-flight work and release resources within the host's deadline. Inspect process-manager/serverless behavior before assuming hooks always run. Avoid leaking timers or listeners in reload/reconnect paths.
 
-Set `"erasableSyntaxOnly": true` and `"verbatimModuleSyntax": true` in `tsconfig.json` so the compiler rejects syntax the runtime cannot strip.
+## Verification
 
-### Module System Decision
+Exercise changed business rules plus invalid input, denied access, upstream timeout/rejection and duplicate work when relevant. Use the project's test runner and framework test facilities; add no framework merely for a trivial edit. Profile event-loop delay, CPU, heap or query cost when those are the actual concern. Report measured observations, not assumed speed/security gains.
 
-```
-ESM (import/export)
-├── The standard; `"type": "module"` in package.json for new projects
-├── Better tree-shaking, top-level await
-└── Node 24 can `require()` ESM modules, so ESM-only dependencies are safe
-
-CommonJS (require)
-└── Existing codebases only; do not start new projects on it
-```
-
-### Runtime and built-ins
-
-Node.js 24 LTS is the default (largest ecosystem, what hosts support). Bun or Deno when the project already uses them. Node 24 built-ins that remove dependencies: `fetch`, `node --watch`, `node --env-file=.env`, `node:test`, `WebSocket` client, `URLPattern`.
-
-### Tooling
-
-ESLint flat config, Prettier or Biome, `tsc --noEmit`, `npm audit`. Commands and the kit runners: `lint-and-validate`.
-
----
-
-## 3. Architecture Principles
-
-### Layered Structure Concept
-
-```
-Request Flow:
-│
-├── Controller/Route Layer
-│   ├── Handles HTTP specifics
-│   ├── Input validation at boundary
-│   └── Calls service layer
-│
-├── Service Layer
-│   ├── Business logic
-│   ├── Framework-agnostic
-│   └── Calls repository layer
-│
-└── Repository Layer
-    ├── Data access only
-    ├── Database queries
-    └── ORM interactions
-```
-
-The payoff is a service layer you can unit-test without spinning up HTTP and swap the ORM under without touching business rules. Do not build three layers for a small script, a one-off worker, or a single-endpoint service — start in one file and extract a service only when a second caller or a test needs it.
-
----
-
-## 4. Error Handling Principles
-
-### Throw typed errors; format them once
-
-Data and service layers throw typed domain errors; a single top-level handler maps error class to status and to one consistent envelope. The client gets a stable code and a safe message; the full error goes to logs only — never into the response.
-
-```ts
-// WRONG - each handler invents a shape and leaks internals
-app.get("/users/:id", async (c) => {
-  try {
-    const user = await db.user.findUnique({ where: { id: c.req.param("id") } });
-    return c.json(user);                        // 200 + `null` when missing
-  } catch (e) {
-    return c.json({ error: e.message }, 500);   // leaks DB/internal message
-  }
-});
-
-// RIGHT - service throws; one handler maps class -> status + safe envelope
-class NotFoundError extends Error {}
-
-app.get("/users/:id", async (c) =>
-  c.json(await getUser(c.req.param("id"))));     // throws NotFoundError if absent
-
-app.onError((err, c) => {
-  if (err instanceof NotFoundError)
-    return c.json({ error: { code: "not_found", message: "User not found" } }, 404);
-  console.error(err);                            // full detail to logs only
-  return c.json({ error: { code: "internal", message: "Something went wrong" } }, 500);
-});
-```
-
-Status codes and the envelope shape: `api-patterns` §2-3.
-
----
-
-## 5. Async Patterns Principles
-
-### When to Use Each
-
-| Pattern | Use When |
-|---------|----------|
-| `async/await` | Sequential async operations |
-| `Promise.all` | Parallel independent operations |
-| `Promise.allSettled` | Parallel where some can fail |
-| `Promise.race` | Timeout or first response wins |
-
-`Promise.all` rejects on the first failure and abandons the rest — use `allSettled` when partial success is acceptable. Never `await` in a loop for independent work; collect the promises and `Promise.all` them.
-
-### Keep the event loop free
-
-async only helps I/O-bound work (DB, HTTP, files, network). It does nothing for CPU-bound work (crypto, image/video, large JSON, heavy computation) — that blocks every in-flight request on the process. Never call sync I/O (`fs.readFileSync`, `execSync`) in a request path; stream large payloads instead of buffering; move CPU-heavy work off the loop (worker thread, child process, or a queue).
-
-### When to reach for a queue
-
-In-process fire-and-forget (`queueMicrotask`, an un-awaited async call) is acceptable only for best-effort work that may vanish on restart. Move work to a durable queue — BullMQ on Redis, or a managed queue (SQS, Cloud Tasks) — when any of these holds: it must survive a crash or deploy, needs retries with backoff, must run outside the request's latency budget (outbound email, thumbnails, webhook fan-out), needs rate or concurrency control, or is CPU-heavy. A queue is not a default: it adds a broker to run, monitor, and dead-letter. Work that fits inside the request stays in the request.
-
----
-
-## 6. Validation Principles
-
-### Validate at Boundaries
-
-```
-Where to validate:
-├── API entry point (request body/params)
-├── Before database operations
-├── External data (API responses, file uploads)
-└── Environment variables (startup)
-```
-
-### Validation Library Selection
-
-| Library | Best For |
-|---------|----------|
-| **Zod** | TypeScript first, inference |
-| **Valibot** | Smaller bundle (tree-shakeable) |
-| **ArkType** | Performance critical |
-| **Yup** | Existing React Form usage |
-
-### Parse, don't cast
-
-Validate untrusted input with a schema at the boundary and pass the **typed result inward** — `const data = CreateUser.parse(req.body)`, never `req.body as CreateUser`. A cast is a lie to the type system; a parse is a runtime guarantee. Validate environment variables once at startup and fail fast if any are missing.
-
----
-
-## 7. Security Principles
-
-### Security
-
-Firm, beyond *parse, don't cast* above: hash passwords with argon2id or bcrypt (never a fast general-purpose hash); verify a JWT's signature **and** expiry on every request, not just decode it; parameterised queries only, never string-built SQL; authorise inside each handler; secrets from the environment, never in code or the repo. Strong defaults: security headers (Hono `secureHeaders`, Fastify `@fastify/helmet`, Helmet for Express), rate limits on unauthenticated and expensive routes, upload size and type limits.
-
-Every input crosses a trust boundary — query params, body, headers, cookies, uploads, and external API responses. Depth on threats, injection, and scanning: `vulnerability-scanner`.
-
----
-
-## 8. Testing Principles
-
-### Test Strategy Selection
-
-| Type | Purpose | Tools |
-|------|---------|-------|
-| **Unit** | Business logic | `node:test` (built in) or Vitest |
-| **Integration** | API endpoints | `app.inject()` (Fastify), `app.request()` (Hono), or Supertest |
-| **E2E** | Full flows | Playwright (`testing-patterns`) |
-
-### What to Test (Priorities)
-
-1. **Critical paths**: Auth, payments, core business
-2. **Edge cases**: Empty inputs, boundaries
-3. **Error handling**: What happens when things fail?
-4. **Not worth testing**: Framework code, trivial getters
-
-### Built-in test runner
-
-```
-node --test "src/**/*.test.ts"    # explicit glob is the durable form
-node --test --watch "src/**/*.test.ts"
-node --test --experimental-test-coverage "src/**/*.test.ts"
-```
-
-`node:test` needs no dependency and runs `.ts` tests directly on Node 24 (erasable syntax only). Choose Vitest when the project already uses Vite, needs browser-mode or component tests, or wants the richer mocking API. Wire either into `"test"` in `package.json` so `npm test` and the kit's test runner find it.
-
----
-
-## 9. Common mistakes
-
-| Mistake | Instead |
-|---|---|
-| Sync `fs` / `execSync` in a request path | Async APIs or streams |
-| CPU-heavy work on the event loop | Worker thread, child process or a queue |
-| Business logic in route handlers, once the service grows | A service function the handler calls |
-| `req.body as T` | Parse with a schema |
-| Secrets in code or committed `.env` | Environment variables, `.env` in `.gitignore` |
-| Trusting external API responses | Validate them like user input |
-| Optimising without a profile | `node --cpu-prof`, clinic, or the APM you have |
-
-Before building a new service, settle in one line each: the framework and deployment target, the error-handling approach, where validation happens, and the auth model.
+Use `api-patterns` for client contracts, `database-design` for transaction guarantees, `testing-patterns` for coverage and `performance-profiling` for evidence.

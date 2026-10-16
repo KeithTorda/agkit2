@@ -1,28 +1,23 @@
-# Project Templates
+# Starting references
 
-Thirteen scaffolding templates for `app-builder` and `/create`. This folder is not a skill; read only the one template that matches the detected project type.
+These are design-neutral implementation references for new projects. Read only the one matching the chosen foundation after inspecting the actual request and repository. A template name is compatible catalog metadata, not a forced stack recommendation.
 
-| Template | Tech Stack | When to Use |
-|---|---|---|
-| [nextjs-fullstack](nextjs-fullstack/TEMPLATE.md) | Next.js + Prisma; backend as Route Handlers + Server Actions | Full-stack web app |
-| [nextjs-saas](nextjs-saas/TEMPLATE.md) | Next.js + Stripe | SaaS product |
-| [nextjs-static](nextjs-static/TEMPLATE.md) | Next.js + motion | Landing page, portfolio |
-| [nuxt-app](nuxt-app/TEMPLATE.md) | Nuxt 4 + Nuxt UI v4 | Vue full-stack app (when the project or team is Vue) |
-| [node-api](node-api/TEMPLATE.md) | Hono (default) or Fastify + Zod | Standalone Node REST API; Express only for existing code |
-| [python-fastapi](python-fastapi/TEMPLATE.md) | FastAPI | Python API |
-| [react-native-app](react-native-app/TEMPLATE.md) | Expo + NativeWind | Mobile app (React Native) |
-| [flutter-app](flutter-app/TEMPLATE.md) | Flutter + Riverpod + Drift | Mobile app (Flutter) |
-| [electron-desktop](electron-desktop/TEMPLATE.md) | Electron + React | Desktop app |
-| [chrome-extension](chrome-extension/TEMPLATE.md) | Chrome MV3 | Browser extension |
-| [cli-tool](cli-tool/TEMPLATE.md) | Node.js + Commander | CLI app |
-| [monorepo-turborepo](monorepo-turborepo/TEMPLATE.md) | Turborepo + pnpm | Monorepo |
-| [astro-static](astro-static/TEMPLATE.md) | Astro + MDX | Blog / Docs |
+| Reference | Appropriate starting point |
+|---|---|
+| [astro-static](astro-static/TEMPLATE.md) | Content/static project choosing Astro |
+| [nextjs-static](nextjs-static/TEMPLATE.md) | React-oriented site choosing Next.js |
+| [nextjs-fullstack](nextjs-fullstack/TEMPLATE.md) | Full-stack product choosing Next.js |
+| [nextjs-saas](nextjs-saas/TEMPLATE.md) | Subscription product with actual billing requirements |
+| [nuxt-app](nuxt-app/TEMPLATE.md) | Vue application choosing Nuxt |
+| [node-api](node-api/TEMPLATE.md) | Standalone Node service |
+| [python-fastapi](python-fastapi/TEMPLATE.md) | Python API choosing FastAPI |
+| [react-native-app](react-native-app/TEMPLATE.md) | React Native mobile foundation |
+| [flutter-app](flutter-app/TEMPLATE.md) | Flutter mobile foundation |
+| [electron-desktop](electron-desktop/TEMPLATE.md) | Desktop product choosing Electron |
+| [chrome-extension](chrome-extension/TEMPLATE.md) | Supported browser-extension target |
+| [cli-tool](cli-tool/TEMPLATE.md) | Command-line product |
+| [monorepo-turborepo](monorepo-turborepo/TEMPLATE.md) | Workspace choosing Turborepo orchestration |
 
-No template for Laravel or plain HTML: work in the existing structure, or start a new Laravel app with `laravel new` / `composer create-project laravel/laravel`; a plain static site is `index.html`, one stylesheet with `DESIGN.md` tokens, and a small script file (detection in [project-detection.md](../project-detection.md)).
+Other supported foundations remain valid. Plain HTML/CSS/JS, Laravel, Django, native Swift/Kotlin and existing systems need not be converted into this catalog. Choose versions using actual compatibility and current official guidance; do not silently upgrade an existing project.
 
-## Usage
-
-1. Detect the project type ([project-detection.md](../project-detection.md)).
-2. Read only that template's `TEMPLATE.md`.
-3. Follow its stack and structure; pin versions to the current stable line when scaffolding (baseline in `code-rules`).
-4. UI templates: write `DESIGN.md` before UI code (`design-spec`), by `frontend-specialist` (web) or `mobile-developer` (mobile-only app). The template's styling choices are defaults; `DESIGN.md` and the brief override them.
+For visual work complete shared style/reference intake before choosing the look. A template's example CSS, component system, icons or animation library never overrides that direction. Verify a running baseline and a complete useful flow; remove irrelevant starter content and document real remaining setup.

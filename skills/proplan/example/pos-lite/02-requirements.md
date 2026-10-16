@@ -9,6 +9,8 @@ updated: 2026-09-27
 
 # Requirements
 
+> Example context: These cafe-specific rules illustrate requirement IDs and acceptance criteria. Tax, privacy, payment and receipt details require current authoritative verification before real implementation; the example does not establish compliance.
+
 ## Stakeholders
 
 | Stakeholder | Interest | Involvement |

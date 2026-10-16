@@ -1,75 +1,67 @@
-# Marketing layout (frontend-design §1.B, §4.1-§4.3, §4.5-§4.6, marketing §4.7-§4.8)
+# Marketing layout
 
-Read when: building a landing page, marketing site, portfolio, or any page-level marketing UI. SKILL.md core comes first (§0 design read, §1 dials, §4.0 judgment gate everything here). `DESIGN.md` tokens win over every value below.
+Read for landing pages, marketing sites, and portfolios after the intake in [SKILL.md](./SKILL.md). The agreed brief and `DESIGN.md` control the direction; examples here are options.
 
-## 1.B Dial presets
-| Use case | VARIANCE | MOTION | DENSITY |
-|---|---|---|---|
-| Landing, SaaS mainstream | 7 | 6 | 4 |
-| Landing, agency / creative | 9 | 8 | 3 |
-| Landing, premium consumer | 7 | 6 | 3 |
-| Portfolio, designer / studio | 8 | 7 | 3 |
-| Portfolio, developer | 6 | 5 | 4 |
-| Editorial / blog | 6 | 4 | 3 |
-| Public-sector service | 3 | 2 | 5 |
+## 1.B Composition intent
+Decide what the page must communicate, which evidence supports it, and what action follows. Sequence sections around that story. A portfolio may need large work samples; a service page may need scope, process, and proof; a product launch may need a concise statement and an honest demonstration. Do not insert sections just to fill a familiar template.
 
-App page (dashboard-like) is a row of the inference table (SKILL.md §1.A).
+If dials are used, choose them from the approved direction and audience. Marketing does not automatically mean high variance or high motion. A static launch page can be excellent.
 
 ## 4.1 Typography
-- Display `text-4xl md:text-6xl tracking-tighter leading-none`; body `text-base leading-relaxed max-w-[65ch]`.
-- Sans per `DESIGN.md`. Without one, prefer a face with character (Geist, Satoshi, Cabinet Grotesk, Outfit). Inter is an anti-default: fine when the brief asks for a neutral / Linear-style / public-sector feel.
-- Serif only when the brand names one or the aesthetic is genuinely editorial / luxury / publication / heritage, and you can say why this serif fits; "creative brief = serif" is the most-tested AI tell (Fraunces / Instrument Serif are anti-defaults for it). A deliberate serif-display + sans-body pairing is fine in those cases; document it in `DESIGN.md`.
-- Emphasis inside a headline: italic or bold of the same family, not a serif word dropped into a sans headline.
-- Italic display words with `y g j p q` need `leading-[1.1]` minimum plus `pb-1`, or the descender clips.
-- Data numbers: `tabular-nums` or mono. `text-wrap: balance` on headlines, `text-wrap: pretty` on body.
+- Choose type for the actual brand character, reading needs, language coverage, availability, and loading cost. Neutral sans, expressive grotesk, serif, and mixed display treatments are all valid.
+- Establish a deliberate display/body/label hierarchy with fluid sizes where helpful. Headline line count depends on wording, measure, viewport, and intended composition. A four-line headline is not automatically an error.
+- Check real wrapping at narrow, intermediate, and wide sizes. Adjust width, wording, size, and line height together. Preserve descenders, avoid accidental isolated words, and use `text-wrap: balance` when supported and useful.
+- Default to a small purposeful font palette. A third mono face may be justified for code or data; it is not required. Record roles so style recipes do not accidentally add families.
+- Ensure source and licensing for chosen fonts. Use the existing font pipeline or self-hosted assets when available; do not assume a named commercial typeface can be served.
 
 ## 4.2 Color
-- One accent, saturation under 80% by default, on a neutral base (zinc / slate / stone), the same accent across the whole page (no blue CTA in section 7 of a rose-accented site). Do not mix warm and cool grays in one project.
-- Purple / violet primaries are a default to question (SKILL.md §0.E). When the brand or `DESIGN.md` asks for purple, commit to it with a consistent palette; gradients are fine when they come from the brand.
-- **Premium-consumer trap:** cookware, wellness, artisan, luxury, and DTC home-goods briefs pull the same "warm cream + brass/clay/oxblood + espresso" palette every time. Use it only when the brand names those colors or is vintage-craft; else pick another family on purpose (silver/chrome, forest + bone + amber, off-black + tan, cobalt + cream, terracotta + slate, monochrome + one saturated pop).
-- Shadows tinted to the background hue usually read better than neutral black shadows on light backgrounds. Off-black and off-white surfaces give softer depth; pure black or white is a deliberate choice for high-contrast, brutalist or print-like directions. Either way, record it in `DESIGN.md`.
+Build semantic roles for canvas, text, surfaces, action, and state. Single-accent, multicolor, monochrome, high contrast, gradient, warm, and cool palettes can all be coherent. Pick the relationship deliberately and apply it consistently.
 
-## 4.3 Layout, cards, shape
-- Centered hero is avoided at `DESIGN_VARIANCE > 4`: 50/50 split, left content / right asset, or asymmetric whitespace. Centered is right for editorial / manifesto / launch briefs where the message is the design.
-- Cards only where elevation communicates hierarchy; otherwise group with `border-t`, `divide-y`, or space. At `VISUAL_DENSITY > 7` no generic card containers.
-- Three equal feature cards are an anti-default: prefer a 2-col split, asymmetric grid, bento, or horizontal scroll; three cards are fine when the content is genuinely three parallel items.
-- **Radius**: one scale from `DESIGN.md` `rounded` (all-sharp, all-soft 12-16px, or all-pill for interactive); mixed radii only under a documented rule ("buttons pill, cards 16px, inputs 8px") applied everywhere.
-- Z-index only for systemic layers (sticky nav, modal, overlay, grain), documented in one constants file; no arbitrary `z-50`.
+Retain real brand colors unless changing them is requested. Do not reject purple, saturated color, pure black/white, or cream because they are common. The failure is an unexplained choice disconnected from the brief, not the hue itself. Check text, controls, and focus against each actual background, including section inversions.
 
-## 4.5 Layout defaults
-Strong defaults for a first draft; each is easy to check. Break one when the direction calls for it and say why.
-- **Hero fits the first viewport**: headline ≤ 2 lines, subtext ≤ 20 words and ≤ 4 lines, CTAs visible without scrolling. Plan font scale and asset size together: `text-4xl md:text-5xl lg:text-6xl` for most heroes, `text-7xl` only for 3-5-word headlines; a 4-line headline is a font-size error. Top padding ≤ `pt-24` at desktop.
-- **Hero stack ≤ 4 text elements**: eyebrow or brand strip (or neither), headline, subtext, CTAs (1 primary + ≤ 1 secondary). Taglines under CTAs, trust strips, pricing teasers, feature bullets, avatar rows, and the logo wall get their own sections below the hero.
-- **Navigation** on one line at `lg`, height ≤ 80px (default 64-72): condense, drop, or hamburger.
-- **Eyebrows** (small uppercase tracked labels above headlines): at most 1 per 3 sections, hero counts as one; more than ceil(sections / 3) starts to read as a template (`grep -c "uppercase tracking"` across section components). Dropping the eyebrow is the usual fix; the headline is enough.
-- **Split-header** (big headline left, small explainer floating right) is an anti-default; stack headline over body (`max-w-[65ch]`) unless the right column carries a visual or interactive element.
-- **Bento grids** have exactly as many cells as content items (3 items → 1+2 or 2+1, never a blank tile) and real variation in at least 2-3 cells (image, brand gradient, pattern, tint).
-- **Layout-family repetition**: a family (3-col cards, full-width quote, split text/image) appears at most once per page; an 8-section page uses at least 4 families; image/text zigzag at most 2 sections in a row.
-- **Section theme lock**: sections do not invert the page's color scheme mid-scroll (SKILL.md §4.9).
+## 4.3 Layout, cards, and shape
+- Choose centered, split, asymmetric, image-led, or typographic compositions based on the content and desired focus. A dial does not prohibit a centered hero.
+- Use cards for discrete related items, interaction, or surface grouping. Use lists, open grids, rules, and whitespace when those communicate the structure better. Three equal cards are appropriate for three parallel items.
+- Reuse layout families where repetition helps scanning and recognition. Vary rhythm when the story changes. No maximum repetitions, minimum number of families, or zigzag quota.
+- Radius, elevation, and border systems can vary by component role. Use a clear rule instead of forcing every shape to share one radius.
+- Use the project's layer scale for navigation, overlays, dialogs, and decorative media. Keep reading order and focus order intact when compositions overlap.
 
-## 4.6 Images and visual assets
-Landing pages and portfolios are visual products; text-only pages with fake-screenshot divs are slop.
-1. **Image-generation tool first.** If any image tool is available, generate section-specific assets (hero, product shot, texture, mood) at the section's aspect ratio.
-2. **Real photography second.** `https://picsum.photos/seed/{descriptive-seed}/{w}/{h}`, brand or stock URLs from the brief, open-license sources when allowed.
-3. **Last resort: labeled placeholder slots** (`<!-- TODO: hero product photo, 1600x1200 -->`) plus a closing line listing what the page needs. Do not fill the gap with div-built "screenshots"; hand-made SVG illustration is fine when illustration is part of the chosen direction.
+## 4.5 Hero and page rhythm
+The first view should establish what the product/service is, why the audience should care, and the next useful action. Use enough content to make that decision. Concision helps; hard word, line, text-element, or viewport quotas do not.
 
-- Even minimalist sites need 2-3 real images (hero, one product or lifestyle shot, one supporting image).
-- Logo walls: real SVG marks (`https://cdn.simpleicons.org/{slug}/{hex}`, `simple-icons`, devicon for tech stacks); invented brands get a simple inline SVG monogram. Logos only, no category labels, both color schemes covered.
-- Product previews: default to a real screenshot, generated image, or live mini-component. A dashboard, task list or terminal mocked up in `<div>`s usually reads as fake; it is fine when it is a faithful, simplified rendering of the real product (same labels, real-looking data) or an interactive demo the brief asks for.
-- Every meaningful image has descriptive `alt`, decorative images `alt=""`; hero image `priority` / preloaded; every image has reserved dimensions.
+Fit headline, media, proof, and navigation together as one composition. An intentional oversized or tall hero is valid if the key message is clear and scrolling remains obvious. A compact conversion page may instead keep its action visible immediately. Do not shrink expressive type solely to satisfy a two-line rule.
 
-## 4.7 Marketing copy (the marketing half of SKILL.md §4.7)
-The app-UI string rules, banned words, dash rule, and copy self-audit in SKILL.md §4.7 apply here too.
-- Per section: headline ≤ 8 words, sub-paragraph ≤ 25 words, one visual or one CTA. Cut the rest.
-- No data-dump sections on marketing pages (20-row tables, 30-row award lists): top 3-5 + "View all", or another page. Lists over 5 items get a real component (2-col groups, card grid, tabs, scroll-snap pills, one marquee), not a longer `<ul>` with a hairline under every row. Spec sheets: grouped chunks, featured-vs-rest disclosure, or a 2-col spec card grid.
-- Quotes ≤ 3 lines, attribution name + role (+ company), typographic quotes or none.
-- Numbers are real (brief, brand, public data) or labeled mock (`<!-- mock -->`); no invented precision (`5.8 mm`, `4.1×`) and no round fakes (`99.99%`, `50%`).
-- Names, brands, avatars: locale-appropriate, specific, non-repeating; no "John Doe", "Acme", "Nexus", egg avatars, or the same face twice.
+Use eyebrows, trust strips, side explanations, quotes, pricing, navigation, and footer links when they help the story. Review repetitive decoration as a pattern, not with a per-section count. Navigation may adapt before a named breakpoint if actual labels need it.
 
-## 4.8 Marketing template tells (the marketing half of SKILL.md §4.8)
-Questions, not bans: each is a tell when it appears by reflex and fine when the direction chose it (a glass/aurora or bold direction may use glow, gradient text and custom cursors on purpose). App-UI tells: SKILL.md §4.8.
-- Visual: neon outer glows on everything, gradient text on every header, oversaturated accents, custom cursors, crosshair or hairline grid lines as decoration, decorative status dots (real state only, one per section), `·` as universal separator (max one per line).
-- Labels: version labels (`V0.6`, `BETA`) unless the brief is a launch; section-number eyebrows (`001 · Capabilities`); `01 / 4` tile pagination; scroll cues; hero-bottom strips (`DESIGN · BUILD · SHIP`); floating top-right sub-text in section headers; locale / time / weather strips unless the brand is place-based.
-- Copy: "Quietly trusted by", "Field notes"-style poetic labels, "Stage 1 / Stage 2" (use the verb-noun), micro-meta sentences under headings, mock-humble asides, photo-credit captions on stock images, tags overlaid on photos, fake version footers (`v1.4.2`, "last sync 4s ago").
-- Layout: `border-t` and `border-b` on every row; filled-track progress bars as comparison visuals; `<br>`-split italic headlines; vertical rotated text; H1s that scream by size alone.
-- Components (discouraged defaults, not bans): accordion FAQ, three-tower pricing, dotted testimonial carousel, sun/moon toggle, 4-column footer link farm, filled-plus-ghost button pair. Fine when the content shape fits (ten questions is an accordion); the tell is reaching for them unexamined.
+Color-blocked or inverted sections are welcome when they create useful emphasis or pacing. Preserve recognizable type, spacing, and color roles, and check each surface's text/controls. A dark section inside a light page is not the same as adding a full dark theme.
+
+## 4.6 Images and product evidence
+Choose assets by authenticity, relevance and the agreed art direction. Useful sources include:
+
+1. User-supplied or project-owned brand assets, real product images, screenshots, and photography.
+2. Suitable real editorial, stock, or open-license assets from verified sources when sourcing is allowed. Confirm subject, usable rights, crop, quality, and loading behavior; do not use random-image endpoints as finished assets.
+3. Generated photography, illustration, texture, or abstract graphics when they suit the approved direction and available tools. Generation is an option, not the first step for every section.
+4. If a needed real asset is unavailable, use a clearly identified prototype placeholder or compose the section without the asset. Tell the user what needs replacement.
+
+There is no image quota. Text-led and minimalist pages may use no images; a catalogue may need many. Every asset should improve understanding or expression.
+
+For product UI, prefer real screenshots or a faithful implementation of actual product behavior. A coded static preview or live mini-demo is useful when accurate; identify illustrative/demo content visibly where users could mistake it for current functionality. Never generate a screenshot and present it as evidence that a real feature exists. Avoid invented controls, fabricated customer data, and fake browser chrome that imply a real integration.
+
+Use logos only for real, authorized relationships; an invented prototype brand may use an original mark. Never invent customers to fill a logo wall. Provide descriptive alternatives for meaningful images, empty alternatives for decoration, reserved dimensions, responsive crops, and appropriate loading priority. Prioritize the actual above-the-fold/LCP media where useful; avoid eager-loading the whole asset collection or preloading an asset that does not help initial rendering.
+
+## 4.7 Copy and proof
+Headlines should make a clear, specific claim; body copy provides the detail needed for the task. Prefer readable sections over arbitrary word limits. Longer specifications, comparison tables, and substantive lists are appropriate when the audience needs them; organize them with headings and navigation rather than deleting useful facts.
+
+Testimonials, awards, pricing, availability, numerical claims, and customer names must come from the brief or a verified source. For a prototype, visibly label illustrative content where it could be confused with real evidence. A hidden source comment is not a disclosure. Match the requested language, locale, punctuation, and brand voice.
+
+## 4.8 Critique a draft
+Inspect the rendered page and ask:
+
+- Does the first view communicate the actual offering and next action?
+- Are visual emphasis and content order intentional, with strong alignment and typography?
+- Do assets belong to this brand and subject? Is product evidence honest?
+- Do repeated components help scanning, and do section changes help the story?
+- Does the selected style survive on mobile without clipping, overflow, or unreadable overlays?
+- Are key links and actions usable, with meaningful loading/error states where relevant?
+
+Fix demonstrated weaknesses. Do not mechanically remove gradients, serif words, centered heroes, FAQ accordions, pricing columns, footers, or animation solely because they are familiar patterns.

@@ -1,48 +1,52 @@
 ---
 name: request-routing
-version: 2.5.0
+version: 2.8.2
 priority: P0
 trigger: always_on
-description: Which agent or command handles a request. Agents are KIT/agents/<name>.md and can also run as native subagents.
+description: Route by the changed contract and required expertise; commands are optional entrypoints rather than mandatory ceremony.
 ---
 
-# Request Routing
+# Routing
 
-## Commands (`KIT/skills/<command>/SKILL.md`)
-| Command | Use |
-|---|---|
-| `/proplan <system>` | Professional plan for a system: goals, requirements, architecture, data, API, UX, security, tests, roadmap, full docs. Runs planning subagents. `--lite` for small systems |
-| `/plan <task>` | Task list with owners and verify lines in `docs/plans/<slug>.md`. No code |
-| `/create <app>` | New app end to end |
-| `/motionv <brief>` | Motion video as code: brief, storyboard, HyperFrames (default) or Remotion build, render to MP4/WebM/GIF, frame check. `/motionv doctor` checks and installs the tools |
-| `/orchestrate <task or plan path>` | Multi-domain build with subagents; can execute a `/proplan` milestone |
-| `/updatekit` | Fetches the latest release of AG Kit from GitHub and syncs Antigravity |
-| `/enhance` `/brainstorm` `/debug` `/test` `/verify` `/see` `/see-doc` `/fix-ui` `/review` `/deploy` `/status` `/remember` | As named; each skill states its steps |
+A pure question can be answered directly. For action, choose the nearest role by the contract being changed, not the number of matching keywords. For a mixed task, identify necessary ownership boundaries and dependency order; do not force an entire team or a fixed database/backend/frontend sequence when it does not fit. An explicit user-selected role takes precedence.
 
 ## Agents
-| Agent | Takes |
+| Role | Expertise |
 |---|---|
-| `frontend-specialist` | web UI: components, pages, layout, CSS, Tailwind, React, Vue, Blade |
-| `mobile-developer` | React Native, Expo, Flutter, iOS, Android |
-| `backend-specialist` | API, server, auth, webhooks, jobs, Laravel, exports (PDF, Excel, DOCX, receipts) |
-| `database-architect` | schema, migrations, queries, indexes, ORM |
-| `solution-architect` | system architecture, integration design, ADRs, tech choices, scaling |
-| `ux-architect` | user flows, screen inventory, information architecture, wireframe specs |
-| `product-manager` | goals, requirements, user stories, acceptance criteria, scope, MVP |
-| `project-planner` | milestones, work breakdown, estimates, dependencies, `/plan` files |
-| `plan-reviewer` | adversarial review of a plan or spec before build |
-| `test-engineer` | tests, test strategy, coverage, Playwright, Vitest, Pest, pytest |
-| `debugger` | bugs, errors, crashes, regressions |
-| `security-auditor` | security review, OWASP, secrets, threat model, data privacy |
-| `penetration-tester` | authorised offensive testing only |
-| `performance-optimizer` | slow pages, bundle size, Web Vitals, queries under load |
-| `seo-specialist` | SEO, metadata, structured data, sitemap |
-| `devops-engineer` | deploy, CI/CD, Docker, VPS, Nginx, rollback |
-| `documentation-writer` | README, docs, API docs, changelog, user manuals |
-| `code-archaeologist` | legacy and undocumented code, modernisation |
-| `explorer-agent` | read-only codebase map and feasibility |
-| `orchestrator` | coordinating several agents on one task |
+| `frontend-specialist` | web pages, components, layout, styles and client interaction |
+| `mobile-developer` | native mobile screens, platform integration and mobile interaction |
+| `backend-specialist` | server behavior, APIs, jobs, auth integration and exports |
+| `database-architect` | schema, migrations, transactions, persistence and queries |
+| `solution-architect` | system boundaries, architecture and consequential technology choices |
+| `ux-architect` | flows, navigation, screen/state structure and information hierarchy |
+| `product-manager` | goals, scope, requirements and acceptance criteria |
+| `project-planner` | executable milestones, dependencies and task plans |
+| `plan-reviewer` | feasibility and contract gaps in a proposed plan |
+| `test-engineer` | behavior tests, fixtures, regression strategy and test evidence |
+| `debugger` | reproduction, competing causes and root-cause repair |
+| `security-auditor` | defensive security review and confirmed trust-boundary defects |
+| `penetration-tester` | authorized active security testing within explicit scope |
+| `performance-optimizer` | measured latency, runtime, memory, query or bundle bottlenecks |
+| `seo-specialist` | crawl/index metadata, structured content and discoverability |
+| `devops-engineer` | CI, deployment, environments, operations and rollback |
+| `documentation-writer` | technical/user documentation tied to actual behavior |
+| `code-archaeologist` | legacy behavior, dependencies and safe modernization |
+| `explorer-agent` | read-only structure, contracts and feasibility discovery |
+| `orchestrator` | integration of independent work across necessary owners |
 
-- A pure question needs no agent.
-- Unclear domain: pick the closest specialist; do not ask which agent.
-- One domain, one agent. Several domains: `orchestrator` (or run the agents yourself in order: database → backend → frontend → tests).
+Role files are `KIT/agents/<name>.md`. Without native delegation, perform the role directly. Delegate only bounded independent work with shared decisions and clear ownership.
+
+## Commands
+
+| Commands | Purpose |
+|---|---|
+| `/create` `/enhance` | Build new work or extend the existing project |
+| `/plan` `/proplan` `/brainstorm` | Plan execution or compare approaches |
+| `/debug` `/fix-ui` `/see` `/see-doc` | Diagnose defects or inspect real output |
+| `/test` `/verify` `/review` | Run tests, establish evidence or review a diff |
+| `/orchestrate` `/deploy` | Coordinate work or perform an authorized release |
+| `/status` `/remember` | Read progress or save requested project context |
+| `/updatekit` `/doctor` | Maintain or diagnose the kit installation |
+| `/motionv` | Produce or edit a motion/video deliverable |
+
+Read `KIT/skills/<command>/SKILL.md` for the selected workflow. Natural-language requests can invoke it too. Use problem-solving for difficult diagnosis/tradeoffs and quick-reference only when the full catalog helps.

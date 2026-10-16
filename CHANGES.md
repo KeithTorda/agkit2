@@ -1,3 +1,42 @@
+# 2.8.2 — 2026-10-16
+
+- Made custom-styled, project-coherent web components the default, covering open surfaces and meaningful interaction states while preserving native semantics and intentional platform behavior.
+- Added focused component guidance for foundation selection, dropdown/listbox contracts, state synchronization, popup placement and visible-control verification; no compulsory package or custom-HTML rewrite.
+- Aligned frontend role, app UI, design-system, form-craft, repair and browser-review guidance with the same preference; retained approved direction, conversational intake, native-mobile conventions and motion choice.
+- Independent instruction review replaced an unavailable chart-guidance target and aligned three older agent summaries with their flexible architecture, legacy-maintenance and orchestration bodies.
+- Updated release metadata and generated catalog. The previous dashboard experiment stays frozen; a separate local maintenance demo exercises the new component treatment.
+
+# 2.8.1 — 2026-10-16
+
+- Applied actual paired-dashboard findings to frontend/UX guidance: supporting-text legibility, operational meaning, content space at intermediate widths and discoverable essential table data.
+- Kept approved style intake, existing stacks and expressive design freedom; no universal font minimum, sidebar breakpoint or new visual formula.
+- Added an optional fair-comparison guide and browser-test isolation/semantic-target lessons; preserved the original unfavorable result instead of changing frozen samples.
+- Added optional recorded visual-review coverage to ui_verify, with explicit artifact-consistency scope and backward-compatible default verdicts. Functional passes and recorded craft review remain separate claims.
+- Forward render/repair checking also exposed keyboard access to covered content under mobile overlay navigation; clarified modal versus nonmodal focus contracts and open-state interaction checks.
+- Aligned release metadata and refreshed the generated catalog; source/live validation and backed-up installation remain required for activation.
+
+# 2.8.0 — 2026-10-16
+
+- Full instruction refresh across existing domain skills, specialist roles and shared rules; broader than the preceding design-focused revision.
+- Added optional problem-solving guidance and a read-only /doctor for source/installation/rule agreement.
+- Added BrewedOps Motion Library to optional motion/design reference choices without copying its collection or forcing a dependency.
+- Refreshed supporting examples and references with compatibility checks and contextual decisions rather than dated stack mandates or rigid process quotas.
+- Improved document/test evidence completeness and malformed-project/Git-state handling, with behavioral regression tests.
+- Archived previous planning/review notes outside the active guidance and retained tested helper interfaces, source identity and rollback installation.
+
+Earlier release history follows and applies to those releases.
+
+# 2.7.0 — 2026-10-16
+
+- New visual designs begin with one brief style/reference conversation, waiting for the user's answer. Already supplied answers and explicit delegation are reused.
+- Reworked design and craft guidance to allow chosen aesthetics, contextual layout, genuine assets, intentional theme contrast and appropriate motion without quotas or blanket bans.
+- Aligned frontend/mobile/UX roles and creation workflows with the same intake and evidence policy.
+- Verification reports distinguish complete evidence from skipped or incomplete checks; added behavioral regressions for failure masking, missing evidence and maintenance behavior.
+- Installer validates source/staging, backs up active files, preserves unrelated rules and restores previous files on a failed activation. Update checks no longer accidentally install when up to date.
+- Retained specialist technical skills and existing command names; removed obsolete rule stubs and stale personal assumptions.
+
+Earlier revision history follows; its descriptions apply to those releases, not the current policy.
+
 # AG Kit v2 — Changelog
 
 ## v2.6.0 (2026-10-02) — /motionv motion video skill

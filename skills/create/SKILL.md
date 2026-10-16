@@ -1,35 +1,23 @@
 ---
 name: create
-description: "/create - Builds a new application end to end: up to 3 questions with defaults, a /proplan --lite offer for anything beyond a small site, DESIGN.md, template-based build, verification by risk tier, and a running dev server. Use when the user asks for a new app, site, API or project from scratch."
-version: 2.5.0
+description: "Build a new site, application, API or tool from an accepted brief through implementation and relevant verification. Use /create for a new project rather than maintenance."
+version: 2.8.2
 ---
 
 # /create
 
-**Input:** the text after `/create` describes the app (or names a `/plan` or `/proplan` slug to build from).
-**Read now:** `KIT/skills/app-builder/SKILL.md`, then `app-builder/project-detection.md` and only the matching `templates/<name>/TEMPLATE.md`.
-**Read when:** UI project → `KIT/skills/design-spec/SKILL.md`; several specialists → `KIT/skills/parallel-agents/SKILL.md`; questions needed → `KIT/skills/brainstorming/SKILL.md`.
+Read `KIT/skills/app-builder/SKILL.md`, its project-detection guidance and only the template matching the actual project. A template is a starting point; preserve the requested stack and delivery format.
 
-## Steps
+## Establish the brief
 
-1. **Questions (only if blocked).** One message, at most 3, each with a recommended default: usually who uses it, the must-have features, and anything that fixes the stack (existing hosting, Laravel shop, offline need). If the request already answers them, or the user says "proceed", go with the defaults and list them as assumptions.
-2. **Size it.**
-   - Small site or single-purpose tool (landing page, portfolio, brochure site, a one-screen utility): write the stack and a short task list in the reply, or `docs/plans/<slug>.md` if it spans sessions (`plan-writing`).
-   - Anything bigger (accounts and roles, a database with several entities, payments, admin panel, a client system): offer `/proplan --lite <idea>` first (`KIT/skills/proplan/SKILL.md`) - five docs that settle goals, data model and milestones before code. If the user declines, write a `/plan` file and continue.
-   - A `/proplan` already exists: build milestone by milestone with `/orchestrate docs/proplan/<slug> M1`.
-3. **DESIGN.md (UI projects).** Before any UI code, `frontend-specialist` (web) or `mobile-developer` (mobile-only) writes `DESIGN.md` at the project root with `design-spec`: the audience, style direction from the brief, tokens. The client's taste wins; `anti-template` is a list of defaults to question. Skip for API-only and CLI projects.
-4. **Build.** Scaffold from the template with current stable versions, then change the expensive-to-reverse things first: data model and IDs, auth, the data-fetching boundary. Order and owners: `app-builder/agent-coordination.md`. Delegate independent parts with `invoke_subagent`; do small builds yourself.
-5. **Verify by tier** (`code-rules`). A static site is tier 1: build succeeds, the project's lint and types pass, a look at 390 px and 1440 px when a browser is available. Auth, payments, permissions or data deletion make it tier 2: `python "KIT/scripts/checklist.py" . --full`, tests for that logic, `/review` on it.
-6. **Run.** Start the dev server with the template's command; confirm the home route responds; report the URL and how to stop it.
+Use what the user already supplied: audience, primary task, required behavior and practical constraints. Resolve consequential gaps; choose routine details within scope. For a project with a new visual design, ask one conversational style/reference question and wait unless that answer or explicit delegation is already present. API-only and CLI work do not need visual intake.
 
-## Output
+Choose planning depth to fit the work. A bounded build can use a short task list. Use `plan-writing` for durable coordination or `proplan` when a system document set is requested or genuinely useful; do not block a build on accepting an extra planning command.
 
-```markdown
-<App> is running at http://localhost:<port> (stop: Ctrl+C in its terminal)
-Template: <name> · Stack: <one line> · Plan: <path or "in reply">
-Files: <grouped by area or owner>
-Checks: <commands> → <outcome>
-Assumptions: <defaults taken>
-Not verified: <what did not run>
-Next: /enhance <feature>, /test, /deploy preview
-```
+## Deliver
+
+Establish shared contracts and the costly-to-reverse boundaries first. For UI, use frontend-design/mobile-design and record the approved direction with design-spec when helpful. Implement complete useful flows, including relevant empty, loading, error and recovery behavior. Delegate independent lanes with `parallel-agents` when available; otherwise perform the roles directly.
+
+Run the project's relevant checks and exercise the implemented behavior using `verify-changes`. Render visible work against the accepted brief. Start or reuse the documented development server when useful and report its actual URL only after it is ready.
+
+Finish with what was built, where to run/view it, material assumptions, evidence and remaining limits. Do not claim integrations or deployment that were not exercised.
