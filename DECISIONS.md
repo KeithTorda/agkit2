@@ -1,4 +1,12 @@
-# Current AGKIT2 Decisions — 2.8.2
+# Current AGKIT2 Decisions — 3.0.0
+
+## 3.0.0 overrides
+
+Rules 01-06 plus kit-core are the only policy. Each topic has one owner rule. The 14 agents follow one template and defer to the rules instead of restating policy. Where anything below conflicts, 3.0.0 wins.
+
+## 2.9.0 overrides
+
+The old rules are removed. `kit-core` carries only plumbing; `rule-01-unified-theme-system` is the design authority for UI. Style intake is no longer mandatory, motion-video production is out of the kit, and browser checks run only on request. Where a section below mentions design intake or core rules, these overrides win.
 
 ## One shared workflow, domain-specific expertise
 

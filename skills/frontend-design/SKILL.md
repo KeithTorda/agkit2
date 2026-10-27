@@ -1,7 +1,7 @@
 ---
 name: frontend-design
 description: "Create, improve and deliberately redesign web interfaces with an agreed style, useful content, sound interaction and actual visual verification. Covers sites, portfolios, product screens, forms and dashboards; native mobile uses mobile-design."
-version: 2.8.2
+version: 2.8.3
 ---
 
 # Web interface design and implementation
@@ -10,11 +10,7 @@ Make a coherent product surface with a clear visual point of view. “Clean” m
 
 ## Ask about the new design, then wait
 
-Before every new visual design or intentional redesign, ask one short conversational question about style and references. For example:
-
-> Anong style ang gusto mo para dito, at may website o screenshot ka bang reference? Puwede rin akong pumili kung gusto mo.
-
-Wait before selecting a visual direction or implementing its look. Explicit answers already supplied in the current brief/session, “no reference”, or delegation to choose satisfy intake. Do not repeat a questionnaire. Maintenance and components extending an approved system keep that direction without another intake. While waiting, inspect the repository, current UI, available assets and technical constraints.
+If the visual direction is genuinely unclear and no brief, brand or reference was given, ask one short style question; otherwise choose a direction, state it, and continue. Theme structure follows `rule-01-unified-theme-system`. Maintenance and components extending an approved system keep that direction.
 
 ## Understand what the screen must do
 
@@ -59,7 +55,7 @@ Use motion for continuity, feedback or the approved expressive direction. Keep e
 
 ## Finish against actual evidence
 
-Use relevant project build/type/lint checks and exercise the changed behavior. Inspect actual rendered output with `browser-verification` at meaningful sizes and states, at the intended display scale. Compare hierarchy, wrapping, spacing, contrast, cropping, overflow, focus and interactions against the accepted direction. For app screens, include [supporting text, operational signals and data access](app-ui.md#rendered-craft-review). Correct observed defects and refine your draft before delivery.
+Only when the user requests checking (kit-core), use relevant project build/type/lint checks and exercise the changed behavior. For requested visual verification, inspect actual rendered output with `browser-verification` at meaningful sizes and states, at the intended display scale. Compare hierarchy, wrapping, spacing, contrast, cropping, overflow, focus and interactions against the accepted direction. For app screens, include [supporting text, operational signals and data access](app-ui.md#rendered-craft-review). Correct observed defects and refine your draft before delivery.
 
 The local `scripts/ux_audit.py` and `scripts/accessibility_checker.py` helpers can flag source concerns; run `--help` for supported options. Their heuristics do not prove visual quality, actual contrast or end-to-end behavior. Review findings in context with `anti-template` or `web-design-guidelines` when helpful.
 

@@ -35,12 +35,12 @@ class KitHealthTests(unittest.TestCase):
         (self.source / 'scripts' / 'example.py').write_text('print("example")\n', 'utf-8')
         for name in doctor.KIT_RULES:
             body = f'---\nname: {name}\nversion: 2.8.0\n---\n'
-            if name == 'core-protocol':
+            if name == 'kit-core':
                 body += f'`KIT` = `{(self.root / "template-kit").as_posix()}`\n'
             (self.source / 'rules' / f'{name}.md').write_text(body, 'utf-8')
         shutil.copytree(self.source, self.plugin, ignore=shutil.ignore_patterns('rules'))
         shutil.copytree(self.source / 'rules', self.config / 'rules')
-        core = self.config / 'rules' / 'core-protocol.md'
+        core = self.config / 'rules' / 'kit-core.md'
         core.write_text(core.read_text('utf-8').replace((self.root / 'template-kit').as_posix(), self.plugin.as_posix()), 'utf-8')
         self.global_file = self.config.parent / 'GEMINI.md'
         self.global_file.write_text(f'Personal note.\n<!-- AGKIT2:START -->\nKit: `{self.plugin.as_posix()}`\n<!-- AGKIT2:END -->\n', 'utf-8')

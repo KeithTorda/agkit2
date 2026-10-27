@@ -10,7 +10,7 @@ version: 2.8.2
 
 ## Complete intake first
 
-Before every new visual design, ask one short question about style and references and wait. Already explicit answers or delegation satisfy it; maintenance matching an approved system needs no repeat. Use the intake owned by `design-rules` and `frontend-design`. An existing design file informs an intentional redesign but does not silently decide its new direction.
+If the direction for a new design is genuinely unclear, ask one short question about style or references; otherwise proceed. Token structure follows `rule-01-unified-theme-system` (primitive → semantic → component tokens, Light/Dark/System). An existing design file informs an intentional redesign but does not silently decide its new direction.
 
 Inspect the brief, existing visual artifacts, implementation tokens, component library, brand assets and the available reference. Record what is agreed, what is inferred from existing work, and what remains open. Do not claim that a reference was inspected if its contents were inaccessible.
 

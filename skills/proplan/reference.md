@@ -32,7 +32,7 @@ Milestone references are recognized in headings, whole table cells or next to 鈥
 
 ```markdown
 - [ ] **T-001** Implement the stated outcome
-  - owner: backend-specialist 路 estimate: 1d 路 depends: - 路 covers: R-001
+  - owner: backend-engineer 路 estimate: 1d 路 depends: - 路 covers: R-001
   - verify: <specific command or observation and expected result>
 ```
 

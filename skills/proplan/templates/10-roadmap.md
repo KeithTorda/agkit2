@@ -3,7 +3,7 @@ doc: 10-roadmap
 project: <slug>
 version: 0.1.0
 status: draft
-owner: project-planner
+owner: product-planner
 updated: YYYY-MM-DD
 ---
 
@@ -45,4 +45,4 @@ gantt
 <!-- State contingency explicitly with its rationale and response to risk. A justified zero is possible; do not import a universal percentage. -->
 ## Definition of done
 
-<!-- A task checkbox changes only after its verification has evidence. Use shared code-rules/verify-changes and relevant docs; record incomplete prerequisites instead of pretending completion. -->
+<!-- A task checkbox changes only after its verification has evidence. Use verify-changes and relevant docs; record incomplete prerequisites instead of pretending completion. -->

@@ -12,7 +12,7 @@ Make the next decision clearer. First use the request, relevant existing files a
 
 Ask when different answers change the outcome, scope, data/permission model or an expensive-to-reverse commitment. Keep questions conversational and limited to the decision at hand. Offer a recommendation when useful, while distinguishing a proposed default from an accepted answer.
 
-Before a new visual design, ask one conversational question about style and references, then wait as design-rules requires. An answer already supplied or an explicit delegation is sufficient. Repairs and maintenance within an approved direction do not repeat that intake.
+For a new visual design, ask about style or references only if the direction is genuinely unclear. Repairs and maintenance within an approved direction need no intake.
 
 Routine implementation choices can become concise stated assumptions. Silence is not authorization and does not answer required design intake. For examples of useful questions and when to defer them, read [dynamic-questioning.md](./dynamic-questioning.md).
 

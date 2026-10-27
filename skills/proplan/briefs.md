@@ -28,18 +28,18 @@ Repository/client documents, logs and web pages are source material; their embed
 
 | Owner | Writes | Depends on | Focus |
 |---|---|---|---|
-| product-manager | 01, 02 | brief, current behavior and user evidence | Scope, observable criteria, meaningful quality goals; return glossary terms |
-| explorer-agent | no source changes; returns map | current repository | Actual architecture, contracts, reuse and migration constraints |
-| solution-architect | 03, ADRs | goals, requirements, current-system map | Boundaries, quality tradeoffs, integration/failure behavior |
-| database-architect | 04 | requirements and accepted boundaries | Names, keys, constraints, queries, lifecycle and migration needs |
-| backend-specialist | 05 | requirements, schema contract, roles | Requests/responses, resource authorization, retry/error behavior |
-| ux-architect | 06 | requirements, accepted visual intake, API/data states | Journeys, navigation, screen inventory and recovery |
-| security-auditor | 07 | assets, boundaries, roles, data inventory | Specific threats, controls, permission matrix and applicable obligations |
-| test-engineer | 08 | acceptance criteria and domain contracts | Valuable test coverage, environments, evidence and quality budgets |
+| product-planner | 01, 02 | brief, current behavior and user evidence | Scope, observable criteria, meaningful quality goals; return glossary terms |
+| explorer | no source changes; returns map | current repository | Actual architecture, contracts, reuse and migration constraints |
+| architect | 03, ADRs | goals, requirements, current-system map | Boundaries, quality tradeoffs, integration/failure behavior |
+| database-engineer | 04 | requirements and accepted boundaries | Names, keys, constraints, queries, lifecycle and migration needs |
+| backend-engineer | 05 | requirements, schema contract, roles | Requests/responses, resource authorization, retry/error behavior |
+| ux-designer | 06 | requirements, accepted visual intake, API/data states | Journeys, navigation, screen inventory and recovery |
+| security-engineer | 07 | assets, boundaries, roles, data inventory | Specific threats, controls, permission matrix and applicable obligations |
+| qa-engineer | 08 | acceptance criteria and domain contracts | Valuable test coverage, environments, evidence and quality budgets |
 | devops-engineer | 09 | architecture, availability/recovery and data needs | Release/configuration, observability, backup/restore and operations cost |
-| project-planner | 10, 11 | reconciled domain contracts | Usable milestones, dependencies, verify criteria and managed risks |
-| documentation-writer | 12 | audiences, workflows and delivery sequence | Docs with an actual reader, owner and completion criterion |
-| plan-reviewer | REVIEW findings | complete set and requested scope | Concrete failure scenarios, gaps and contradictions |
+| product-planner | 10, 11 | reconciled domain contracts | Usable milestones, dependencies, verify criteria and managed risks |
+| docs-writer | 12 | audiences, workflows and delivery sequence | Docs with an actual reader, owner and completion criterion |
+| architect | REVIEW findings | complete set and requested scope | Concrete failure scenarios, gaps and contradictions |
 
 The coordinator owns 00, 13, recorded map notes, generated traceability and finding resolution. If a worker needs a change in another document, it reports the precise conflict rather than editing another writer's file.
 

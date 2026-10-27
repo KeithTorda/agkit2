@@ -5,15 +5,16 @@ Checks
   layout     plugin.json present, no legacy workflows/ or agent/ folders, VERSION format, JSON valid
   rules      frontmatter (name = file stem, version, trigger, globs for glob rules), no hex colours,
              always-on budget (always_on rules total <= 15000 bytes; model_decision/glob/manual excluded),
-             quick-reference is model_decision, every /command in request-routing has a skill,
-             every agent in request-routing has a file
+             quick-reference is model_decision, every /command in kit-core has a skill,
+             every agent in kit-core has a file
   agents     native subagent frontmatter: name = stem, description, model, subagent, kit-skills
              (list of existing skills), version; no `tools:` key; no legacy `skills:` key; sections
-             Role, How you work, Build, Repair, Decide, Never, As a subagent, Done - in that order
+             Mission, Owns / Does not own, Before starting, How to work, (Stack notes), Quality bar,
+             Common mistakes to avoid, Handoff format - in that order
   skills     SKILL.md with frontmatter; name = folder; description; version
   references every KIT/skills/<x>, KIT/agents/<y>.md, KIT/scripts/<z> path resolves; @[skills/x];
              local markdown links; script paths inside scripts/*.py
-  hygiene    no hardcoded user path outside rules/core-protocol.md (and install.ps1, which patches
+  hygiene    no hardcoded user path outside rules/kit-core.md (and install.ps1, which patches
              it); legacy phrasing; Python syntax; size warnings (skills/*/parts, templates and
              examples exempt); obsolete files (rules/copy.md, rules/design.md, BRIEF-v2.5.md)
 
@@ -46,17 +47,18 @@ KIT_DEFAULT = Path(__file__).resolve().parents[1]
 # Match usernames on any Windows drive, including escaped JSON/Python paths.
 # Concatenated fixture strings and <user> placeholders do not match.
 USER_PATH = re.compile(r"\b[A-Za-z]:[/\\]+Users[/\\]+[^/\\\s`\"'<>${}]+", re.I)
-USER_PATH_ALLOWED = {"rules/core-protocol.md", "install.ps1"}
-KIT_RULES = ("core-protocol", "code-rules", "design-rules", "engineering-excellence", "request-routing",
-             "universal-rules", "quick-reference")
+USER_PATH_ALLOWED = {"rules/kit-core.md", "install.ps1"}
+KIT_RULES = ("kit-core", "rule-01-unified-theme-system", "rule-02-work-style", "rule-03-code-standards",
+             "rule-04-system-integration", "rule-05-planning-and-docs", "rule-06-security-baseline", "quick-reference")
 OBSOLETE = {"rules/copy.md": "removed in v2.5 (content moved to skills/anti-template); the installer deletes it",
             "rules/design.md": "merged into design-rules in v2.5; the installer deletes it",
             "BRIEF-v2.5.md": "worker brief; delete before shipping"}
 HISTORY_DOCS = {"CHANGES.md", "DECISIONS.md", "KIT-REVIEW.md"}
 TRIGGERS = {"always_on", "model_decision", "glob", "manual"}
 ALWAYS_ON_BUDGET = 15000
-AGENT_SECTIONS = ("## Role", "## How you work", "## Build", "## Repair", "## Decide", "## Never",
-                  "## As a subagent", "## Done")
+AGENT_SECTIONS = ("## Mission", "## Owns / Does not own", "## Before starting", "## How to work",
+                  "## Quality bar", "## Common mistakes to avoid", "## Handoff format")
+AGENT_OPTIONAL_SECTIONS = ("## Stack notes",)
 AGENT_SIZE_WARN = 10000
 SKILL_CORE_SIZE_WARN = 16000
 SKILL_FILE_SIZE_WARN = 20000
@@ -106,7 +108,7 @@ class Validator:
         if (self.root / "rules").is_dir():
             return self.root / "rules"
         installed = Path.home() / ".gemini" / "config" / "rules"
-        return installed if (installed / "core-protocol.md").is_file() else None
+        return installed if (installed / "kit-core.md").is_file() else None
 
     # ------------------------------------------------------------ helpers
     def add(self, severity: str, code: str, path: Path | str, message: str, line: int = 1) -> None:
@@ -229,7 +231,7 @@ class Validator:
         self.check_routing()
 
     def check_routing(self) -> None:
-        routing = (self.rules_dir / "request-routing.md") if self.rules_dir else None
+        routing = (self.rules_dir / "kit-core.md") if self.rules_dir else None
         if routing is None or not routing.is_file():
             return
         text = self.read(routing)
@@ -254,7 +256,7 @@ class Validator:
         if routed:
             for path in sorted((self.root / "agents").glob("*.md")):
                 if path.stem not in routed:
-                    self.add("warning", "routing.agent_unrouted", path, "agent is not listed in request-routing")
+                    self.add("warning", "routing.agent_unrouted", path, "agent is not listed in kit-core")
 
     # ------------------------------------------------------------ skills
     def check_skills(self) -> None:
@@ -354,7 +356,7 @@ class Validator:
         if order != expected:
             self.add("error", "agent.section_order", path, f"Sections out of order: {' / '.join(order)}")
         for h, n in headings:
-            if not any(matches(h, w) for w in AGENT_SECTIONS):
+            if not any(matches(h, w) for w in AGENT_SECTIONS + AGENT_OPTIONAL_SECTIONS):
                 self.add("warning", "agent.extra_section", path, f"Unexpected section `{h}`", n)
         now = re.search(r"^\*\*Read now[^*]*:\*\*(.*)$", body, re.M)
         if now:
@@ -452,7 +454,7 @@ class Validator:
             match = USER_PATH.search(text)
             if match:
                 self.add("error", "hygiene.user_path", path,
-                         f"hardcoded user path {match.group(0)!r} - write KIT/... (defined once in core-protocol)",
+                         f"hardcoded user path {match.group(0)!r} - write KIT/... (defined once in kit-core)",
                          line_of(text, match.start()))
         for path in sorted(self.root.rglob("*.py")):
             if "__pycache__" in path.parts:

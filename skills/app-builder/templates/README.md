@@ -20,4 +20,4 @@ These are design-neutral implementation references for new projects. Read only t
 
 Other supported foundations remain valid. Plain HTML/CSS/JS, Laravel, Django, native Swift/Kotlin and existing systems need not be converted into this catalog. Choose versions using actual compatibility and current official guidance; do not silently upgrade an existing project.
 
-For visual work complete shared style/reference intake before choosing the look. A template's example CSS, component system, icons or animation library never overrides that direction. Verify a running baseline and a complete useful flow; remove irrelevant starter content and document real remaining setup.
+For visual work, follow Rule 01 and decide the look unless the direction is genuinely unclear. A template's example CSS, component system, icons or animation library never overrides that direction. Verify a running baseline and a complete useful flow; remove irrelevant starter content and document real remaining setup.

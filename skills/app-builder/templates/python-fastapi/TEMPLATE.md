@@ -14,7 +14,7 @@ Inspect existing work before scaffolding. For a new foundation, use current offi
 
 - Keep auth, configuration, data access and domain rules understandable. A package layout should clarify responsibilities rather than force empty layers.
 
-For new visual design, complete the shared short style/reference intake and wait unless already answered or delegated. Reuse accepted tokens and design components; this template does not select an aesthetic or install a styling package. API/CLI-only work needs no visual questionnaire.
+New visual design follows `rule-01-unified-theme-system`; ask about style only if genuinely unclear. Reuse accepted tokens and design components; this template does not select an aesthetic or install a styling package. API/CLI-only work needs no visual questionnaire.
 
 ## Verify and hand off
 

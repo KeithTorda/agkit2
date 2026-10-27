@@ -6,7 +6,7 @@ Produce DOCX when requested or when the recipient needs an editable prose artifa
 
 If a supplied template controls the layout, preserve its structure, styles, headers/footers, fields, numbering and content controls. For a new document, build a suitable structure with named paragraph/character/table styles rather than direct-formatting every run. Both template filling and programmatic authoring are valid; choose from fidelity, repeatability and editing needs.
 
-For a new visual design complete the shared style/reference intake before inventing the look. An established approved template does not need a duplicate questionnaire. Use real content to test headings, lists, tables and pagination.
+For a new visual design, use the supplied template or brand; ask only if the style is genuinely unclear. An established approved template does not need a duplicate questionnaire. Use real content to test headings, lists, tables and pagination.
 
 ## Library boundaries and traps
 

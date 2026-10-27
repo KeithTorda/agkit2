@@ -3,7 +3,7 @@ doc: 04-data-model
 project: <slug>
 version: 0.1.0
 status: draft
-owner: database-architect
+owner: database-engineer
 updated: YYYY-MM-DD
 ---
 

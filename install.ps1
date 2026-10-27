@@ -12,8 +12,8 @@ $pluginParent = Join-Path $configPath 'plugins'
 $pluginPath = [IO.Path]::GetFullPath((Join-Path $pluginParent 'ag-kit-v2'))
 $rulesPath = Join-Path $configPath 'rules'
 $globalPath = Join-Path (Split-Path -Parent $configPath) 'GEMINI.md'
-$ruleNames = @('core-protocol.md','code-rules.md','design-rules.md','engineering-excellence.md','request-routing.md','universal-rules.md','quick-reference.md')
-$obsoleteNames = @('copy.md','design.md','core.md','code.md','routing.md','anti-ai.md')
+$ruleNames = @('kit-core.md','rule-01-unified-theme-system.md','rule-02-work-style.md','rule-03-code-standards.md','rule-04-system-integration.md','rule-05-planning-and-docs.md','rule-06-security-baseline.md','quick-reference.md')
+$obsoleteNames = @('copy.md','design.md','core.md','code.md','routing.md','anti-ai.md','core-protocol.md','code-rules.md','design-rules.md','engineering-excellence.md','request-routing.md','universal-rules.md')
 
 function Write-Utf8([string]$Path, [string]$Content) {
     [IO.File]::WriteAllText($Path, $Content, (New-Object Text.UTF8Encoding($false)))
@@ -31,6 +31,7 @@ function Test-ObsoleteKitRule([string]$Path) {
     if (!(Test-Path -LiteralPath $Path -PathType Leaf)) { return $false }
     $content = [IO.File]::ReadAllText($Path)
     $kitSignature = $content -match '(?i)\bAG\s?Kit\b|plugins[/\\]+agkit3|no automatic gates|Ten code rules that apply|Which agent handles which request'
+    if ($content -match '(?im)^name:\s*(core-protocol|code-rules|design-rules|engineering-excellence|request-routing|universal-rules)\s*$' -and $content -match '(?im)^version:\s*2\.') { return $true }
     return ($kitSignature -and $content -match '(?im)^version:\s*3\.' -and $content -match '(?im)^name:\s*(core|code|routing|design|anti-ai)\s*$') -or
            ($kitSignature -and $content -match '(?im)^name:\s*(copy|design)\s*$')
 }
@@ -103,9 +104,8 @@ try {
 <!-- AGKIT2:START -->
 # AGKIT2 $version
 Kit: ``$($pluginPath.Replace('\','/'))``.
-Rules: ``$($rulesPath.Replace('\','/'))``. Read core-protocol and request-routing there before acting; use code-rules for verification and design-rules before new visual design, including before UI files exist.
-Before a new visual design ask briefly about style and references, and wait. Reuse an answer already supplied; an explicit 'you choose' delegates the choice. Maintenance matching an approved design needs no repeat intake.
-Follow the accepted direction and project conventions. Visual styles are flexible; verification reports the evidence that actually ran.
+Rules: ``$($rulesPath.Replace('\','/'))``. Read kit-core and rule-02-work-style there before acting. UI work follows rule-01, code follows rule-03 and rule-06, new systems follow rule-04, plans and docs follow rule-05.
+Tests, builds, audits and browser checks run only when the user asks; never append them automatically after implementation. Report only evidence that actually ran.
 <!-- AGKIT2:END -->
 "@
     $priorGlobal = if ($globalExisted) { [IO.File]::ReadAllText($globalPath) } else { '' }

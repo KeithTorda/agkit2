@@ -28,4 +28,4 @@ Example responsibilities, adapted to the selected stack:
 
 The filenames `proxy.ts`, `middleware.ts`, ORM generator options and router APIs depend on installed versions. Inspect supported conventions rather than requiring a historical example. A gateway/middleware hook alone does not replace authorization at the data boundary.
 
-For a new visual system, complete the short style/reference intake and record accepted decisions with `design-spec` before inventing its look. API-only or CLI work does not need a website token document. Verify the baseline and a complete initial flow, then report the actual run command, local URL or executable and remaining configuration.
+For a new visual system, choose the direction (ask only if genuinely unclear) and record decisions with `design-spec` before inventing its look. API-only or CLI work does not need a website token document. Verify the baseline and a complete initial flow, then report the actual run command, local URL or executable and remaining configuration.

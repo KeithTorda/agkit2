@@ -3,7 +3,7 @@ doc: 03-architecture
 project: cafe-pos
 version: 1.0.0
 status: approved
-owner: solution-architect
+owner: architect
 updated: 2026-09-27
 ---
 

@@ -3,7 +3,7 @@ doc: REVIEW
 project: <slug>
 version: 0.1.0
 status: draft
-owner: plan-reviewer
+owner: architect
 updated: YYYY-MM-DD
 ---
 

@@ -42,7 +42,7 @@ class UpdateBehaviorTests(unittest.TestCase):
             elif tail and tail[0] == 'rev-parse':
                 output = 'abc123\n' if same else 'def456\n'
             elif tail == ['status', '--porcelain']:
-                output = ' M rules/design-rules.md\n' if dirty else ''
+                output = ' M rules/kit-core.md\n' if dirty else ''
             elif tail == ['branch', '--show-current']:
                 output = branch + '\n'
             elif tail and tail[0] == 'pull' and pull_error:

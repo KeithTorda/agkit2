@@ -3,7 +3,7 @@ doc: 01-goals
 project: <slug>
 version: 0.1.0
 status: draft
-owner: product-manager
+owner: product-planner
 updated: YYYY-MM-DD
 ---
 

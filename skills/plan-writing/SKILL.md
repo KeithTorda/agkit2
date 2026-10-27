@@ -6,7 +6,7 @@ version: 2.8.2
 
 # Plan Writing
 
-Planning depth follows uncertainty and coordination needs. A simple change can be completed directly; a short task list can support bounded work. Use `docs/plans/<descriptive-slug>.md` for a durable record, continuing the existing plan for the same task. Use proplan for a linked system specification when warranted.
+Planning depth follows uncertainty and coordination needs. A simple change can be completed directly; a short task list can support bounded work. Use `docs/plans/<yyyy-mm-dd>-<slug>.md` for a durable record, continuing the existing plan for the same task. Use proplan for a linked system specification when warranted.
 
 ## Make work executable
 
@@ -25,10 +25,10 @@ Customers can see their own previous orders and recover from loading failures.
 - List and detail views; existing pagination contract.
 
 ## Tasks
-- [ ] Add the authenticated history query (owner: backend-specialist)
+- [ ] Add the authenticated history query (owner: backend-engineer)
   - files: src/orders/service.ts
   - verify: current user sees own orders; another user's ID returns no private data.
-- [ ] Build history states (owner: frontend-specialist; after query contract)
+- [ ] Build history states (owner: frontend-engineer; after query contract)
   - verify: populated/empty/error states render; opening an order shows its details.
 
 ## Done when

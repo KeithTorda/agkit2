@@ -3,7 +3,7 @@ doc: 03-architecture
 project: <slug>
 version: 0.1.0
 status: draft
-owner: solution-architect
+owner: architect
 updated: YYYY-MM-DD
 ---
 

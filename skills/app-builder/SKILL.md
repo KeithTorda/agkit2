@@ -1,7 +1,7 @@
 ---
 name: app-builder
 description: "Build new applications and substantial features by inspecting the product need, existing repository, platform and hosting constraints, then implementing a working vertical slice. Use templates selectively; existing applications keep their supported stack."
-version: 2.8.2
+version: 2.8.3
 ---
 
 # Application building
@@ -12,7 +12,7 @@ Turn the user's requested outcome into a working application, with the smallest 
 
 Read repository instructions, tracked and uncommitted work, manifests and lockfiles, scripts, configuration, entrypoints, and the nearest existing feature. Identify the actual platform, users, primary workflow, data, identity boundaries, deployment environment, and integrations. Do not scaffold over existing files or replace a healthy app to match this kit.
 
-For every new visual design, ask one short style-and-reference question and wait before selecting or implementing its look. Already supplied answers or explicit delegation satisfy this; maintenance matching the approved system does not repeat it. Independent code and asset inspection may continue while waiting.
+Visual direction follows the frontend-design note: decide unless genuinely unclear; theming per Rule 01.
 
 Resolve missing facts only when they change a consequential decision. Hosting on shared PHP, native device access, offline transactions, sensitive records, and payment settlement can affect architecture. A generic “modern” or “professional” look does not choose a framework, provider, component package, or paid service.
 
@@ -39,6 +39,6 @@ For UI, use `frontend-design` or `mobile-design`; record a new substantial visua
 
 ## Verify and hand off
 
-Run relevant project checks and exercise the changed user flow. New web UI needs actual rendered inspection; native work needs the available simulator/device workflow. Verify permission and failure paths when the feature depends on them. Fix issues introduced by the change and distinguish environmental or pre-existing failures.
+Deliver the requested application or feature without an automatic audit/checking phase. Project checks, browser/simulator inspection and verification are manual-only under `kit-core`. Correct defects actually observed while implementing; do not turn ordinary completion into a new review task.
 
-Run the local preview when useful and possible; confirm the served project and route before reporting its URL. Report the working outcome, meaningful technical decisions, actual validation, setup still needed, and exact limitations. “Fresh”, “clean”, and a successful build do not mean zero defects or production readiness.
+Run the local preview when requested; confirm the served project and route before reporting its URL. Report the working outcome, meaningful technical decisions, actual validation, setup still needed, and exact limitations. “Fresh”, “clean”, and a successful build do not mean zero defects or production readiness.

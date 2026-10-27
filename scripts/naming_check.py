@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Naming check: searchable, domain-specific names (code-rules "Names"). Advisory.
+"""Naming check: searchable, domain-specific names (kit naming guidance). Advisory.
 
 Checks and severities:
   generic-filename    error    utils / helpers / misc / common / styles / temp as a file name in a

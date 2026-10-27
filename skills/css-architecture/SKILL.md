@@ -37,6 +37,6 @@ Use content-driven constraints, intrinsic sizing, grid/flex, wrapping, and suita
 
 Remove rules made obsolete by the change after searching their callers, including generated templates and script-added classes. Do not delete shared styling because one route does not use it. Keep imports, selectors, keyframes and custom properties consistent.
 
-Run the project's relevant style/build checks and inspect the affected render with `browser-verification`. The optional `KIT/scripts/css_audit.py` and `KIT/scripts/naming_check.py` helpers provide source heuristics; read findings in context before using strict modes. Repeated declarations, inline values, or unresolved runtime variables may be intentional. Static color-pair scans cannot establish contrast over actual media or effects.
+When the user asks for checks, run the project's relevant style/build checks; inspect the render with `browser-verification` only if a rendered check was requested. The optional `KIT/scripts/css_audit.py` and `KIT/scripts/naming_check.py` helpers provide source heuristics; read findings in context before using strict modes. Repeated declarations, inline values, or unresolved runtime variables may be intentional. Static color-pair scans cannot establish contrast over actual media or effects.
 
 Read [plain-css.md](plain-css.md) for plain CSS/SCSS organization. Use `tailwind-patterns` for the installed Tailwind version, `ui-repair` for reproduced layout defects, and `design-spec` when documenting a substantial visual system.

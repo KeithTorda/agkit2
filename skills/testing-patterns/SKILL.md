@@ -40,7 +40,7 @@ Scope table locators to the semantic task region and intended table or `tbody`, 
 
 Investigate failures as uncertain product/test evidence. Preserve the original report and useful traces/screenshots, identify whether the cause belongs to the app, harness, or environment, and repair that layer. For example, confirm expected local-server favicon noise separately from application request failures; correct leaked test state or a wrong table locator in the harness. Rerun all affected conditions with the same corrected checks and explain the correction. Retry may collect diagnostics, but repeated pass-on-retry is not a clean guarantee.
 
-Use [browser-verification](../browser-verification/SKILL.md) for actual-size legibility, responsive layout, and scroll usability. Passing controls and contained overflow do not establish visual quality. Requested paired output comparisons have an optional [comparison workflow](../browser-verification/comparison-testing.md); they are not required for routine changes.
+When requested, use [browser-verification](../browser-verification/SKILL.md) for actual-size legibility, responsive layout, and scroll usability. Passing controls and contained overflow do not establish visual quality. Requested paired output comparisons have an optional [comparison workflow](../browser-verification/comparison-testing.md); they are not required for routine changes.
 
 ## Existing helpers
 

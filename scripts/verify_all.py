@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Release verification (code-rules tier 3): everything checklist.py --full runs, plus a
+"""Release verification (on-request tier 3): everything checklist.py --full runs, plus a
 production build, dependency analysis, bundle size, React performance, mobile, API and GEO
 heuristics, and runtime checks (Lighthouse, Playwright smoke) when --url is given.
 

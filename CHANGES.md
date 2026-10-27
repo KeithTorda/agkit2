@@ -1,3 +1,25 @@
+# 3.0.0 — 2026-10-27
+
+- New rule set: Rule 02 Work Style, Rule 03 Code Standards, Rule 04 System Integration (Option B), Rule 05 Planning and Docs, Rule 06 Security Baseline. Rule 01 unchanged. kit-core rewritten with a rule map and the new agent table.
+- Agents rebuilt from scratch: 20 -> 14 (lead, architect, product-planner, ux-designer, frontend-engineer, backend-engineer, database-engineer, mobile-engineer, qa-engineer, debugger, security-engineer, devops-engineer, docs-writer, explorer). One template with stack notes for React/Next, Laravel, Bootstrap, Tailwind, Expo, VPS.
+- Merged: product-manager + project-planner, solution-architect + plan-reviewer, security-auditor + penetration-tester, explorer-agent + code-archaeologist, frontend-specialist + seo-specialist, debugger + performance-optimizer.
+- Skills, /proplan owners, validator (new agent sections, rule list), tests and installer updated. Plan files now go to docs/plans/<yyyy-mm-dd>-<slug>.md.
+
+# 2.9.0 — 2026-10-27
+
+- Deleted the old rules: core-protocol, code-rules, design-rules, engineering-excellence, request-routing, universal-rules.
+- Added `kit-core` (always on, ~4 KB: kit path, agent/command routing, checks only when asked) and `rule-01-unified-theme-system` (Rule 01 V2.0, loads for UI files). quick-reference regenerated.
+- Removed the `/motionv` skill, its scripts and tests, and the `videos/` folder. UI animation guidance stays for Rule 01.
+- Removed every automatic browser/screenshot step from agents and skills (frontend-specialist, performance-optimizer, css-architecture, tailwind-patterns, ui-repair, fix-ui, lint-and-validate, testing-patterns, verify-changes). Browser checks run only on request.
+- Mandatory style-intake question dropped; agents ask only when the direction is genuinely unclear.
+- Validator, doctor, installer and tests updated to the new rule names; the installer moves the old active rules into the backup folder.
+
+# 2.8.3 — 2026-10-16
+
+- Made post-code audits, tests, builds, scans, browser inspection and verification manual-only instead of automatic completion gates.
+- Aligned central rules, creation/enhancement workflows, frontend guidance, verification skill triggers and installed global entrypoint.
+- Retained explicit /review, /verify, /test and /doctor commands and honest evidence reporting. Project defaults do not override an explicit user preference to skip checking.
+
 # 2.8.2 — 2026-10-16
 
 - Made custom-styled, project-coherent web components the default, covering open surfaces and meaningful interaction states while preserving native semantics and intentional platform behavior.

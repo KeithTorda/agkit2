@@ -10,7 +10,7 @@ Improve the particular work in front of you. Keep the compatible `anti-template`
 
 ## Establish the basis of review
 
-Read the current request, project context, affected files, and available output. Before every new visual design, ask one short question about style and references and wait, unless the user has already answered or explicitly delegated those choices. Maintenance matching an approved design does not reopen intake. Use the intake owned by `design-rules`; another specialist should not ask it again.
+Read the current request, project context, affected files, and available output. Ask about style only when the direction is genuinely unclear; another specialist should not repeat an answered question.
 
 Separate the user's chosen direction, an established product constraint, an observed defect, and your own preference. An approved gradient, glass panel, illustration, dense table, centered hero, minimal page, or expressive animation is available to preserve and improve. Do not replace the style to satisfy a checklist.
 
@@ -47,4 +47,4 @@ Distinguish a blocking defect from an optional refinement. Truthful content, sec
 
 ## Useful handoff
 
-Lead with the concrete finding or finished improvement. Identify affected scope, evidence, corrections, and any unverified part. If no actionable defects were found, say what was examined without implying that all possible behavior was tested. Use `frontend-design`, `mobile-design`, `document-generation`, or `motionv` for their actual output workflow; this review does not add a separate approval stage.
+Lead with the concrete finding or finished improvement. Identify affected scope, evidence, corrections, and any unverified part. If no actionable defects were found, say what was examined without implying that all possible behavior was tested. Use `frontend-design`, `mobile-design`, or `document-generation` for their actual output workflow; this review does not add a separate approval stage.

@@ -3,7 +3,7 @@ doc: 07-security
 project: <slug>
 version: 0.1.0
 status: draft
-owner: security-auditor
+owner: security-engineer
 updated: YYYY-MM-DD
 ---
 
@@ -53,7 +53,7 @@ updated: YYYY-MM-DD
 <!-- Apply controls at real boundaries and evaluate dependency findings for reachability/impact. Generic scanner results are leads, not automatic confirmed exploits. -->
 ## Security testing
 
-<!-- Connect important permission, validation and integrity controls to meaningful tests/review. Follow shared code-rules verification rather than a separate rigid tier recipe. -->
+<!-- Connect important permission, validation and integrity controls to meaningful tests/review. Follow verify-changes when checks are requested rather than a separate rigid tier recipe. -->
 ## Residual risks
 
 <!-- State confirmed remaining exposure, owner and actual acceptance. Do not fabricate approval or silently waive a material boundary failure. -->

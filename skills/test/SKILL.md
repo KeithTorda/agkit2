@@ -6,7 +6,7 @@ version: 2.8.2
 
 # /test
 
-Use `KIT/agents/test-engineer.md` and `KIT/skills/testing-patterns/SKILL.md`. Infer the intended mode from context: run, add tests for a target, inspect coverage or repair failures. Read the project scripts/configuration; do not invent a test runner or install one without a reason.
+Use `KIT/agents/qa-engineer.md` and `KIT/skills/testing-patterns/SKILL.md`. Infer the intended mode from context: run, add tests for a target, inspect coverage or repair failures. Read the project scripts/configuration; do not invent a test runner or install one without a reason.
 
 For a run, choose the requested scope or the project's established suite and capture actual results. For new tests, identify valuable public behavior and likely regressions, then use the project's conventions and suitable test level. Cover important boundaries and denial/failure cases; avoid assertions that only mirror private implementation or static trivia.
 

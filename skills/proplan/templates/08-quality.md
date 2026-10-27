@@ -3,7 +3,7 @@ doc: 08-quality
 project: <slug>
 version: 0.1.0
 status: draft
-owner: test-engineer
+owner: qa-engineer
 updated: YYYY-MM-DD
 ---
 
@@ -21,9 +21,9 @@ updated: YYYY-MM-DD
 | Level | Scope | Tool | Runs | Owner |
 |---|---|---|---|---|
 | Unit | pure logic: totals, rules, validators |  | every push | the building agent |
-| Integration / feature | endpoints with database, auth, jobs | | every push | backend-specialist |
-| End-to-end | the key flows in a real browser |  | every push to main, before release | test-engineer |
-| Manual / UAT | real users on real devices | checklist | per milestone | client + test-engineer |
+| Integration / feature | endpoints with database, auth, jobs | | every push | backend-engineer |
+| End-to-end | the key flows in a real browser |  | every push to main, before release | qa-engineer |
+| Manual / UAT | real users on real devices | checklist | per milestone | client + qa-engineer |
 
 ## Test environments and data
 
@@ -56,7 +56,7 @@ updated: YYYY-MM-DD
 <!-- Use criteria appropriate to the milestone and product consequence. Separate a real blocker from accepted nonblocking polish. -->
 ## Definition of done
 
-<!-- Use the task verify criterion and shared code-rules/verify-changes policy. Run relevant behavior evidence and required project checks; report incomplete/skipped checks honestly. Do not create tests for every reversible prose/style edit. -->
+<!-- Use the task verify criterion and verify-changes policy. Run relevant behavior evidence and required project checks; report incomplete/skipped checks honestly. Do not create tests for every reversible prose/style edit. -->
 ## Defect severity
 
 <!-- Classify by actual consequence and affected users. Cosmetic defects can still matter when they obscure content or prevent the primary task. -->

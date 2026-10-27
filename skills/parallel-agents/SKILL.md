@@ -14,7 +14,7 @@ Use tools available in the current environment and their documented schemas. Age
 
 ## Bound ownership and dependencies
 
-Establish shared schema/API/auth/design decisions before dependent writers start. Use `KIT/agents/orchestrator.md` for default domain responsibility, then assign concrete paths for each wave. Prevent simultaneous writes to a shared file, migration sequence or generated artifact. Isolated workspaces help experiments and overlapping changes when supported; disjoint shared-tree writes can be appropriate when the contracts are stable.
+Establish shared schema/API/auth/design decisions before dependent writers start. Use the agent table in `kit-core` for default domain responsibility, then assign concrete paths for each wave. Prevent simultaneous writes to a shared file, migration sequence or generated artifact. Isolated workspaces help experiments and overlapping changes when supported; disjoint shared-tree writes can be appropriate when the contracts are stable.
 
 Sequence actual dependencies. Independent source research or reviews can run while implementation proceeds. Final integration and shared configuration have one accountable owner.
 
@@ -35,4 +35,4 @@ For an independent review supply the requirement and artifacts without the autho
 
 ## Synthesize
 
-Read each result, inspect material edits and challenge unsupported conclusions. Redirect a worker on ownership conflict, missing authorization or repeated actions without new evidence. Integrate and verify the combined state using code-rules and verify-changes. Report actual workers/results and any limits; the coordinator remains responsible for completion.
+Read each result, inspect material edits and challenge unsupported conclusions. Redirect a worker on ownership conflict, missing authorization or repeated actions without new evidence. Integrate the combined state; verify it with verify-changes when the user asks. Report actual workers/results and any limits; the coordinator remains responsible for completion.

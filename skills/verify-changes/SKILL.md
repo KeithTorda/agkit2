@@ -1,12 +1,14 @@
 ---
 name: verify-changes
-description: "Match completion claims to meaningful execution evidence proportional to the changed behavior and consequence. Use before saying work functions or a bug is fixed, and for /verify."
-version: 2.8.2
+description: "Match completion claims to meaningful execution evidence proportional to the changed behavior and consequence. Use only for an explicit verification request or /verify; never auto-run after implementation."
+version: 2.8.3
 ---
 
 # Verify Changes
 
-Evidence must support the actual claim. A successful build proves buildability; it does not prove a payment is correct, permissions hold or a page looks right. Use code-rules for shared policy and project requirements rather than duplicating a separate gate here.
+Activation: manual-only under `kit-core`. Everything below applies after an explicit request for verification; an implementation request alone does not activate this skill.
+
+Evidence must support the actual claim. A successful build proves buildability; it does not prove a payment is correct, permissions hold or a page looks right. Use kit-core for shared policy and project requirements rather than duplicating a separate gate here.
 
 ## Choose evidence that matters
 
@@ -39,6 +41,6 @@ Fix introduced defects within scope and rerun affected checks. Investigate corre
 
 ## Render and report
 
-For visible work use browser-verification: reuse/start the appropriate server, render relevant widths/states, inspect against the accepted brief and exercise changed interactions. Refine observed defects and inspect again. An unavailable runtime/browser limits the visual claim; diagnose the precondition and state it explicitly.
+For visible work, when the user asked for a rendered check, use browser-verification: reuse/start the appropriate server, render relevant widths/states, inspect against the accepted brief and exercise changed interactions. Refine observed defects and inspect again. An unavailable runtime/browser limits the visual claim; diagnose the precondition and state it explicitly.
 
 Report what changed, what actually ran/was observed, its result and material limits. Never invent counts, screenshots, requests or interactions; never promise zero future errors.

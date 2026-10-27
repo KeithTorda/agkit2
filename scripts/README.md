@@ -1,6 +1,6 @@
 # AG Kit scripts
 
-Python 3.10+, standard library only (`doc_verify.py` uses optional PDF libraries). Every script resolves the kit from its own location, takes `--help`, and runs on Windows (PowerShell) and POSIX. `KIT` is the kit root defined in `core-protocol`; quote it in commands:
+Python 3.10+, standard library only (`doc_verify.py` uses optional PDF libraries). Every script resolves the kit from its own location, takes `--help`, and runs on Windows (PowerShell) and POSIX. `KIT` is the kit root defined in `kit-core`; quote it in commands:
 
 ```powershell
 python "KIT/scripts/checklist.py" .

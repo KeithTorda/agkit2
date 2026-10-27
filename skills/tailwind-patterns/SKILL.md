@@ -55,4 +55,4 @@ For a conflict, inspect the cascade, layers, specificity, imports and computed v
 
 For an authorized version migration, check browser support, plugins, theme/config compatibility, reset/default changes, class/variant changes and build integration. Use the official migration tooling appropriate to the actual versions, review its changes, and preserve a recoverable baseline. Do not copy upgrade commands blindly from this skill.
 
-Run relevant build checks and inspect the affected browser output, including responsive and state differences. Compilation proves class generation, not visual quality. Report the installed version, meaningful configuration changes and actual validation when they matter to the handoff.
+When the user asks for checks, run relevant build checks and, if requested, inspect the browser output. Compilation proves class generation, not visual quality. Report the installed version, meaningful configuration changes and actual validation when they matter to the handoff.

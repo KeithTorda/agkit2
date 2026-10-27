@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Risk-aware project checks (code-rules verification tiers).
+"""Risk-aware project checks (on-request verification tiers).
 
   --quick (default, tier 1)  Detect the stack and run the project's own fast checks - lint,
                              type check, tests - scoped to git-changed files where the tool

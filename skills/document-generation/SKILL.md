@@ -12,7 +12,7 @@ Treat a document as a usable deliverable. Identify who reads or edits it, the re
 
 Honor an explicit format: “Excel” may mean an actual `.xlsx` workbook, and a request for editable Word should produce `.docx`. Do not silently substitute CSV for a workbook or a PDF image for editable text. If the request is open, use PDF for stable reading/printing, DOCX for editable prose, XLSX for structured worksheets/formulas, and CSV for a simple interoperable data table.
 
-For every new visual document design, ask one short style-and-reference question and wait unless already answered or delegated. A supplied template can answer the reference part; ask only for a remaining material style choice. Maintenance within an approved template follows it without repeat intake. Do not recreate an authority's form from memory.
+A supplied template or brand decides the look. If none exists and the style is genuinely unclear, ask one short question; otherwise choose and state it. Do not recreate an authority's form from memory.
 
 | Output | Read |
 |---|---|

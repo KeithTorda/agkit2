@@ -8,7 +8,7 @@ First inspect the brief, accepted choices and relevant current files. Then name 
 
 Ask now for product commitments, missing permission/data boundaries, incompatible constraints or expensive-to-reverse choices. Defer details until the affected work is near. Do not ask the user to select a database, library or storage vendor merely because several exist; explain the consequential requirement instead.
 
-New visual designs have a specific user preference: ask one conversational question about style and references and wait unless that answer or explicit delegation already exists. Example: “Anong style ang gusto mo, at may site o screenshot kang reference? Puwede rin akong pumili kung gusto mo.” Do not repeat this intake for each screen, worker or repair within the approved direction.
+If the visual direction is genuinely unclear and no brief, brand or reference was given, ask one short style question; otherwise choose a direction, state it, and continue. Theme structure follows `rule-01-unified-theme-system`. Do not repeat it for each screen, worker or repair.
 
 ## Useful question shape
 

@@ -14,7 +14,7 @@ Inspect existing work before scaffolding. For a new foundation, use current offi
 
 - Define file locations, persistence, window state, update/signing/distribution and offline needs from the actual product. A website preview does not establish packaged behavior.
 
-For new visual design, complete the shared short style/reference intake and wait unless already answered or delegated. Reuse accepted tokens and design components; this template does not select an aesthetic or install a styling package. API/CLI-only work needs no visual questionnaire.
+New visual design follows `rule-01-unified-theme-system`; ask about style only if genuinely unclear. Reuse accepted tokens and design components; this template does not select an aesthetic or install a styling package. API/CLI-only work needs no visual questionnaire.
 
 ## Verify and hand off
 

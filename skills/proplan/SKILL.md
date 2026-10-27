@@ -20,23 +20,23 @@ Write to `docs/proplan/<slug>/` at the project root. Preserve these filenames an
 
 | File | Owner | Purpose |
 |---|---|---|
-| 00-overview.md | coordinator | Summary, set/version, decisions, assumptions, index and changes |
-| 01-goals.md | product-manager | G- business goals, DG- development goals, KPI- measures |
-| 02-requirements.md | product-manager | R- requirements/acceptance, NFR- quality needs, scope |
-| 03-architecture.md | solution-architect | Boundaries, quality drivers, integrations, rationale |
-| 04-data-model.md | database-architect | Entities, constraints, queries and lifecycle |
-| 05-api.md | backend-specialist | API- contracts, authorization, failure and retry behavior |
-| 06-ux.md | ux-architect | S- screens/states, journeys and accepted design direction |
-| 07-security.md | security-auditor | TH- threats, permissions, data handling and controls |
-| 08-quality.md | test-engineer | TC- acceptance coverage and verification approach |
+| 00-overview.md | lead | Summary, set/version, decisions, assumptions, index and changes |
+| 01-goals.md | product-planner | G- business goals, DG- development goals, KPI- measures |
+| 02-requirements.md | product-planner | R- requirements/acceptance, NFR- quality needs, scope |
+| 03-architecture.md | architect | Boundaries, quality drivers, integrations per `rule-04-system-integration` (table ownership, outbox, webhooks, reconciliation), rationale |
+| 04-data-model.md | database-engineer | Entities, constraints, queries and lifecycle |
+| 05-api.md | backend-engineer | API- contracts, authorization, failure and retry behavior |
+| 06-ux.md | ux-designer | S- screens/states, journeys and accepted design direction |
+| 07-security.md | security-engineer | TH- threats, permissions, data handling and controls |
+| 08-quality.md | qa-engineer | TC- acceptance coverage and verification approach |
 | 09-operations.md | devops-engineer | Release, configuration, recovery and observability |
-| 10-roadmap.md | project-planner | M milestones and T- tasks with ownership/dependencies/verify |
-| 11-risks.md | project-planner | RK- risks, triggers, mitigations and owners |
-| 12-documentation.md | documentation-writer | DOC- deliverables needed by actual readers |
-| 13-glossary.md | coordinator | Consistent product vocabulary |
-| adr/ADR-001-<decision>.md | solution-architect | Durable architecture decision and consequences |
+| 10-roadmap.md | product-planner | M milestones and T- tasks with ownership/dependencies/verify |
+| 11-risks.md | product-planner | RK- risks, triggers, mitigations and owners |
+| 12-documentation.md | docs-writer | DOC- deliverables needed by actual readers |
+| 13-glossary.md | lead | Consistent product vocabulary |
+| adr/ADR-001-<decision>.md | architect | Durable architecture decision and consequences |
 | TRACEABILITY.md | generated | Goal/requirement/contract/task/test coverage |
-| REVIEW.md | plan-reviewer | RV- findings and their resolution |
+| REVIEW.md | architect | RV- findings and their resolution |
 
 Full mode uses the complete set. Lite mode uses 00, 01, 02, 03, 10 and TRACEABILITY; 03 includes **Data model summary** and **API summary**, with API IDs defined in its table, and 10 holds a short RK- risks table. An ADR and review artifact can still be useful in lite mode. Do not invent endpoints or screens for a system that does not have them; state why a domain is inapplicable in its full-set document.
 
@@ -44,9 +44,9 @@ Read [reference.md](./reference.md) for exact IDs, definitions and checker behav
 
 ## Establish the brief
 
-Read the request, relevant repository/docs and accepted decisions. Identify greenfield versus brownfield, audience, core outcomes and material constraints. In brownfield work map the actual system before proposing replacements; explorer-agent can return a map for `notes/codebase-map.md`.
+Read the request, relevant repository/docs and accepted decisions. Identify greenfield versus brownfield, audience, core outcomes and material constraints. In brownfield work map the actual system before proposing replacements; explorer can return a map for `notes/codebase-map.md`.
 
-Ask only for missing decisions that change the promised outcome or a consequential commitment. Before a new visual design ask one conversational style/reference question and wait unless answered or explicitly delegated. Carry the accepted answer into 06 and all worker briefs; do not repeat it per role. An unresolved visual choice need not block independent nonvisual discovery.
+Ask only for missing decisions that change the promised outcome or a consequential commitment. If the visual direction is genuinely unclear and no references were given, ask one short style question and continue the nonvisual documents meanwhile; otherwise choose a direction and state it in 06. Carry the accepted answer into 06 and all worker briefs; do not repeat it per role. An unresolved visual choice need not block independent nonvisual discovery.
 
 State the selected set and material assumptions, then create only its needed files from templates. Use a concise shared brief carrying goals, constraints, evidence, accepted decisions and open dependencies; no questionnaire, line count or persona/goal quota is required.
 
@@ -58,7 +58,7 @@ State the selected set and material assumptions, then create only its needed fil
 4. Plan usable milestones and tasks from the completed contracts. Include real migration, recovery, docs and verification work, estimates with uncertainty when useful, and contingency tied to risks. Preserve stable IDs and checkable criteria.
 5. Reconcile the whole set, then review it for realistic failure scenarios. Fix material contradictions and keep unresolved decisions visible. An independent reviewer is useful when available; sequential review is valid and must not be described as independent.
 
-Read [briefs.md](./briefs.md) for domain inputs and safe delegation/fallback. Shared ownership has one writer per file; the coordinator reconciles small inconsistencies and records material changes. Avoid blanket phase concurrency when one document consumes another's unfinished contract.
+Read [briefs.md](./briefs.md) for domain inputs and safe delegation/fallback. Shared ownership has one writer per file; the lead reconciles small inconsistencies and records material changes. Avoid blanket phase concurrency when one document consumes another's unfinished contract.
 
 ## Validate structure and judgment
 

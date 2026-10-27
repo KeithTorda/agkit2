@@ -1,10 +1,12 @@
 ---
 name: browser-verification
-description: "Inspect actual rendered web output and affected interactions after a new screen, redesign, or repair. Check meaningful widths, content states, accessibility, console and network behavior; evidence helpers validate records rather than replace browser inspection."
-version: 2.8.2
+description: "Inspect rendered web output only when browser/visual verification is explicitly requested; do not activate automatically after coding. Check meaningful widths, content states, accessibility, console and network behavior; evidence helpers validate records rather than replace browser inspection."
+version: 2.8.3
 ---
 
 # Rendered web verification
+
+Activation: manual-only under `kit-core` - run only when the user asks (/see, /verify, an explicit request). The procedures below apply to requested browser verification, not ordinary delivery of UI code.
 
 Verify what a person sees and can do. Source review, a running server, a successful build, a screenshot, and a working transaction are different kinds of evidence. Choose checks from the consequence of the change, including a small CSS edit with a wide effect.
 

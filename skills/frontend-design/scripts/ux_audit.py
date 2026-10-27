@@ -470,7 +470,7 @@ class UXAuditor:
             words = HYPE_WORDS.findall(node.group(1))
             if words:
                 self.add("info", file, find_line(node.start()), "copy-hype",
-                         f"Hype word in UI copy ('{words[0]}'); say what the product does (design-rules: honest copy)")
+                         f"Hype word in UI copy ('{words[0]}'); say what the product does (honest copy)")
 
         # Forms.
         for form in re.finditer(r"<form\b.*?</form\s*>", text, re.S | re.I):

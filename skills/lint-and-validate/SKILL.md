@@ -26,7 +26,7 @@ For a type change, inspect affected consumers: a local assertion can hide an inc
 
 Capture command, scope and result. Separate passed, failed, timed out, unavailable and skipped. A zero-exit wrapper may mean no tool ran; inspect its summary. Rerun the relevant check after a repair. Broaden for shared contracts or unresolved evidence, not a fixed all-tools ritual.
 
-Use behavioral tests for logic and browser verification for affected rendering/interactions. Static checks cannot validate either alone.
+Use behavioral tests for logic; browser verification for rendering runs only when the user asks. Static checks cannot validate either alone.
 
 ## Existing helpers
 

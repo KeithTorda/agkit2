@@ -27,4 +27,4 @@ Extend an existing foundation when it can support the request. A Laravel project
 
 These are examples already available in the kit, not an exhaustive platform list. Native Swift/Kotlin, PHP frameworks, other supported stacks, or no framework may fit better. Use current official setup guidance for the selected foundation.
 
-For a new visual design complete the shared style/reference intake and wait. Ask about a missing platform or offline model only when it changes a consequential choice; inspect/infer what is already established. Do not require a question count or treat silence as acceptance.
+For a new visual design, decide the direction unless genuinely unclear. Ask about a missing platform or offline model only when it changes a consequential choice; inspect/infer what is already established. Do not require a question count or treat silence as acceptance.

@@ -94,29 +94,29 @@ def run_main(func, argv: list[str]) -> tuple[int, str]:
 AGENT_BODY = """
 # Demo Agent
 
-## Role
+## Mission
 Owns demo files.
 
-## How you work
+## Owns / Does not own
+Demo only.
+
+## Before starting
 **Read now:** `KIT/skills/demo-skill/SKILL.md`
 
-## Build
+## How to work
 Build it.
 
-## Repair
+## Stack notes
+Optional notes.
+
+## Quality bar
 Fix it.
 
-## Decide
-Choose.
-
-## Never
+## Common mistakes to avoid
 Leak secrets.
 
-## As a subagent
-Return files and findings in under 200 words.
-
-## Done
-Per `code-rules` tier.
+## Handoff format
+Per kit-core.
 """
 
 
@@ -144,12 +144,12 @@ def build_fixture_kit(root: Path) -> Path:
     write(root / "plugin.json", '{"name": "ag-kit-v2"}')
     write(root / "VERSION", "2026.9.27\n")
     write(root / "install.ps1", f'$Default = "{USER_PATH}"\n')
-    write(root / "rules" / "core-protocol.md", rule_file("core-protocol", body=f"`KIT` = `{USER_PATH}/.gemini/config/plugins/ag-kit-v2`.\n"))
-    write(root / "rules" / "request-routing.md", rule_file("request-routing", body=(
+    write(root / "rules" / "kit-core.md", rule_file("kit-core", body=(
+        f"`KIT` = `{USER_PATH}/.gemini/config/plugins/ag-kit-v2`.\n\n"
         "## Commands\n| Command | Use |\n|---|---|\n| `/demo <x>` | Demo command |\n\n"
         "## Agents\n| Agent | Takes |\n|---|---|\n| `demo-agent` | demo work |\n")))
     write(root / "rules" / "quick-reference.md", rule_file("quick-reference", trigger="model_decision"))
-    write(root / "rules" / "design-rules.md", rule_file("design-rules", trigger="glob", extra='globs: "**/*.css"\n'))
+    write(root / "rules" / "rule-01-unified-theme-system.md", rule_file("rule-01-unified-theme-system", trigger="glob", extra='globs: "**/*.css"\n'))
     write(root / "agents" / "demo-agent.md", agent_file())
     write(root / "skills" / "demo-skill" / "SKILL.md",
           "---\nname: demo-skill\ndescription: Demo reference skill used by the test suite fixture kit only.\nversion: 2.5.0\n---\n\n"
@@ -199,24 +199,24 @@ class ValidateKitFixtureTests(unittest.TestCase):
         self.assertIn("agent.kit_skills", codes(self.validate()), "kit-skills must be a list")
 
     def test_agent_sections_required_and_ordered(self):
-        write(self.root / "agents" / "demo-agent.md", agent_file(body=AGENT_BODY.replace("## As a subagent", "## Handoff")))
+        write(self.root / "agents" / "demo-agent.md", agent_file(body=AGENT_BODY.replace("## Handoff format", "## Report")))
         self.assertIn("agent.section_missing", codes(self.validate()))
-        swapped = AGENT_BODY.replace("## Build\nBuild it.", "## TMP").replace("## Repair\nFix it.", "## Build\nBuild it.")
-        swapped = swapped.replace("## TMP", "## Repair\nFix it.")
+        swapped = AGENT_BODY.replace("## How to work\nBuild it.", "## TMP").replace("## Quality bar\nFix it.", "## How to work\nBuild it.")
+        swapped = swapped.replace("## TMP", "## Quality bar\nFix it.")
         write(self.root / "agents" / "demo-agent.md", agent_file(body=swapped))
         self.assertIn("agent.section_order", codes(self.validate()))
 
     def test_rules_hex_trigger_and_budget(self):
-        write(self.root / "rules" / "code-rules.md", rule_file("code-rules", body="Use #1a2b3c for text.\n"))
+        write(self.root / "rules" / "extra-rule.md", rule_file("extra-rule", body="Use #1a2b3c for text.\n"))
         self.assertIn("rule.hex_colour", codes(self.validate()))
-        write(self.root / "rules" / "code-rules.md", rule_file("code-rules", trigger="always"))
+        write(self.root / "rules" / "extra-rule.md", rule_file("extra-rule", trigger="always"))
         self.assertIn("rule.trigger", codes(self.validate()))
-        write(self.root / "rules" / "code-rules.md", rule_file("code-rules", body="word " * 3100))
+        write(self.root / "rules" / "extra-rule.md", rule_file("extra-rule", body="word " * 3100))
         self.assertIn("rules.always_on_budget", codes(self.validate()))
 
     def test_budget_ignores_model_decision_and_glob_rules(self):
         write(self.root / "rules" / "quick-reference.md", rule_file("quick-reference", trigger="model_decision", body="x" * 20000))
-        write(self.root / "rules" / "design-rules.md", rule_file("design-rules", trigger="glob", extra='globs: "**/*.css"\n', body="y" * 20000))
+        write(self.root / "rules" / "rule-01-unified-theme-system.md", rule_file("rule-01-unified-theme-system", trigger="glob", extra='globs: "**/*.css"\n', body="y" * 20000))
         self.assertNotIn("rules.always_on_budget", codes(self.validate()))
 
     def test_quick_reference_must_be_model_decision(self):
@@ -224,7 +224,7 @@ class ValidateKitFixtureTests(unittest.TestCase):
         self.assertIn("rule.quick_reference_trigger", codes(self.validate()))
 
     def test_routed_command_and_agent_must_exist(self):
-        routing = self.root / "rules" / "request-routing.md"
+        routing = self.root / "rules" / "kit-core.md"
         routing.write_text(routing.read_text("utf-8").replace("`/demo <x>`", "`/demo <x>` `/ghost`")
                            .replace("| `demo-agent` | demo work |", "| `demo-agent` | demo work |\n| `ghost-agent` | x |"), "utf-8")
         found = codes(self.validate())
@@ -881,61 +881,6 @@ class ProplanCheckTests(unittest.TestCase):
         self.assertIn("stage: design", out)
         code, _ = run_main(proplan_check.main, [str(self.plan)])
         self.assertEqual(1, code)
-
-
-MOTIONV = TOOLKIT / "skills" / "motionv" / "scripts"
-
-
-@unittest.skipUnless(shutil.which("ffmpeg") and shutil.which("ffprobe"), "ffmpeg not installed")
-class MotionvTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.tmp = Path(tempfile.mkdtemp(prefix="motionv-test-"))
-        cls.video = cls.tmp / "clip.mp4"
-        subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "testsrc2=size=1080x1920:rate=30:duration=3",
-                        "-f", "lavfi", "-i", "sine=frequency=440:duration=3", "-shortest",
-                        "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", str(cls.video)], check=True)
-
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree(cls.tmp, ignore_errors=True)
-
-    def run_verify(self, *args):
-        return subprocess.run([sys.executable, str(MOTIONV / "motionv_verify.py"), str(self.video), *args, "--json"],
-                              capture_output=True, text=True)
-
-    def test_matching_preset_passes_and_writes_contact_sheet(self):
-        r = self.run_verify("--preset", "reels", "--duration", "3", "--audio", "required", "--frames", "4")
-        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
-        data = json.loads(r.stdout)
-        self.assertTrue(data["ok"])
-        self.assertTrue(Path(data["facts"]["contact_sheet"]).is_file())
-        self.assertEqual(len(data["facts"]["frames"]), 4)
-
-    def test_wrong_preset_fails(self):
-        r = self.run_verify("--preset", "youtube", "--no-scan")
-        self.assertEqual(r.returncode, 1)
-        names = {c["name"] for c in json.loads(r.stdout)["checks"] if not c["ok"]}
-        self.assertIn("resolution", names)
-
-    def test_missing_file_is_usage_error(self):
-        r = subprocess.run([sys.executable, str(MOTIONV / "motionv_verify.py"), str(self.tmp / "nope.mp4")],
-                           capture_output=True, text=True)
-        self.assertEqual(r.returncode, 2)
-
-
-class MotionvDoctorTests(unittest.TestCase):
-    def test_help_and_skill_detection(self):
-        doctor = load_module("agkit_motionv_doctor", MOTIONV / "motionv_doctor.py")
-        with tempfile.TemporaryDirectory() as d:
-            root = Path(d)
-            self.assertFalse(doctor.skill_installed(root, doctor.HYPERFRAMES_MARKER))
-            (root / "hyperframes").mkdir()
-            (root / "hyperframes" / "SKILL.md").write_text("---\nname: hyperframes\n---\n", encoding="utf-8")
-            self.assertTrue(doctor.skill_installed(root, doctor.HYPERFRAMES_MARKER))
-        r = subprocess.run([sys.executable, str(MOTIONV / "motionv_doctor.py"), "--help"], capture_output=True, text=True)
-        self.assertEqual(r.returncode, 0)
-        self.assertIn("--install", r.stdout)
 
 
 if __name__ == "__main__":

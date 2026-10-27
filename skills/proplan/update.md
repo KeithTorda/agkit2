@@ -12,7 +12,7 @@ For a material change, explain the impact concisely: what behavior changes, affe
 
 Keep existing IDs and allocate the next unused ID for new items. Removed requirements can remain `Priority: Won't` with the removal reason/version. Preserve completed tasks and their evidence; append replacement work instead of rewriting completion history. Use a superseding ADR for a materially changed accepted architecture decision and cross-link the two.
 
-Update contracts in dependency order and assign disjoint paths when delegating. A changed visual direction follows design-rules; an already answered or delegated direction is not asked again. Routine updates within that system do not trigger new intake.
+Update contracts in dependency order and assign disjoint paths when delegating. A changed visual direction keeps theme structure under rule-01-unified-theme-system; routine updates within that system need no new intake.
 
 Use the plan's version convention consistently: major for incompatible architecture/Must-scope changes, minor for compatible requirements/tasks/estimates, patch for clarifications. Update changed document metadata and 00's changelog with affected IDs and rationale; project plan versions are distinct from the kit version.
 

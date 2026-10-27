@@ -1,6 +1,6 @@
 # Structure a mobile screen around its job
 
-Complete the shared style/reference intake before a new visual design and wait unless already answered or delegated. For an existing-screen repair, keep the approved direction. Read the actual content, platform and user task; do not select tabs, a floating button, global state or a particular list package by habit.
+Ask about style only if the direction for a new design is genuinely unclear. For an existing-screen repair, keep the approved direction. Read the actual content, platform and user task; do not select tabs, a floating button, global state or a particular list package by habit.
 
 ## Screen read
 

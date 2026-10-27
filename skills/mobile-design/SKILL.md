@@ -10,7 +10,7 @@ Build for real devices, interrupted sessions, touch input, accessibility setting
 
 ## Establish the brief and environment
 
-Before every new visual design, ask one short style-and-reference question and wait unless the user already answered or explicitly delegated. Maintenance matching the approved system does not repeat this intake. Inspect existing screens, navigation, tokens, manifests, build configuration and device targets while waiting.
+Decide the visual direction unless it is genuinely unclear; theming per Rule 01 adapted to native. Inspect existing screens, navigation, tokens, manifests, build configuration and device targets first.
 
 Identify iOS/Android scope, device classes, existing framework, minimum/deployment targets, needed native capabilities, distribution path and offline expectations. Resolve consequential gaps; use current platform documentation when an SDK/API decision depends on a moving target. Do not call an old kit version “current”.
 

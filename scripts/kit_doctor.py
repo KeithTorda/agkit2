@@ -41,7 +41,12 @@ def managed_files(root: Path) -> dict[str, Path]:
     return found
 
 
+V28_RULES = ('core-protocol', 'code-rules', 'design-rules', 'engineering-excellence', 'request-routing', 'universal-rules')
+
+
 def is_legacy_kit_rule(text: str) -> bool:
+    if re.search(r'^name:\s*(' + '|'.join(V28_RULES) + r')\s*$', text, re.M) and re.search(r'^version:\s*2\.', text, re.M):
+        return True
     signature = re.search(r'\bAG\s?Kit\b|plugins[/\\]+agkit3|no automatic gates|Ten code rules that apply|Which agent handles which request', text, re.I)
     return bool(signature and re.search(r'^version:\s*3\.', text, re.M)
                 and re.search(r'^name:\s*(core|code|routing|design|anti-ai)\s*$', text, re.M))
@@ -97,7 +102,7 @@ def diagnose(source: Path, config: Path) -> dict[str, Any]:
     else:
         add('info', 'source.unavailable', 'Only the installed kit is available; independent source synchronization was not checked.')
 
-    core_source = source / 'rules' / 'core-protocol.md'
+    core_source = source / 'rules' / 'kit-core.md'
     template_root = None
     if core_source.is_file():
         match = re.search(r'`KIT`\s*=\s*`([^`]+)`', read_text(core_source))
@@ -110,7 +115,7 @@ def diagnose(source: Path, config: Path) -> dict[str, Any]:
         source_rule = source / 'rules' / f'{name}.md'
         if source_has_rules and source_rule.is_file():
             expected = read_text(source_rule)
-            if name == 'core-protocol' and template_root:
+            if name == 'kit-core' and template_root:
                 expected = expected.replace(template_root, installed.as_posix())
             if expected.replace('\r\n', '\n') != read_text(active).replace('\r\n', '\n'):
                 add('warning', 'rules.drift', f'Active {name}.md differs from source.')

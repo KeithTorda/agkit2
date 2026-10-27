@@ -10,7 +10,7 @@ Preserve the approved design and working flow. A repair is not a new aesthetic i
 
 ## Reproduce and locate
 
-Confirm the route, width, state, browser and content that trigger the defect. Inspect the actual app with available tools and save a before capture when useful. If only source or a supplied screenshot is available, state that limit and treat the diagnosis as provisional. Do not ask for facts that the project or available render can establish.
+Confirm the route, width, state, browser and content that trigger the defect. Inspect the actual app only when the user asks for a rendered check; otherwise diagnose from source and any screenshot provided. If only source or a supplied screenshot is available, state that limit and treat the diagnosis as provisional. Do not ask for facts that the project or available render can establish.
 
 Find the rendered element, owning component and relevant ancestors. Read computed display, position, sizing, min/max constraints, overflow, flex/grid behavior, containing blocks, transforms and stacking contexts. Inspect the actual winning CSS rule and relevant JavaScript state rather than assuming class names equal computed behavior.
 
@@ -42,4 +42,4 @@ Use [components.md](components.md) for shells, navigation, dialogs, popovers, ta
 
 Recheck the reproduced route/state at the broken size and nearby affected layouts. Exercise relevant focus, scroll, input, dismissal or the component's primary action. When a shared shell changes, inspect representative consumers. Use meaningful regression tests for behavioral defects when the project supports them; a reversible spacing correction does not need a test that repeats CSS values.
 
-Follow `browser-verification` for actual render evidence. Explain the cause, correction, checked conditions and concrete limits. Do not describe source reasoning as a seen result or claim all routes are verified from one screenshot.
+Use `browser-verification` for render evidence only when the user asks. Explain the cause, correction, checked conditions and concrete limits. Do not describe source reasoning as a seen result or claim all routes are verified from one screenshot.

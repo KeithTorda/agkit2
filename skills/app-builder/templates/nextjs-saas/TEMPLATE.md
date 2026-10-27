@@ -14,7 +14,7 @@ Inspect existing work before scaffolding. For a new foundation, use current offi
 
 - Represent trials, cancellation, failed payment and entitlement transitions according to the business decision. Keep test-mode data/keys distinct and label demo states.
 
-For new visual design, complete the shared short style/reference intake and wait unless already answered or delegated. Reuse accepted tokens and design components; this template does not select an aesthetic or install a styling package. API/CLI-only work needs no visual questionnaire.
+New visual design follows `rule-01-unified-theme-system`; ask about style only if genuinely unclear. Reuse accepted tokens and design components; this template does not select an aesthetic or install a styling package. API/CLI-only work needs no visual questionnaire.
 
 ## Verify and hand off
 

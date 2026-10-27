@@ -44,7 +44,7 @@ def one_line(text: str, limit: int) -> str:
 
 
 def routed_commands(kit: Path) -> list[str]:
-    routing = kit / "rules" / "request-routing.md"
+    routing = kit / "rules" / "kit-core.md"
     if not routing.is_file():
         return []
     text = section(routing.read_text("utf-8", errors="replace"), "## Commands")
@@ -94,7 +94,7 @@ def build(kit: Path = KIT) -> str:
         "",
         "# Quick Reference (generated)",
         "",
-        "`KIT` is the kit root defined in `core-protocol`. Agents: `KIT/agents/<name>.md` (also native subagents). "
+        "`KIT` is the kit root defined in `kit-core`. Agents: `KIT/agents/<name>.md` (also native subagents). "
         "Skills: `KIT/skills/<name>/SKILL.md`. Commands: `/<name>` = `KIT/skills/<name>/SKILL.md`. "
         "Scripts: `python \"KIT/<path>\" <project>`.",
         "",
@@ -111,7 +111,7 @@ def build(kit: Path = KIT) -> str:
     lines += [f"- `KIT/{s}`" for s in scripts]
     lines += [
         "",
-        "Checks follow the `code-rules` tiers: `checklist.py . --quick` (tier 1), `checklist.py . --full` (tier 2), "
+        "Checks run only when requested (kit-core): `checklist.py . --quick` (tier 1), `checklist.py . --full` (tier 2), "
         "`verify_all.py .` (tier 3). Required (checklist.py fails the run): security high+, type errors, "
         "failing tests. Lint style, naming, CSS audit and UX/SEO/i18n heuristics are advisory. "
         "checklist.py runs its own lint, type and test steps; `lint_runner.py`, `type_coverage.py` and "

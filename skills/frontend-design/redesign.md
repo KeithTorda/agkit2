@@ -3,7 +3,7 @@
 Read before intentional visual redesign; small maintenance fixes follow the current approved design. Apply [SKILL.md](./SKILL.md) intake before choosing a new direction.
 
 ## 8.A Establish the scope
-Ask the short style/reference question and wait unless those preferences are already explicit in the current brief or the user delegated the choice. When relevant, offer the current brand as a proposed default and clarify preserve/evolve versus visual overhaul in the same conversation. Do not ask again merely because a design document already exists.
+Ask one short style question only if the redesign direction is genuinely unclear; otherwise propose and state the direction. When relevant, offer the current brand as a proposed default and clarify preserve/evolve versus visual overhaul in the same conversation. Do not ask again merely because a design document already exists.
 
 A request for polish does not automatically authorize a new identity, animation system, page architecture, or technology migration. A requested overhaul can change the visual language while preserving important product behavior and content.
 

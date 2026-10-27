@@ -3,7 +3,7 @@ doc: 11-risks
 project: <slug>
 version: 0.1.0
 status: draft
-owner: project-planner
+owner: product-planner
 updated: YYYY-MM-DD
 ---
 

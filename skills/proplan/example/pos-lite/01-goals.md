@@ -3,7 +3,7 @@ doc: 01-goals
 project: cafe-pos
 version: 1.0.0
 status: approved
-owner: product-manager
+owner: product-planner
 updated: 2026-09-27
 ---
 

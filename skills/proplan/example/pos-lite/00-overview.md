@@ -31,11 +31,11 @@ The system keeps selling when the internet drops, which happens several times a 
 
 | File | Contents | Owner |
 |---|---|---|
-| 01-goals.md | Business goals G-01..G-04, development goals DG-01..DG-05, KPIs | product-manager |
-| 02-requirements.md | Stakeholders, personas, scope, R-001..R-012, NFR-01..NFR-06 | product-manager |
-| 03-architecture.md | Context, containers, stack, data model summary, API summary | solution-architect |
-| adr/ADR-001-offline-pwa-with-cloud-api.md | Why a PWA with an offline queue instead of a LAN server or a subscription POS | solution-architect |
-| 10-roadmap.md | Milestones M1..M3, tasks T-001..T-019, critical path, risks | project-planner |
+| 01-goals.md | Business goals G-01..G-04, development goals DG-01..DG-05, KPIs | product-planner |
+| 02-requirements.md | Stakeholders, personas, scope, R-001..R-012, NFR-01..NFR-06 | product-planner |
+| 03-architecture.md | Context, containers, stack, data model summary, API summary | architect |
+| adr/ADR-001-offline-pwa-with-cloud-api.md | Why a PWA with an offline queue instead of a LAN server or a subscription POS | architect |
+| 10-roadmap.md | Milestones M1..M3, tasks T-001..T-019, critical path, risks | product-planner |
 | TRACEABILITY.md | Goal to requirement to API to task matrix (generated) | proplan_check.py |
 
 ## Key decisions
