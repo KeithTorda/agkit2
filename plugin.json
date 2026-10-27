@@ -1,5 +1,5 @@
 {
   "name": "ag-kit-v2",
-  "version": "3.0.0",
-  "description": "AGKIT2 v3: own rule set (Rules 01-06), 14 focused agents, domain skills, on-request checks and read-only installation health."
+  "version": "3.2.0",
+  "description": "AGKIT2 v3: own rule set (Rules 01-07, template-grade UI), 14 focused agents, domain skills, on-request checks and read-only installation health."
 }

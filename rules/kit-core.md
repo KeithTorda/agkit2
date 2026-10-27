@@ -1,6 +1,6 @@
 ---
 name: kit-core
-version: 3.0.0
+version: 3.2.0
 priority: P0
 trigger: always_on
 description: Kit plumbing - where the kit lives, which rule covers what, which agent or command fits a request, and that checks run only when asked.
@@ -14,14 +14,23 @@ description: Kit plumbing - where the kit lives, which rule covers what, which a
 
 | Rule | Covers |
 |---|---|
-| `rule-01-unified-theme-system` | UI theming: one token system, Light/Dark/System |
+| `rule-01-unified-theme-system` | UI theming: one token system, Light/Dark/System (full text) |
+| `rule-01b-theme-quick` | Rule 01 as a 12-item quick card |
 | `rule-02-work-style` | Language, tone, deciding, finishing, reporting, approvals |
 | `rule-03-code-standards` | Code organization, naming, CSS, states, errors, cleanliness |
 | `rule-04-system-integration` | New systems and add-ons: Option B ERP integration |
 | `rule-05-planning-and-docs` | Plan files and project documentation |
 | `rule-06-security-baseline` | Auth, permissions, input, secrets, money records, uploads |
+| `rule-07-template-grade-design` | UI looks like a complete premium ready-made template; minimal only on request |
 
 Each topic has one owner rule. If two instructions seem to conflict, the user's current message wins, then the more specific rule. In Expo/React Native, apply Rule 01's token, three-mode and accessibility parts; its CSS, `color-scheme` and hydration items do not apply.
+
+## Session discipline
+
+1. For a feature or anything touching 3+ files: plan first (`/plan`), show the plan, then build.
+2. Build one plan step at a time and report it before the next.
+3. After a milestone, recommend a new chat and name the plan file to continue from.
+4. At the start of every task, re-read the rules that match the files you will touch.
 
 ## Checks run only when asked
 
@@ -57,6 +66,13 @@ Agent files are `KIT/agents/<name>.md`. Pick the agent that owns what is being c
 | `/test` `/verify` `/review` | Run tests, establish evidence or review a diff (on request) |
 | `/orchestrate` `/deploy` | Coordinate multi-agent work or perform an authorized release |
 | `/status` `/remember` | Read progress or save requested project context |
+| `/init-project` | Create/update the project's `AGENTS.md` facts file |
 | `/updatekit` `/doctor` | Maintain or diagnose the kit installation |
 
 Read `KIT/skills/<command>/SKILL.md` for the selected workflow. Natural-language requests can trigger it too. Use quick-reference only when the full catalog helps.
+
+## Before you answer, check
+
+- [ ] I used the right agent and the rules that match the files I touched.
+- [ ] I did not run tests, builds or browser checks the user did not ask for.
+- [ ] My report follows rule-02 (with pasted output for anything that ran).

@@ -29,7 +29,7 @@ Record the decisions that change implementation:
 - Supported themes only. A light-only or dark-only product needs no automatic toggle; mixed sections can belong to one theme.
 - Where implemented tokens live and which values are generated or mapped to each platform.
 
-Explain important choices briefly. Avoid a boilerplate checklist, fixed font counts, mandatory image sections, layout-family quotas, or numeric dials presented as objective quality. Preserve existing numeric shorthand only when it communicates an actual agreed decision.
+Explain important choices briefly. Use Rule 07's page recipes and component set as the baseline; avoid fixed font counts or numeric dials presented as objective quality. Preserve existing numeric shorthand only when it communicates an actual agreed decision.
 
 ## Compatible format
 

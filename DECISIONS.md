@@ -1,49 +1,11 @@
-# Current AGKIT2 Decisions — 3.0.0
+# AGKIT2 Decisions (3.2)
 
-## 3.0.0 overrides
-
-Rules 01-06 plus kit-core are the only policy. Each topic has one owner rule. The 14 agents follow one template and defer to the rules instead of restating policy. Where anything below conflicts, 3.0.0 wins.
-
-## 2.9.0 overrides
-
-The old rules are removed. `kit-core` carries only plumbing; `rule-01-unified-theme-system` is the design authority for UI. Style intake is no longer mandatory, motion-video production is out of the kit, and browser checks run only on request. Where a section below mentions design intake or core rules, these overrides win.
-
-## One shared workflow, domain-specific expertise
-
-Core rules establish outcome, authorization, design intake and evidence. Roles identify ownership and critical contracts. Skills explain practical decisions and failure modes. Support references hold conditional depth, not another always-on instruction layer.
-
-## Fresh scope means every domain
-
-The refresh covers every existing skill entrypoint and all specialist roles, including backend, database, architecture, QA, security, operations, docs and planning. Prior work emphasized design; this release addresses the entire instruction surface. Reviewed, sound examples and helper code are retained where replacing them would add churn rather than capability.
-
-## Keep the user's current choices authoritative
-
-New visual work starts with a brief style/reference conversation, then follows the accepted direction. Explicit delegation is a valid answer. Existing maintenance avoids repeated intake. A resource or reference contributes useful qualities without mandating a dependency or a new aesthetic.
-
-## Improve diagnosis instead of accumulating prohibitions
-
-The problem-solving skill compares hypotheses against evidence and tests the owning contract. No fixed question minimum, task count, size cap, framework or decoration ban substitutes for judgment. Access, data integrity and truthful output remain real constraints.
-
-## Design visible components, preserve dependable behavior
-
-The user's web preference is custom-styled components coherent with the accepted direction. This includes the relevant open popup, not merely a styled trigger. Native HTML semantics can supply the behavior foundation; platform-owned interfaces, explicit native requests and native-mobile conventions remain valid. Reuse existing accessible primitives before adding or rebuilding behavior. Verify visible controls as well as the underlying data/state contract, and describe support or styling limits honestly. This preference does not force a library, decorative treatment or second design system.
-
-## Distinguish command success from evidence completeness
-
-Reports identify missing, skipped and partial work. Tests do not prove every scenario, source heuristics do not prove a browser render, and document artifacts do not mean a person inspected them. The doctor separates editable source health from the active installed copy.
-
-## Refine from actual failure, without a new universal template
-
-In a controlled dashboard pair, the original led the blind visual review while both passed the behavior checks. This supports corrections to legibility, working width and table access, not a claim that one kit wins every style. Keep visual craft, structural health and working behavior separate. Inspect actual-size supporting information and intermediate layouts; judge responsive composition by the remaining task space. Preserve original findings when testing later refinements.
-
-A comparison harness can also be wrong. URL-persisted filters require deliberate case isolation; an accessible chart table can precede the task table. Confirm setup and semantic targets before counting a product failure. The optional visual-review record checks the consistency of an observer's notes, not their truth or aesthetic quality.
-
-## Preserve compatibility and recoverability
-
-Keep the agkit2 source, ag-kit-v2 identity, established command names, native role schema and tested script interfaces. Validate before installation, retain backups and restore active files after failure. Update checks must not overwrite local customizations or install merely because an upstream check ran.
-
-## Optional resources
-
-BrewedOps Motion Library is included as a user-selected reference option. Link to it and inspect specific patterns; do not copy the library into a competing kit. Follow its published terms and the dependencies' own licenses when adopting code.
-
-Historical rationale and old reviews are archived under docs/history. They describe previous releases and do not override these decisions.
+1. **Own rules, one owner per topic.** kit-core + Rules 01–07. A topic lives in exactly one rule; agents and skills point to the rule instead of restating it.
+2. **Built for Gemini 3.x in Antigravity.** Short rules, numbered steps, positive wording, a "Before you answer, check" recap at the end of every rule, examples over descriptions. Rule files stay under 24,000 bytes; anything over 12,000 characters gets a quick card (Rule 01 → Rule 01b).
+3. **Not strict, but complete.** No approval ceremonies or forced questions. Tests, builds and browser checks run only when the user asks. The work itself must be finished, and any claim that something ran includes pasted output.
+4. **Session discipline.** Plan first for multi-file work, build one step at a time, start a new chat after each milestone. Plans are `.md` files in `docs/plans/`.
+5. **Template-grade UI by default.** Every screen looks like a complete premium ready-made template (Rule 07, `template-ui-blocks`). Minimal only on request. All styling through Rule 01 tokens with Light/Dark/System.
+6. **Option B integration for every new system.** Separate DB, one owner per table, outbox + middleman, signed webhooks + nightly reconciliation, versioned API (Rule 04).
+7. **14 agents, one template.** Mission, Owns / Does not own, Before starting, How to work, Stack notes, Quality bar, Common mistakes to avoid, Handoff format.
+8. **Stack focus.** React/Next.js, Laravel/Blade, Bootstrap 5.3, Tailwind, Expo, MySQL/Postgres, VPS. Philippine business rules live in `ph-business-compliance`.
+9. **Safe installs.** The installer validates, backs up, installs and rolls back on failure. Edit the repo, never the installed plugin.

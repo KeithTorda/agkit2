@@ -47,3 +47,10 @@ description: Rule 06 - security baseline for all server and client code. Server-
 - Do not add packages that are unmaintained or unknown when a well-known option exists.
 - Production error responses do not include stack traces, SQL or file paths.
 - Rate-limit login, OTP, password reset and public form endpoints.
+
+## Before you answer, check
+
+- [ ] Every new endpoint/action checks the user's permission on that specific record.
+- [ ] Input is validated server-side; queries are parameterized.
+- [ ] Money totals are computed on the server; financial records are voided, not deleted.
+- [ ] No secret appears in client code, logs or commits.

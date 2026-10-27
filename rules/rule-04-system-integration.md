@@ -2,7 +2,8 @@
 name: rule-04-system-integration
 version: 3.0.0
 priority: P0
-trigger: model_decision
+trigger: glob
+globs: "**/app/Http/**, **/app/Models/**, **/app/Services/**, **/app/Jobs/**, **/app/Actions/**, **/database/**, **/migrations/**, **/routes/**, **/api/**, **/server/**, **/prisma/**, **/drizzle/**, **/*.sql, **/docs/plans/**, **/proplan/**, **/outbox*, **/sync*, **/webhook*"
 description: Rule 04 - apply when designing or building a new system, an add-on module (POS, SFA, HRIS, inventory, e-invoicing), an API between systems, database ownership, sync jobs, webhooks or reconciliation. ERP <-> add-on integration pattern (Option B).
 ---
 
@@ -55,3 +56,10 @@ If no core system exists yet, still use a separate database, an outbox table and
 - [ ] What happens when the other system is down for an hour? For a day?
 - [ ] What does nightly reconciliation compare and fix?
 - [ ] Is the API versioned and documented?
+
+## Before you answer, check
+
+- [ ] Each table has one owning system; the add-on writes only its own tables.
+- [ ] Add-on → ERP changes go through the outbox with an idempotency key.
+- [ ] ERP → add-on changes come by signed webhook plus nightly reconciliation.
+- [ ] Endpoints are under `/api/v1/...` and documented.

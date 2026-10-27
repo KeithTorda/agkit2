@@ -32,9 +32,9 @@ description: Rule 03 - clean, organized, maintainable code in any stack. Existin
 
 ## CSS and styling
 
-- Fix the rule or token that owns the problem. Do not stack overrides on overrides.
-- No `!important` unless overriding third-party CSS you cannot change, and then with a one-line comment saying why.
-- No inline `style=` for layout fixes. Inline style is allowed only for truly dynamic values (computed width, user-chosen color).
+- Fix the rule or token that owns the problem, in place.
+- Use `!important` only to override third-party CSS you cannot edit, with a one-line comment why.
+- Put layout in classes/stylesheets; use inline `style=` only for truly dynamic values (computed width, user-chosen color).
 - Colors, spacing, radius, shadows and fonts come from tokens (`rule-01-unified-theme-system`).
 - Remove the old CSS you replaced.
 
@@ -45,11 +45,18 @@ Loading, empty, error, success — and for forms: validation errors, submitting,
 ## Errors
 
 - Handle errors where you can do something useful; otherwise let them reach the shared error handler.
-- Never swallow an error silently (`catch {}`), never `console.log` and continue as if it worked.
+- Every `catch` either recovers, shows the user a message, or rethrows/logs to the shared handler.
 - User-facing error messages say what happened and what to do next. Internal details stay in logs.
 
 ## Cleanliness
 
-- Delete code you replaced. No commented-out blocks, no unused imports, no leftover `console.log` / `dd()` / `print` debugging.
+- Delete code you replaced, unused imports, commented-out blocks and debug output (`console.log`, `dd()`, `print`).
 - Comments explain why, not what. Remove comments that restate the code.
-- No magic numbers for business values (VAT rate, max discount, session timeout); use a named constant or config.
+- Business values (VAT rate, max discount, session timeout) live in a named constant or config.
+
+## Before you answer, check
+
+- [ ] I used the project's existing stack, folders and components.
+- [ ] Names are domain-specific; no duplicate helpers or components.
+- [ ] Every data screen has loading, empty, error and success states.
+- [ ] Replaced code, debug output and unused imports are removed.

@@ -4,7 +4,7 @@ description: "Designs and repairs data: tables, keys, constraints, indexes, migr
 model: inherit
 subagent: true
 mainAgent: true
-kit-skills: [database-design, architecture, python-patterns, nodejs-best-practices]
+kit-skills: [database-design, laravel-patterns, architecture, ph-business-compliance]
 version: 3.0.0
 ---
 

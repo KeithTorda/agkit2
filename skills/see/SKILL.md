@@ -1,17 +1,36 @@
 ---
 name: see
-description: "Inspect a real web render and relevant interactions against the intended behavior and accepted direction. Use /see for visual verification or a requested UI review."
-version: 2.8.2
+description: "/see - Open the real rendered web page and inspect it against the intended design and behavior. Use it when the user wants a visual check or UI review."
+version: 3.2.0
 ---
 
 # /see
 
-Use `KIT/skills/browser-verification/SKILL.md`. The target is the supplied route/URL or the current task's affected screen. Reuse an appropriate running server or start the documented one when practical; confirm it serves the intended build before inspection.
+Look at the actual render, exercise the changed interaction and report only what was observed. Invoking /see is the user's request, so run the browser checks. Follow `KIT/skills/browser-verification/SKILL.md`.
 
-Render the affected states and choose viewports from actual device/breakpoint needs. A new responsive screen usually needs representative mobile and desktop views; a localized bug also needs its reported width. Inspect hierarchy, readability, spacing, content fit, focus and relevant DOM/computed styles. Check console/network failures that affect the flow and exercise the changed primary interaction and meaningful invalid/recovery behavior.
+## Steps
 
-Critique against the accepted brief and references, not a generic aesthetic checklist. For your implementation task, refine observed defects and render again. For review-only work, report findings before making changes outside the existing authorization. Maintenance verification does not require new design intake.
+1. Pick the target: the route or URL given after the command, or the screen changed in the current task.
+2. Reuse a running dev server, or start the project's documented one (`npm run dev`, `php artisan serve`). Confirm it serves the current code.
+3. Choose widths from the project's breakpoints. New responsive screens: one mobile and one desktop width. Reported bugs: add the reported width.
+4. Render each relevant state: default, loading, empty, error, open menus and dialogs.
+5. Inspect hierarchy, text wrapping, spacing, contrast, overflow, focus rings and image cropping. Check Light and Dark.
+6. Read the browser console and failed network requests that affect the flow.
+7. Click through the main changed interaction, including one invalid input and its recovery.
+8. Compare against the agreed brief and rule-07-template-grade-design, not a generic checklist.
+9. If this is your own implementation task, fix observed defects and render again. If it is review-only, report findings without editing.
 
-Screenshots and ui_verify can record useful evidence when the task warrants them; image existence alone does not prove inspection. Never report unseen widths, clicks or console results. If the runtime/browser cannot be used, diagnose the missing precondition, continue applicable checks and state the visual limit.
+## Output
 
-Report target/state/widths actually inspected, observed behavior, required fixes or useful polish and any unverified areas. Keep evidence proportional to the claim.
+- Target, states and widths actually inspected.
+- Observed problems, ordered by impact, with the fix or suggestion.
+- Areas not inspected and why.
+
+Screenshots or `KIT/scripts/ui_verify.py` output support a claim; a saved image alone does not prove inspection. If the browser cannot run, say what blocked it and list what stays unverified.
+
+## Before you finish, check
+
+- [ ] Every width, click and console result in the report was really observed.
+- [ ] Both Light and Dark were looked at.
+- [ ] Review-only runs left files unchanged.
+- [ ] Unverified areas are listed.

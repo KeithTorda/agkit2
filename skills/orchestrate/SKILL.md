@@ -1,23 +1,40 @@
 ---
 name: orchestrate
-description: "Coordinate a multi-domain task or execute a plan/milestone through shared contracts, explicit ownership and integrated evidence. Use /orchestrate with a task or plan path."
-version: 2.8.2
+description: "/orchestrate - Coordinate work that spans several areas, or execute a plan or milestone, by assigning owners, settling shared contracts and integrating the result. Pass a task, a plan path or a proplan milestone."
+version: 3.2.0
 ---
 
 # /orchestrate
 
-Use `KIT/agents/lead.md` and `KIT/skills/parallel-agents/SKILL.md`. Input can be a task, `docs/plans/<yyyy-mm-dd>-<slug>.md`, or `docs/proplan/<slug> M<n>`. Read the relevant plan and source before assigning work.
+Run multi-agent work as `KIT/agents/lead.md` and deliver one integrated result.
 
-## Scope and organize
+## Input
 
-Establish the intended outcome and shared decisions. If a style answer was given, carry it to workers once. Assign explicit writable paths and contracts; parallelize only independent work. Use actual tool capabilities rather than presumed agent names or workspace parameters. Without delegation tools, do the roles sequentially and say so.
+- A task description
+- `docs/plans/<yyyy-mm-dd>-<slug>.md`
+- `docs/proplan/<slug> M<n>` (one milestone)
 
-For plan execution, identify the selected tasks, dependencies, verify criteria and relevant requirement/API/ADR excerpts. An unresolved blocker stops the affected task; unrelated ready work can continue. Do not silently build around a contradictory permission or data contract.
+## Steps
 
-## Integrate and prove
+1. Read the plan (if any) and the source it touches. Pick the tasks to run now and note their dependencies and "Done when" or verify lines.
+2. Pull the excerpts each task needs: requirement, API, ADR, accepted style answer. Settle shared contracts (names, payloads, roles, tokens) before anyone writes code.
+3. Assign each task to its owning agent with explicit writable paths. Follow `KIT/skills/parallel-agents/SKILL.md` for briefs. Run tasks in parallel only when their files and inputs do not overlap.
+4. Without delegation tools, do the roles one after another and say so in the report.
+5. When a task is blocked by a missing decision or a conflicting contract, pause that task and keep running unrelated ready work. Ask the user once about the blocker.
+6. Review each result. Fix mismatched names, payloads, permissions and states, then integrate in dependency order.
+7. Update the plan: tick finished tasks; add "not verified" next to tasks with no check run. In proplan roadmaps change `- [ ]` to `- [x]` with a short note.
+8. For proplan sets, keep IDs stable and regenerate TRACEABILITY.md with `python "KIT/scripts/proplan_check.py" docs/proplan/<slug> --write-traceability` instead of editing generated rows.
+9. Run `KIT/skills/verify-changes/SKILL.md` only if the user asked for verification (kit-core).
 
-Review each worker's output and actual evidence. Resolve contract differences, integrate in dependency order and read the combined changes for mismatched names, payloads and states. Run verify-changes only if the user asked for verification.
+Avoid treating a plan task as approval for production deploys, data deletion or other actions listed in rule-02-work-style.
 
-Tick a task when its work is done; write 'not verified' next to it when no check ran. For proplan use `- [ ]` to `- [x]`, add a concise command/result note, and update the overview when useful. Keep stable IDs; regenerate TRACEABILITY.md with proplan_check rather than editing generated rows. A plan task does not create authorization for otherwise unapproved external actions.
+## Output
 
-Finish with integrated behavior, task state, material decisions, verification and remaining dependencies. Do not stop merely because all workers returned if the requested result still needs integration.
+Report in the rule-02 shape: integrated behavior, task states, decisions, checks run or not run, and remaining blockers.
+
+## Before you finish, check
+
+- [ ] All worker outputs are merged and their contracts agree.
+- [ ] The plan file reflects the real state of each task.
+- [ ] Blocked tasks and their reasons are listed.
+- [ ] Nothing is reported as verified unless a check ran.

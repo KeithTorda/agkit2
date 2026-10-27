@@ -1,89 +1,144 @@
-# AGKIT2 3.0.0 — Own Rules, Focused Agents
+# AGKIT2 3.2
 
-AGKIT2 v3 replaces the inherited rule set and agent roster with our own.
+An agent kit for the **Antigravity IDE**: a small set of rules, 14 focused agents, and 58 skills and slash commands that make the AI build like a senior team. Plans, code and UI follow our own standards. The UI the kit builds looks like a premium ready-made template, not a bare minimal page.
 
-**Rules** (in `rules/`, installed to `~/.gemini/config/rules`):
+- Source folder: `agkit2` (this repo)
+- Installed plugin: `~/.gemini/config/plugins/ag-kit-v2`
+- Installed rules: `~/.gemini/config/rules`
 
-| Rule | Loads | Covers |
+---
+
+## Rules
+
+Rules are short, each owns one topic, and they never repeat each other.
+
+| Rule | Loads | What it enforces |
 |---|---|---|
-| `kit-core` | always | Kit path, rule map, agent/command routing, checks only when asked |
-| `rule-01-unified-theme-system` | UI files | One token system, Light/Dark/System |
-| `rule-02-work-style` | always | English, direct, decide, finish the job, report format, approvals |
-| `rule-03-code-standards` | code files | Existing stack, naming, structure, CSS, states, errors, cleanliness |
-| `rule-04-system-integration` | model decision | Option B: separate DBs, table ownership, outbox + middleman, webhooks + reconciliation, versioned API |
-| `rule-05-planning-and-docs` | model decision | Plans as `docs/plans/<date>-<slug>.md`, plan format, docs minimum |
-| `rule-06-security-baseline` | code files | Server auth/permissions, input, secrets, money records, uploads |
-| `quick-reference` | model decision | Generated catalog |
+| `kit-core` | always | Kit path, rule map, agent and command routing, checks only when asked |
+| `rule-01-unified-theme-system` | UI files | One semantic-token design system with Light, Dark and System modes (full text) |
+| `rule-01b-theme-quick` | UI files | Rule 01 as a 12-item quick card (Gemini follows short rules better) |
+| `rule-02-work-style` | always | English, direct, decide and finish the job, fixed report format, no fake "tests passed", actions that need approval |
+| `rule-03-code-standards` | code files | Existing stack first, domain naming, no CSS override hacks, every data screen handles all states, no dead code |
+| `rule-04-system-integration` | backend, database and plan files | Option B: separate DB per system, one owner per table, outbox + middleman, webhooks + nightly reconciliation, versioned API |
+| `rule-05-planning-and-docs` | always | Every plan saved as `docs/plans/<yyyy-mm-dd>-<slug>.md` in one format; README/API docs minimum |
+| `rule-06-security-baseline` | code files | Server-side auth and per-resource permissions, input validation, secrets, money records never hard-deleted, audit trail, uploads |
+| `rule-07-template-grade-design` | UI files | Every page looks like a complete premium template (full chrome, depth, realistic demo data, imagery, polish, all states); minimal only on request |
+| `quick-reference` | on demand | Generated catalog of agents, skills, commands and scripts |
 
-**Agents** (14, in `agents/`): lead, architect, product-planner, ux-designer, frontend-engineer, backend-engineer, database-engineer, mobile-engineer, qa-engineer, debugger, security-engineer, devops-engineer, docs-writer, explorer. Every agent follows one template: Mission, Owns / Does not own, Before starting, How to work, Stack notes, Quality bar, Common mistakes to avoid, Handoff format.
+## Agents
 
-See [the v3.0 plan](docs/PLAN-v3.0-new-rules-and-agents.md).
-
-## Manual checks
-
-Post-code audit and verification are **manual-only**. Ordinary code/design requests finish with the implementation, without automatically running tests, builds, lint, scans, browser review, screenshots or a checklist. Use `/review`, `/verify`, `/test` or `/doctor` when you want those checks. Project defaults do not override an explicit user preference to skip checking. No automatic audit offer or fabricated pass report is needed.
-
-An Antigravity kit for understanding, building, diagnosing and delivering software across web, mobile, backend, data, testing, security, deployment, documentation and planning. The editable folder remains agkit2 and the installed plugin remains ag-kit-v2.
-
-## How it works
-
-Start with the outcome, inspect the actual project and select the relevant expertise. kit-core and Rule 01 own shared decisions; domain skills explain practical choices and failure modes without introducing a competing global workflow. A small edit stays small, while consequential changes receive the evidence their contracts require.
-
-The 2.8 full refresh rebuilt all existing skill entrypoints and specialist roles. The 2.8.1 refinement applies observed design and verification lessons without replacing working domains. Useful examples and tested helper implementations can remain after review; fresh instructions are not a reason to throw away working behavior. Historical reviews and old plans live under docs/history and do not define current policy. LICENSE and user media are preserved.
-
-The shared problem-solving skill helps when a cause or tradeoff is uncertain: frame the contract, distinguish observations from assumptions, compare plausible explanations, choose an informative intervention and verify the actual failure path. Routine work does not require a new planning ritual.
-
-## Design follows Rule 01
-
-UI work uses one centralized, semantic-token design system with Light, Dark and System modes (`rule-01-unified-theme-system`). The agent asks about style only when the direction is genuinely unclear. The accepted direction controls composition, typography, imagery and motion within that token system.
-
-[BrewedOps Motion Library](https://brewedops.cloud/motionlibrary/) is an optional source of motion/UI-pattern ideas, prompts and code examples in the reference options. It is not a package to install or an automatic effect layer. Inspect the selected pattern, adapt it to the actual stack, test interaction/reduced motion/performance, and follow the applicable [library terms](https://brewedops.cloud/motionlibrary/legal/license/) and third-party licenses. This kit links to the resource rather than republishing its collection.
-
-## Custom-styled web components
-
-Web controls default to a coherent, project-specific visual treatment, including relevant open, selected, focus and validation states. Native semantic HTML remains useful underneath. A styled select trigger does not make its OS-rendered options popup custom-designed; include the options surface in the custom treatment by default and exercise the visible control. Extend the existing accessible foundation, preserve purposeful platform interfaces and native-mobile conventions, and avoid forced libraries. Read [component guidance](skills/frontend-design/components.md) for these decisions and checks.
-
-## Learn from rendered output
-
-A paired light-dashboard test found both builds functionally correct while the original had better supporting-text legibility and tablet/table presentation. Passing kit or interaction checks did not predict visual quality. The refinement adds actual-size craft review, available-content-width decisions and discoverable essential data without imposing a font minimum or a fixed sidebar breakpoint.
-
-For a requested before/after experiment, use [comparison-testing.md](skills/browser-verification/comparison-testing.md). Ordinary work does not trigger post-code checks; requested verification keeps proportional scope. The optional ui_verify visual-review record validates recorded observations and width coverage; it cannot perceive screenshots or assign a design score. See [the dated evidence note](docs/reviews/2026-10-16-dashboard-comparison.md) for the observed result and limits.
-
-## Capabilities
-
-| Area | Typical work |
+| Agent | Use for |
 |---|---|
-| Product and planning | Scope, requirements, flows, architecture, executable milestones and traceability |
-| Web and mobile | Visual systems, native platform behavior, components, forms, responsive interaction and actual render checks |
-| Backend and data | API contracts, identity/authorization, jobs, retries, transactions, schema and migrations |
-| Quality and recovery | Root-cause diagnosis, behavior tests, measured performance, security review and scoped legacy modernization |
-| Delivery | CI/deployment, operational health, documentation, exports and generated documents |
-| Kit health | Structural validation, source/installation comparison, active-rule diagnosis and backed-up installation |
+| `lead` | Big or cross-area tasks: split work, assign agents, agree contracts, integrate, final report |
+| `architect` | System design, tech choices, ADRs, Rule 04 integration design, plan reviews |
+| `product-planner` | Goals, requirements, acceptance criteria, MVP scope, task plans, milestones, risks |
+| `ux-designer` | Flows, sitemap, screen inventory with states, DESIGN.md, Rule 01 token set |
+| `frontend-engineer` | Web UI in React/Next.js, Blade, Bootstrap 5, Tailwind; theming; SEO |
+| `backend-engineer` | APIs, Laravel/Node services, auth, jobs, webhooks, outbox sync, exports and receipts |
+| `database-engineer` | Schema, migrations, indexes, queries, seeds, data ownership |
+| `mobile-engineer` | Expo/React Native/Flutter apps, offline sync, device features, store builds |
+| `qa-engineer` | Tests, test plans, code review (on request) |
+| `debugger` | Root-cause bug fixing and measured performance fixes |
+| `security-engineer` | Security review, threat model, permission matrix, authorized pentest |
+| `devops-engineer` | VPS/Nginx/PM2/Docker, CI/CD, env, backups, deploy and rollback |
+| `docs-writer` | README, guides, API docs, user/admin manuals, handover |
+| `explorer` | Read-only codebase mapping, legacy code explanation, feasibility |
 
-Use the nearest role directly or delegate bounded independent work. Skills load progressively; do not load every reference for a small task. There is no universal requirement to adopt a framework, provider, ORM or component library.
+Every agent file uses the same template: **Mission, Owns / Does not own, Before starting, How to work, Stack notes, Quality bar, Common mistakes to avoid, Handoff format.**
 
-## Install and check
+## Slash commands
 
-The Windows installer uses PowerShell and Python. Run from the editable repository:
+| Command | What it does |
+|---|---|
+| `/create` | Build a new app, page or feature |
+| `/enhance` | Extend or change the existing project |
+| `/plan` | Write a feature plan to `docs/plans/` |
+| `/proplan` | Full system plan set (goals, requirements, architecture, data, API, UX, security, quality, ops, roadmap, risks) |
+| `/brainstorm` | Compare approaches and recommend one |
+| `/orchestrate` | Run a plan or milestone across several agents |
+| `/debug` | Reproduce and fix a bug at its root cause |
+| `/fix-ui` | Repair a broken layout or component |
+| `/see` `/see-doc` | Inspect a rendered page or generated document (on request) |
+| `/test` `/verify` `/review` | Run tests, verify a change, review a diff (on request) |
+| `/deploy` | Perform an authorized release |
+| `/status` `/remember` | Project status; save project notes |
+| `/init-project` | Create the project's `AGENTS.md` facts file (stack, commands, data ownership) |
+| `/doctor` `/updatekit` | Check or update the kit installation |
+
+Tests, builds, browser checks and reviews **never run automatically**. They run when you ask.
+
+## Key skills
+
+| Skill | Use |
+|---|---|
+| `template-ui-blocks` | Copy-ready Bootstrap 5.3 and Tailwind blocks for every Rule 07 page type |
+| `laravel-patterns` | Form Requests, Policies, Actions, Resources, jobs, outbox, Blade |
+| `bootstrap-patterns` | Bootstrap 5.3 tokens, `data-bs-theme`, React-Bootstrap, admin layouts |
+| `ph-business-compliance` | VAT, sales invoices (EOPT), senior/PWD discounts, POS readings, e-invoicing |
+| `proplan` / `plan` | System and feature plans |
+
+## Working with Gemini
+
+Gemini 3.x follows short, direct rules and drifts in long chats. The kit is built for that:
+- Every rule ends with a short "Before you answer, check" list.
+- Plan first, build one step at a time, start a new chat after each milestone.
+- Any claim that a command ran must include its output.
+- Run `/init-project` once per project so each chat starts with the project facts.
+
+## What the UI looks like
+
+By default every screen follows a Rule 07 recipe:
+
+- **Landing page:** navbar, hero with two CTAs and a visual, trust strip, features, alternating feature rows, stats band, testimonials, pricing, FAQ, final CTA, full footer.
+- **Admin dashboard:** grouped collapsible sidebar, top bar with search/notifications/theme toggle/profile, KPI cards with trends, charts, activity table with badges and actions.
+- **Tables, forms, auth and mobile screens:** complete layouts with toolbars, styled controls, validation, skeletons and illustrated empty states.
+
+All of it uses Rule 01 tokens, so Light and Dark both look finished. Demo data is realistic (₱, local names) and kept in one `demo-data` file so it is easy to replace.
+
+## Install
+
+Requirements: Windows, PowerShell, Python 3.10+.
 
 ```powershell
-.\install.ps1 -Check
-python -B scripts/validate_kit.py . --strict
-python -B -m unittest discover -s scripts/tests -v
-.\install.ps1
-python -B scripts/kit_doctor.py --json
+cd path\to\agkit2
+.\install.ps1 -Check        # validate only, no changes
+.\install.ps1               # back up current install, then install
 ```
 
-The installer validates source and staging, backs up existing managed files and the global entrypoint, preserves unrelated rules, activates the plugin and validates it. A failed activation restores prior active files. `-ConfigRoot` and `-BackupRoot` support isolated tests. Source edits must be installed before they affect new sessions.
+The installer validates the source, backs up the active plugin, rules and `GEMINI.md` block to `~/.gemini/config/agkit-backups/<timestamp>`, installs, validates again, and restores the backup automatically if anything fails. Restart Antigravity and open a new chat afterwards.
 
-Restart Antigravity and open a new chat after activation. A file-health check cannot inspect instructions already loaded into a running chat.
+## Check the kit
 
-`/doctor` is read-only: it reports source validity, installed version/file/rule drift, entrypoint problems and tool availability. It neither repairs configuration nor proves that a generated application works.
+```powershell
+python -B scripts/validate_kit.py . --strict          # structure, frontmatter, references
+python -B -m unittest discover -s scripts/tests       # kit test suite
+python -B scripts/kit_doctor.py --json                # installed vs source health (read-only)
+python -B scripts/build_quick_reference.py --write    # regenerate rules/quick-reference.md
+```
 
-## Evidence instead of assurances
+## Folder layout
 
-Source checks, configured test commands, browser interaction, document renders and production health establish different things. Report PASS, FAIL, INCOMPLETE or SKIPPED with the actual scope. Exit zero alone is not proof of complete evidence. Missing tools, unexecuted scenarios and unavailable integrations stay visible in the report.
+```
+agkit2/
+  rules/        kit-core + Rules 01-07 + generated quick-reference
+  agents/       14 agent files
+  skills/       skills and slash commands (each has SKILL.md)
+  scripts/      validator, doctor, installer helpers, checks, tests
+  docs/plans/   plans behind each version
+  docs/eval/    prompts + checklist to test the kit in Antigravity
+  install.ps1   installer with backup and rollback
+  VERSION       current version
+  CHANGES.md    release history
+  DECISIONS.md  current design decisions
+```
 
-The checks catch known problems; they cannot guarantee zero future errors, security or taste. Refine the kit from real outcomes without turning a single failure or example into a universal rule.
+## Changing the kit
 
-See AG_KIT_SLASH_COMMANDS.md for entrypoints, DECISIONS.md for current rationale, and CHANGES.md for release history. The completion report and coverage inventory record what was rebuilt and what was reviewed.
+1. Edit files in this repo (not in the installed plugin).
+2. Run `validate_kit.py . --strict` and the tests.
+3. Run `.\install.ps1`.
+4. Commit and push.
+
+Add a new rule as `rules/rule-NN-<topic>.md` with frontmatter (`name`, `version`, `trigger`, `globs` for glob rules, `description`), then add it to `kit-core`, `KIT_RULES` in `scripts/validate_kit.py` and `$ruleNames` in `install.ps1`.
+
+See [CHANGES.md](CHANGES.md) for release history, [DECISIONS.md](DECISIONS.md) for the reasoning, and [docs/eval](docs/eval/README.md) to test the kit.

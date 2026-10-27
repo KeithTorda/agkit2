@@ -4,7 +4,7 @@ description: "Read-only codebase investigation: maps project structure, entry po
 model: inherit
 subagent: true
 mainAgent: true
-kit-skills: [architecture, database-design, api-patterns, systematic-debugging]
+kit-skills: [init-project, architecture, database-design, api-patterns, systematic-debugging]
 version: 3.0.0
 ---
 

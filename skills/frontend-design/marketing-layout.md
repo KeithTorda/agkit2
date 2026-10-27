@@ -43,7 +43,7 @@ Choose assets by authenticity, relevance and the agreed art direction. Useful so
 3. Generated photography, illustration, texture, or abstract graphics when they suit the approved direction and available tools. Generation is an option, not the first step for every section.
 4. If a needed real asset is unavailable, use a clearly identified prototype placeholder or compose the section without the asset. Tell the user what needs replacement.
 
-There is no image quota. Text-led and minimalist pages may use no images; a catalogue may need many. Every asset should improve understanding or expression.
+Every marketing page includes the Rule 07 landing recipe and purposeful imagery (hero visual, feature images or illustrations, avatars in testimonials). Text-only pages only when the user asks for minimal.
 
 For product UI, prefer real screenshots or a faithful implementation of actual product behavior. A coded static preview or live mini-demo is useful when accurate; identify illustrative/demo content visibly where users could mistake it for current functionality. Never generate a screenshot and present it as evidence that a real feature exists. Avoid invented controls, fabricated customer data, and fake browser chrome that imply a real integration.
 

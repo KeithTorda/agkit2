@@ -48,14 +48,17 @@ KIT_DEFAULT = Path(__file__).resolve().parents[1]
 # Concatenated fixture strings and <user> placeholders do not match.
 USER_PATH = re.compile(r"\b[A-Za-z]:[/\\]+Users[/\\]+[^/\\\s`\"'<>${}]+", re.I)
 USER_PATH_ALLOWED = {"rules/kit-core.md", "install.ps1"}
-KIT_RULES = ("kit-core", "rule-01-unified-theme-system", "rule-02-work-style", "rule-03-code-standards",
-             "rule-04-system-integration", "rule-05-planning-and-docs", "rule-06-security-baseline", "quick-reference")
+KIT_RULES = ("kit-core", "rule-01-unified-theme-system", "rule-01b-theme-quick", "rule-02-work-style", "rule-03-code-standards",
+             "rule-04-system-integration", "rule-05-planning-and-docs", "rule-06-security-baseline",
+             "rule-07-template-grade-design", "quick-reference")
 OBSOLETE = {"rules/copy.md": "removed in v2.5 (content moved to skills/anti-template); the installer deletes it",
             "rules/design.md": "merged into design-rules in v2.5; the installer deletes it",
             "BRIEF-v2.5.md": "worker brief; delete before shipping"}
 HISTORY_DOCS = {"CHANGES.md", "DECISIONS.md", "KIT-REVIEW.md"}
 TRIGGERS = {"always_on", "model_decision", "glob", "manual"}
 ALWAYS_ON_BUDGET = 15000
+RULE_TRUNCATE_BYTES = 24000
+RULE_SOFT_CHARS = 12000
 AGENT_SECTIONS = ("## Mission", "## Owns / Does not own", "## Before starting", "## How to work",
                   "## Quality bar", "## Common mistakes to avoid", "## Handoff format")
 AGENT_OPTIONAL_SECTIONS = ("## Stack notes",)
@@ -222,6 +225,13 @@ class Validator:
                 self.add("error", "rule.quick_reference_trigger", path, "quick-reference must be model_decision")
             if trigger == "always_on":
                 always_on += len(text.encode("utf-8"))
+            size_bytes = len(text.encode("utf-8"))
+            if size_bytes > RULE_TRUNCATE_BYTES:
+                self.add("error", "rule.too_large", path,
+                         f"{size_bytes} bytes - Antigravity truncates rule files over {RULE_TRUNCATE_BYTES} bytes")
+            elif len(text) > RULE_SOFT_CHARS:
+                self.add("info", "rule.long", path,
+                         f"{len(text)} characters - over {RULE_SOFT_CHARS}; Gemini follows short rules better, keep a quick card")
             for m in HEX_COLOUR.finditer(text):
                 self.add("error", "rule.hex_colour", path,
                          f"hex colour {m.group(0)} in a rule - colours come from DESIGN.md", line_of(text, m.start()))

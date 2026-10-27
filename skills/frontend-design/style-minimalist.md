@@ -1,6 +1,6 @@
 # Style: Minimal / editorial
 
-Use only for an approved minimal, document-like, or editorial direction. [SKILL.md](./SKILL.md) still governs intake and craft. This is a palette of choices, not a template; `DESIGN.md` replaces every example.
+Use only when the user explicitly asks for a minimal, document-like, or editorial direction (the kit default is template-grade, Rule 07). [SKILL.md](./SKILL.md) still governs intake and craft. This is a palette of choices, not a template; `DESIGN.md` replaces every example.
 
 ## Character
 Build hierarchy through typography, alignment, whitespace, proportion, and precise interaction. A minimal composition can be warm, crisp, monochrome, image-led, or typographic. It need not be empty, gray, or identical to a familiar productivity app.

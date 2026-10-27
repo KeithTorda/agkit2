@@ -1,15 +1,34 @@
 ---
 name: review
-description: "Review a diff for concrete behavior, correctness and security defects with source evidence. Use /review for a requested review or a justified sensitive-change check; do not manufacture findings."
-version: 2.8.2
+description: "/review - Review a diff for real correctness, behavior and security defects backed by source evidence. Use it when the user asks for a code review."
+version: 3.2.0
 ---
 
 # /review
 
-Read `KIT/skills/adversarial-review/SKILL.md`. Use an explicit scope when supplied; otherwise inspect the current task's diff. On a clean tree identify the intended revision before reviewing arbitrary history. Read actual code and callers alongside the diff.
+Find defects that would cause a wrong outcome, with a concrete scenario for each. Invoking /review is the request, so perform the review. Use the method in `KIT/skills/adversarial-review/SKILL.md`.
 
-State the intended behavior, then trace important success, error, boundary, concurrency and authorization paths relevant to the change. Support each finding with a concrete scenario, reachable wrong outcome, source location and consequence. Distinguish confirmed defects from uncertain hypotheses. Style preferences without a material effect are not defects.
+## Steps
 
-An independent reviewer can improve confidence for substantial changes. Give them the requirement and artifacts without an explanation of why the implementation is correct; use available tools via parallel-agents. Review directly when delegation is unavailable and describe it honestly.
+1. Set the scope: files or commits named by the user, else the current task's uncommitted diff. On a clean tree, ask which revision or branch to review.
+2. Read the diff, then the full changed files and their callers.
+3. Write the intended behavior in one or two lines.
+4. Trace the paths that matter for this change: success, validation error, empty or boundary input, concurrent requests and permission checks.
+5. Check the change against rule-06-security-baseline (server-side auth, safe queries, secrets, money records) and rule-04-system-integration when it touches ERP sync.
+6. For each finding, record: scenario, wrong outcome, file and line, and impact. Mark it Confirmed or Possible.
+7. For large or sensitive changes, give an independent reviewer the requirement and the diff, without your reasoning for why it is correct, via `KIT/skills/parallel-agents/SKILL.md`. If delegation is unavailable, review directly and say so.
+8. Review-only request: report, do not edit. If fixing is part of the task, apply the confirmed fixes.
 
-For a review-only request, report findings without changing files. If fixing is already part of the authorized task, implement justified fixes and verify them. Present the highest-impact findings first, or state that no actionable defects were found within the inspected scope. Include relevant evidence gaps; a clean review does not promise zero future bugs.
+## Output
+
+| # | Severity | Location | Scenario and impact | Status |
+|---|---|---|---|---|
+
+List the highest-impact findings first. If none are found, say "No actionable defects in the inspected scope" and name what was inspected. Skip pure style preferences.
+
+## Before you finish, check
+
+- [ ] Each finding has a reachable scenario and a file location.
+- [ ] Confirmed and Possible findings are separated.
+- [ ] Files were not edited on a review-only request.
+- [ ] Gaps in what was inspected are stated.

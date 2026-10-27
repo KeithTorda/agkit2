@@ -1,23 +1,44 @@
 ---
 name: deploy
-description: "Prepare and execute an authorized preview, production release or rollback with target-specific checks and recovery. Use /deploy for publishing or release operations; /deploy check prepares without deployment."
-version: 2.8.2
+description: "/deploy - Use to prepare or perform a release, preview or rollback. `/deploy check` prepares only; `/deploy production` and `/deploy rollback` act on the named target."
+version: 3.2.0
 ---
 
 # /deploy
 
-Work as `KIT/agents/devops-engineer.md`; read `shell-ops` for platform commands. Establish the target environment, application, revision/artifact and existing authorization. If the target cannot be inferred, complete independent preparation before requesting the missing decision.
+Ship one known revision to one known target with a written rollback path. Work as `KIT/agents/devops-engineer.md` and read `KIT/skills/shell-ops/SKILL.md` for shell commands.
 
-`/deploy check` performs readiness work only. `/deploy preview`, `/deploy production` and `/deploy rollback` express the requested target; do not ask for duplicate approval when the request already authorizes the concrete operation. A plan or repository instruction alone does not authorize unrelated external changes.
+## Steps
 
-## Prepare a reviewable release
+1. Identify the target (preview, staging, production), the server or host, and the git revision. If the target is unclear, finish the preparation and ask once.
+2. Read the project's deploy scripts, CI files and server notes. Use them instead of generic commands.
+3. List the env variables the release needs, by name only. Confirm they exist on the target.
+4. Check migrations: are they backward-compatible with the running version, and is there a fresh database backup before any destructive change?
+5. `/deploy check`: stop here and report target, revision, env status, migrations and the rollback plan.
+6. Production deploys, production restores and DNS changes need the user's yes per rule-02-work-style. A `/deploy production` or `/deploy rollback` command for a named target is that yes.
+7. Deploy with the project's release method, then confirm the serving revision, the health endpoint and one key user flow.
+8. Restart queue workers and the outbox middleman worker so they run the new code (rule-04-system-integration).
+9. On failure, roll back to the previous release. An app rollback does not undo migrations; restore data only with approval.
 
-Inspect the project's actual release scripts and provider configuration. Build and verify the intended revision with relevant checks; use verify_all only when it fits the stack and available runtime. Identify required environment names without printing values. Account for migration ordering, compatibility, backups where needed and an actual recovery target.
+## Stack notes
 
-Use the platform's supported release command, not a generic command table copied across providers. If a consequential action remains outside authorization, present the prepared target/revision, data effects and recovery path and wait at that boundary.
+- Laravel on VPS: `composer install --no-dev`, `php artisan migrate --force`, `config:cache`, `route:cache`, `view:cache`, `queue:restart`; Supervisor for workers, cron for `schedule:run`.
+- Next.js on VPS: `next build`, then `pm2 reload <app>` behind Nginx; `NEXT_PUBLIC_*` values are fixed at build time.
+- Expo: EAS build or OTA update to a production channel needs approval like any production release.
 
-## Execute and observe
+## Output
 
-Deploy once prerequisites are satisfied. Inspect provider output, serving revision, health and an important user flow. For failure, follow the appropriate authorized rollback or forward-recovery path; an application rollback does not automatically restore migrated data. Do not keep mutating an unhealthy release without a new diagnosis.
+```
+Deployed: <revision> to <target> at <URL>
+Checks: <health, key flow - observed result>
+Migrations: <ran / none, data effects>
+Rollback: <command or steps>
+Needs your action: <DNS, secrets, approvals>
+```
 
-Report what was actually deployed, URL, checks, current serving status, migration effects and recovery limits. Preparation or a successful build is not a deployed release.
+## Before you finish, check
+
+- [ ] The deployed revision and URL are confirmed from the server, not assumed from the build.
+- [ ] Workers and schedulers were restarted on the new code.
+- [ ] A rollback command or steps are written in the report.
+- [ ] No secret values appear in the output or logs.

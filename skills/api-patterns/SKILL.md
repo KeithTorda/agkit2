@@ -1,44 +1,39 @@
 ---
 name: api-patterns
-description: Design or review API contracts, errors, pagination, authorization, retries and compatibility. Use for HTTP endpoints, GraphQL schemas, RPC routers and webhook contracts; preserve the project's protocol and framework unless a change is justified.
-version: 2.8.2
+description: Use when designing, building or reviewing an HTTP API, webhook or integration endpoint - routes, payloads, errors, pagination, auth and retries.
+version: 3.2.0
 ---
 
 # API Patterns
 
-Make the client-visible contract explicit, then implement it with the installed stack. Inspect consumers, routes, schemas and authentication before selecting an API style. A framework's server function may serve its own UI; an HTTP API is useful when consumers need that boundary. Neither is mandatory.
+Write the contract first, then implement it in the project's existing framework. Integration endpoints follow rule-04-system-integration (Option B); security follows rule-06-security-baseline.
 
-## Boundaries and observable behavior
+## Steps
 
-REST suits resource-oriented contracts and broad compatibility. GraphQL lets clients select connected data but adds authorization and query-cost concerns. Typed RPC suits coordinated consumers; shared types do not validate runtime data or prevent deployed-version drift. SSE, WebSocket and streaming HTTP suit different push requirements. Preserve a working protocol unless the outcome needs another.
+1. Read the existing routes, controllers, validators, auth middleware and API docs. Keep the protocol and response shape the project already uses.
+2. Write the contract in the project docs before coding: method, path, request body, success response, error codes, auth, example. New endpoints go under `/api/v1/...`; ship a breaking change as `/api/v2/...` and keep v1 running until consumers move.
+3. Use methods honestly: GET reads, POST creates or triggers, PUT/PATCH updates, DELETE removes (or voids, for money records).
+4. Return errors in one JSON shape with a stable machine `code`, a user-safe `message` and optional per-field `errors`. Map statuses: 400/422 invalid input, 401 not signed in, 403 not allowed, 404 not found, 409 conflict, 429 rate limited.
+5. Validate every input at the boundary (Laravel Form Request, Zod). Check permission for the specific record on the server and return only fields the caller may see.
+6. Lists: cap the page size, sort deterministically (add `id` as a tie-breaker), and use cursor pagination for large or fast-changing tables.
+7. Writes that a client or worker may repeat: accept an `Idempotency-Key` header, store key + request hash + response atomically with the write, return the stored response on a repeat, and return 409 when the same key arrives with a different body.
+8. Add-on to ERP sync: save the record and its `outbox` row in one transaction; the middleman worker sends it later with the idempotency key. The user's request does not wait on the ERP.
+9. Incoming webhooks: verify the HMAC signature on the raw body, record the event ID, queue heavy work, reply fast, and handle duplicates and out-of-order events.
+10. Update the API doc (`docs/api/` or `05-api.md`) in the same change.
 
-- Methods/statuses reflect the operation. GET does not cause business mutations. PUT and DELETE have idempotent intended effects; repeated responses need not have identical statuses. PATCH idempotency depends on the patch operation.
-- Preserve established names and shapes. For new APIs, choose a consistent success shape and structured errors, such as a project envelope or Problem Details.
-- Errors have a stable machine code and user-safe detail; field issues and correlation IDs help recovery. Keep internal traces/secrets out. Do not reveal existence where access policy conceals it.
-- Validate query/path/body data at the boundary, including size, allowed fields and coercion. Enforce identity, role, ownership and tenant scope on the server. Return only permitted fields.
+## Stack notes
 
-For a small endpoint, a concise contract and focused test suffice. Shared/public APIs need schemas, authentication, examples, errors and evolution rules in the project's API docs.
+- Laravel specifics (Form Requests, API Resources, Sanctum, route versioning, queued jobs) live in the `laravel-patterns` skill.
+- Next.js: Route Handlers under `app/api/v1/`; validate with Zod; server actions are fine for the app's own UI and do not replace a versioned API for other systems.
+- Security cases to test (ownership, tenant scope, CSRF, expired tokens): [security-testing.md](security-testing.md).
 
-## Lists and compatibility
+## Helper
 
-Bound page sizes and define deterministic ordering. Offset pagination suits page navigation when its consistency/cost trade-offs are acceptable. Cursor/keyset pagination needs stable ordering and a unique tie-breaker; validate cursors and bind them to relevant filters. Explain behavior when records change between pages.
+`python "KIT/skills/api-patterns/scripts/api_validator.py" .` scans routes and specs for common pattern issues (`--json`, `--verbose`, `--fail-on error|warning|never`). Run it when the user asks for a check; treat its output as hints.
 
-Additive fields can still break strict consumers. Check schemas and deployed clients before changing responses, enums, defaults or nullability. Version a breaking external contract when consumers cannot migrate together; document migration/deprecation. Coordinated internal changes may update callers directly.
+## Before you finish, check
 
-## Retries, idempotency and webhooks
-
-Classify whether a retry is safe. For repeat-sensitive writes, use an idempotency key or business uniqueness constraint. Scope keys to actor/tenant and operation, bind them to a request fingerprint, reject conflicting reuse, and make deduplication atomic with the effect. Persist status/results for the actual retry window. Test concurrent duplicates and crashes after commit.
-
-Verify webhook signatures using the provider's documented raw-body, timestamp and replay rules. Record event identity atomically with processing or durable enqueue. Acknowledge acceptance only after required work is durably committed; make asynchronous consumers idempotent. Test duplicate, out-of-order and retried events.
-
-## Capacity and security
-
-Apply body, upload, time and query-cost bounds appropriate to the endpoint. Rate limits need a trustworthy identity/proxy model and shared accounting when instances share a budget. Use header/status syntax supported by the actual server and clients; do not assume a draft syntax is universal. Retry eligible failures with deadlines and bounded backoff.
-
-Cookies, bearer tokens, keys and delegated identity solve different problems. Follow existing authentication; verify issuer/audience/lifetime where relevant. Check CSRF for cookie-authenticated writes, CORS for browser access, and authorization independently of either. Read [security-testing.md](security-testing.md) for a focused access/failure matrix.
-
-## Verification and helper
-
-Exercise success, invalid input, denied access, empty results and important dependency/retry failures. Check a real consumer when shared shapes change. Keep generated API schemas consistent with runtime behavior using existing tooling.
-
-`python "KIT/skills/api-patterns/scripts/api_validator.py" .` checks route/spec patterns. Supports `--json`, `--verbose`, `--fail-on error|warning|never`. Expand `KIT` to the active path. It is heuristic: investigate warnings; a clean scan does not prove contract correctness.
+- [ ] The contract (paths, payloads, error codes) is written in the project docs and versioned under `/api/v1`.
+- [ ] Every write that can be retried has an idempotency key or a unique constraint.
+- [ ] Cross-system writes go through the outbox, and webhooks are signature-checked and idempotent.
+- [ ] Permission is checked per record on the server, and errors use the shared JSON shape.

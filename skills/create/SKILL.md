@@ -1,23 +1,40 @@
 ---
 name: create
-description: "Build a new site, application, API or tool from an accepted brief through implementation, with verification only when requested. Use /create for a new project rather than maintenance."
-version: 2.8.3
+description: "/create - Build a new site, app, API or tool from the user's brief through working code. Use it for a new project; use /enhance for changes to an existing one."
+version: 3.2.0
 ---
 
 # /create
 
-Read `KIT/skills/app-builder/SKILL.md`, its project-detection guidance and only the template matching the actual project. A template is a starting point; preserve the requested stack and delivery format.
+Turn a brief into a new, working project in the requested stack.
 
-## Establish the brief
+## Steps
 
-Use what the user already supplied: audience, primary task, required behavior and practical constraints. Resolve consequential gaps; choose routine details within scope. For new visual design, decide the direction unless it is genuinely unclear (see frontend-design).
+1. Read `KIT/skills/app-builder/SKILL.md` and only the template that matches the requested stack. Treat the template as a starting point; the user's stack and delivery format win.
+2. Collect the brief from what the user already gave: audience, main task, required behavior, constraints. Ask once only about gaps that change scope, data, money or permissions (rule-02-work-style). Decide routine details yourself and state them in one line.
+3. Pick planning depth: a short task list for a bounded build, `KIT/skills/plan-writing/SKILL.md` for multi-session work, or `/proplan` for a whole system. Start building once the plan exists; no separate approval round is needed.
+4. If the project is a new system or an add-on, set up separate DB, outbox and versioned API first (per rule-04-system-integration).
+5. Build the costly-to-change parts first: data model, auth, shared contracts, theme tokens.
+6. For UI, use `KIT/skills/frontend-design/SKILL.md` (web) or `KIT/skills/mobile-design/SKILL.md` (Expo). Record the chosen direction in DESIGN.md with `KIT/skills/design-spec/SKILL.md`. Design follows rule-01-unified-theme-system and rule-07-template-grade-design.
+7. Implement complete flows, including loading, empty, error and success states (rule-03-code-standards).
+8. Split independent lanes with `KIT/skills/parallel-agents/SKILL.md` when delegation is available; otherwise do the roles in order yourself.
+9. Start a dev server or preview only when the user asks to run or see it. Give the URL once it responds.
 
-Choose planning depth to fit the work. A bounded build can use a short task list. Use `plan-writing` for durable coordination or `proplan` when a system document set is requested or genuinely useful; do not block a build on accepting an extra planning command.
+## Stack notes
 
-## Deliver
+- Next.js/React: App Router conventions of the installed version; server code for totals and permissions.
+- Laravel/Blade: Form Requests, policies, migrations, Blade components.
+- Bootstrap 5.3 or Tailwind: map tokens once, then use them everywhere.
+- Expo: tokens and three-mode theme from rule-01; native controls.
+- VPS: note Nginx/PM2 setup in the README for later `/deploy`.
 
-Establish shared contracts and the costly-to-reverse boundaries first. For UI, use frontend-design/mobile-design and record the approved direction with design-spec when helpful. Implement complete useful flows, including relevant empty, loading, error and recovery behavior. Delegate independent lanes with `parallel-agents` when available; otherwise perform the roles directly.
+## Output
 
-Deliver the implementation without an automatic audit or checking phase. Use `verify-changes` or browser verification only when requested (kit-core). Start a preview when the user asks to see/run the result; report its URL only after it is ready.
+Report in the rule-02 shape: what was built, how to run it, decisions, and what was not run (tests, builds, browser checks run only on request per kit-core).
 
-Finish with what was built, where to run/view it, material assumptions, evidence and remaining limits. Do not claim integrations or deployment that were not exercised.
+## Before you finish, check
+
+- [ ] Every requested flow works end to end in code, not as a proposal.
+- [ ] README lists setup, env variable names and run commands.
+- [ ] Demo data lives in one `demo-data.*` file.
+- [ ] The report says plainly which checks were not run.

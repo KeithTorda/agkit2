@@ -50,4 +50,4 @@ Inspect text against the worst actual backdrop area, including responsive crops 
 Use real browser inspection for focus, text, scroll, reduced motion, and unsupported blur behavior. Limit large blurred areas and stacked backdrop effects according to observed device cost; a static illustration or gradient can achieve atmosphere more cheaply. Reserve media dimensions and provide controls for meaningful video/audio behavior.
 
 ## Review
-The composition should still read clearly with blur absent and motion disabled. Check initial load, mobile crops, low-emphasis text, overlays, focus, and scroll performance. Correct the weak local layer instead of stripping the entire glass direction during a generic anti-template review.
+The composition should still read clearly with blur absent and motion disabled. Check initial load, mobile crops, low-emphasis text, overlays, focus, and scroll performance. Correct the weak local layer instead of stripping the entire glass direction during a generic review.

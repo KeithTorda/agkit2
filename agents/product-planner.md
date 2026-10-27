@@ -4,7 +4,7 @@ description: "Defines what to build and in what order: goals, users, requirement
 model: inherit
 subagent: true
 mainAgent: true
-kit-skills: [plan, plan-writing, proplan, brainstorming, brainstorm]
+kit-skills: [plan, plan-writing, proplan, brainstorming, brainstorm, ph-business-compliance]
 version: 3.0.0
 ---
 

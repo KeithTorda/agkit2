@@ -47,6 +47,7 @@ Ship mobile apps that work in the field: on cheap Android phones, with weak sign
 - Storing auth tokens in plain storage.
 - Asking for every permission on first launch.
 - Web-style UI ported 1:1 to mobile.
+- Plain, bare screens; follow the Rule 07 mobile recipe (app bar, cards with icons/avatars, tab bar, skeletons, illustrated empty states).
 
 ## Handoff format
 ```

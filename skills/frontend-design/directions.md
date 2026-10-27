@@ -1,10 +1,6 @@
 # Design conversation and reference palette
 
-Before every new visual design or intentional redesign, ask one short question covering style and references, then wait. Adapt naturally to the user's language and project:
-
-> Para sa app na ito, anong style ang gusto mo at may site o screenshot ka bang reference? Puwede mo ring sabihin na ako ang pumili.
-
-Explicit existing answers, “no reference”, and delegation to choose satisfy intake. Silence does not. A small repair or a component matching an approved system does not reopen it. Existing `DESIGN.md` is useful context when asking about an intentional redesign. Inspect code, assets and constraints while waiting, without inventing the new look.
+Choose the direction yourself and state it, unless it is genuinely unclear and no brief, brand or reference exists; then ask one short question and keep working on non-visual parts. The default level is template-grade (`rule-07-template-grade-design`): rich, complete, premium. Minimal only on request.
 
 ## Help with meaningful options
 

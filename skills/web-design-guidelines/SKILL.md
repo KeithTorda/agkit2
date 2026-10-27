@@ -24,7 +24,7 @@ The [Vercel Web Interface Guidelines](https://github.com/vercel-labs/web-interfa
 - **Motion and media:** preserve essential content without entrance effects, respect reduced-motion behavior, avoid harmful flashing, and provide required alternatives for meaningful images/audio/video.
 - **Performance and resilience:** inspect asset dimensions/loading, font fallback, errors, slow requests and unnecessary runtime work. Measure performance claims; a rich visual direction is not itself a defect.
 
-Use applicable current accessibility standards and actual criterion exceptions when making compliance claims. Automated source scanners can identify candidates; a static pass does not establish accessibility, rendered layout, contrast or working behavior. Use `browser-verification` for actual evidence and `anti-template` for relevant craft topics.
+Use applicable current accessibility standards and actual criterion exceptions when making compliance claims. Automated source scanners can identify candidates; a static pass does not establish accessibility, rendered layout, contrast or working behavior. Use `browser-verification` for actual evidence when the user asks for a rendered check.
 
 ## Report actionable findings
 

@@ -16,7 +16,7 @@ A subtle glow may emphasize a live or selected element when useful. Glow does no
 
 ## Components
 - Tables: consistent columns, aligned comparable numbers, tabular figures, readable density, and touch/keyboard-accessible actions.
-- Charts: a distinguishable palette, labels, usable gridlines, and an alternative to color-only series identification. Use the [chart and data-visualization guidance](../anti-template/parts/20-charts-dataviz.md) when the actual chart needs it.
+- Charts: a distinguishable palette, labels, usable gridlines, and an alternative to color-only series identification. Read chart colors from tokens (see `template-ui-blocks`).
 - Panels: group by task and information relationship. Avoid adding an identical stat-card row where a queue, exception list, or chart is more useful.
 - Controls: visible focus on each surface, clear selected/disabled/pending states, and comfortable target spacing.
 

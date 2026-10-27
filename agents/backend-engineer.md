@@ -4,7 +4,7 @@ description: "Builds and repairs server code: REST APIs, Laravel controllers/ser
 model: inherit
 subagent: true
 mainAgent: true
-kit-skills: [api-patterns, nodejs-best-practices, python-patterns, document-generation, mcp-builder, vulnerability-scanner]
+kit-skills: [laravel-patterns, api-patterns, nodejs-best-practices, python-patterns, ph-business-compliance, document-generation, mcp-builder, vulnerability-scanner]
 version: 3.0.0
 ---
 

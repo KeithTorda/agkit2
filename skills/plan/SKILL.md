@@ -1,15 +1,32 @@
 ---
 name: plan
-description: "Write or update a lightweight executable plan without implementing code when the request is planning-only. Use /plan for a bounded feature, fix or multi-file change; /proplan supports a system document set."
-version: 2.8.2
+description: "/plan - Write or update a lightweight plan file for a bounded feature, fix or multi-file change, without writing code. Use /proplan instead for a whole new system."
+version: 3.2.0
 ---
 
 # /plan
 
-Use `KIT/agents/product-planner.md` and `KIT/skills/plan-writing/SKILL.md`. Read the relevant existing plan, source and accepted decisions before creating another plan for the same work.
+Produce one executable plan file per rule-05-planning-and-docs, then stop unless implementation was also requested.
 
-Define the outcome, scope, important assumptions and dependencies. Ask only for a missing decision that materially changes the plan. For a new visual direction, a plan need not prematurely invent final visual tokens.
+## Steps
 
-Always write the plan to `docs/plans/<yyyy-mm-dd>-<slug>.md` in the format of `rule-05-planning-and-docs`. Use tasks that have an owner, concrete result and meaningful verification. Show consequential uncertainty instead of fixed task quotas or invented schedules. Use proplan when the user requests a system specification or the work warrants linked domain documents, without forcing a command switch as an approval ceremony.
+1. Act as `KIT/agents/product-planner.md` and follow `KIT/skills/plan-writing/SKILL.md`.
+2. Look in `docs/plans/` for an existing plan on the same work. If one exists, update it and add a "Changes" note instead of creating a new file.
+3. Read the relevant source and accepted decisions so the plan names real files, tables and routes.
+4. Write the goal, scope in/out, decisions, and assumptions. Ask once only for a decision that changes the plan.
+5. Break the work into steps, each with an owner agent, files/areas, and a checkable "Done when".
+6. If the work creates a new system or add-on, include table ownership and sync design (rule-04-system-integration).
+7. List risks and open questions. Leave final visual tokens to the design step when the style is still undecided.
+8. Save to `docs/plans/<yyyy-mm-dd>-<slug>.md`.
+9. If the work turns out to need goals, architecture, API and roadmap documents, switch to `/proplan` and say why in one line.
 
-For a planning-only request, deliver the plan path, key decisions, readiness and next executable work, then stop. If the user already asked to plan and implement, the planning step does not revoke that authorization; continue once required decisions are settled.
+## Output
+
+In chat: a 3-6 line summary, the file path, key decisions, and the first step to execute. For a planning-only request, stop there. If the user asked to plan and build, continue into implementation once blocking questions are answered.
+
+## Before you finish, check
+
+- [ ] The plan is saved as a `.md` file and the path is in the reply.
+- [ ] Every step has an owner and a checkable "Done when".
+- [ ] Open questions are listed, not guessed.
+- [ ] No code was written for a planning-only request.

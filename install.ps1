@@ -12,7 +12,7 @@ $pluginParent = Join-Path $configPath 'plugins'
 $pluginPath = [IO.Path]::GetFullPath((Join-Path $pluginParent 'ag-kit-v2'))
 $rulesPath = Join-Path $configPath 'rules'
 $globalPath = Join-Path (Split-Path -Parent $configPath) 'GEMINI.md'
-$ruleNames = @('kit-core.md','rule-01-unified-theme-system.md','rule-02-work-style.md','rule-03-code-standards.md','rule-04-system-integration.md','rule-05-planning-and-docs.md','rule-06-security-baseline.md','quick-reference.md')
+$ruleNames = @('kit-core.md','rule-01-unified-theme-system.md','rule-01b-theme-quick.md','rule-02-work-style.md','rule-03-code-standards.md','rule-04-system-integration.md','rule-05-planning-and-docs.md','rule-06-security-baseline.md','rule-07-template-grade-design.md','quick-reference.md')
 $obsoleteNames = @('copy.md','design.md','core.md','code.md','routing.md','anti-ai.md','core-protocol.md','code-rules.md','design-rules.md','engineering-excellence.md','request-routing.md','universal-rules.md')
 
 function Write-Utf8([string]$Path, [string]$Content) {
@@ -104,7 +104,7 @@ try {
 <!-- AGKIT2:START -->
 # AGKIT2 $version
 Kit: ``$($pluginPath.Replace('\','/'))``.
-Rules: ``$($rulesPath.Replace('\','/'))``. Read kit-core and rule-02-work-style there before acting. UI work follows rule-01, code follows rule-03 and rule-06, new systems follow rule-04, plans and docs follow rule-05.
+Rules: ``$($rulesPath.Replace('\','/'))``. Read kit-core and rule-02-work-style there before acting. UI work follows rule-01 and rule-07 (template-grade, not minimal), code follows rule-03 and rule-06, new systems follow rule-04, plans and docs follow rule-05.
 Tests, builds, audits and browser checks run only when the user asks; never append them automatically after implementation. Report only evidence that actually ran.
 <!-- AGKIT2:END -->
 "@

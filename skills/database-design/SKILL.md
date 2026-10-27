@@ -1,45 +1,39 @@
 ---
 name: database-design
-description: Design schemas, queries, indexes, transactions and migrations around data invariants and workload. Use for database selection, modeling, persistence changes or slow queries; preserve the engine and ORM unless the task requires a change.
-version: 2.8.2
+description: Use when designing tables, migrations, indexes or queries, deciding which system owns which data, or fixing a slow query, on MySQL or Postgres.
+version: 3.2.0
 ---
 
 # Database Design
 
-Model facts that must remain true, then choose storage/access patterns that enforce them. Inspect the actual engine/ORM versions, migrations, workload and deployment. Do not upgrade storage or drivers to match a kit preference.
+Model the facts that must stay true, enforce them in the database, and keep each system's data in its own database per rule-04-system-integration.
 
-## Storage and schema
+## Steps
 
-Relational engines suit joins, structured constraints and transactions. Embedded databases fit local tools and server workloads when concurrency/deployment limits fit. Document, key-value, search and vector stores solve specific access needs; compare source-of-truth ownership, hosting, backup/restore, write patterns, cost and team experience.
+1. Read the current migrations, models and engine version. Keep the existing engine and ORM.
+2. Write an ownership table: every table, its owner system, and whether it is master data (ERP-owned, local read-only copy) or a transaction (owned by this add-on). Only the owner writes it.
+3. Local copies of ERP master data carry the ERP ID (`erp_item_id`, `erp_branch_id`) with a unique index, plus `synced_at`. Upserts match on that ERP ID.
+4. Add an `outbox` table to every add-on, with the columns listed in rule-04-system-integration and an index on (`status`, `next_attempt_at`). Store processed incoming keys in an `idempotency_keys` or `processed_events` table with a unique key.
+5. Enforce invariants with constraints: NOT NULL, foreign keys, unique keys (include `branch_id` or tenant in them where scoped), CHECK where the engine supports it.
+6. Types: money as `DECIMAL(15,2)` or integer centavos with a currency column; instants as UTC timestamps; calendar dates as `DATE`. Avoid FLOAT for amounts.
+7. Money and stock records are voided or reversed, with `voided_at`, `voided_by` and `void_reason`, per rule-06-security-baseline. Add an audit table for sensitive changes.
+8. Wrap multi-step writes in a transaction. For stock or balances, use an atomic conditional update (`UPDATE ... SET qty = qty - ? WHERE id = ? AND qty >= ?`) or a row lock.
+9. Index the real WHERE, JOIN and ORDER BY columns, composite in that order. Eager-load relations to remove N+1 queries. Read EXPLAIN on realistic data sizes.
+10. Large-table changes: add the new column, deploy code that writes both, backfill in batches, then drop the old column in a later release. Note in the migration whether `down()` loses data.
 
-Keep an adequate existing ORM/query builder. Use parameterized SQL for complex or engine-specific operations. An ORM does not prevent unsafe transactions, N+1 queries or destructive migrations. Verify installed-version APIs before changing configuration.
+## Stack notes
 
-- Choose identifiers for actual requirements: local identity, opaque public IDs, distributed generation, ordering and index behavior. Sequential IDs are not access control; time-ordered IDs may expose creation time. No UUID format is universal.
-- Encode uniqueness, references, required fields and valid ranges with database constraints where possible. Include tenant scope in relevant unique/foreign-key contracts.
-- Represent money with exact decimal or integer minor units and explicit currency/rounding rules. Precision varies by currency/use case; avoid binary floats for authoritative amounts.
-- Distinguish instants, calendar dates and recurring local times. A birthday is not a UTC timestamp. Preserve the domain's time-zone interpretation.
-- Normalize facts that must remain consistent. JSON/denormalized values need an ownership/update strategy and access patterns that justify them.
-
-## Transactions and concurrency
-
-Group changes that must commit together. Check isolation level and ORM semantics; atomicity alone does not eliminate every race. Scarce stock or balances may need an atomic conditional write, row lock, constraint or serializable transaction with bounded retry. A prior SELECT plus unguarded write is race-prone.
-
-Keep external effects outside retriable transactions unless explicitly designed for it. For a database write plus durable event delivery, consider an outbox/idempotent consumer. Deduplication must survive concurrent requests and crashes after commit. Test the failure between steps.
-
-## Query evidence
-
-Capture representative parameters, row counts, latency distribution and query plans. EXPLAIN ANALYZE may execute writes/expensive work: use a suitable safe environment.
-
-Index actual predicates, joins and ordering, accounting for composite order, selectivity and write cost. Fetch necessary columns, bound collections and batch/eager-load when it removes N+1. Cursor pagination needs deterministic ties and a matching index. Re-measure on representative data; an empty development database proves little.
-
-## Migrations and recovery
-
-Assess table size, locks, engine capabilities and overlap between old/new app versions. When rollout requires compatibility: expand schema, deploy compatible readers/writers, backfill in resumable batches, verify invariants, then remove old fields safely. A maintenance window may be simpler when acceptable.
-
-Document data recovery and rollback limits. A down migration may destroy new data or be impossible. Verify backup restore for significant changes and use a dry run where useful. Do not claim zero downtime without lock/runtime evidence.
-
-For `/proplan`, keep its data-model/template contract. Include entities, constraints, access patterns, transaction boundaries, retention, migrations and recovery assumptions.
+- Laravel specifics (migrations, Eloquent casts, `lockForUpdate`, soft deletes, seeders) live in the `laravel-patterns` skill.
+- Postgres: use `jsonb`, partial indexes and `timestamptz`. MySQL 8: use InnoDB, `utf8mb4`, and generated columns to index JSON fields.
+- `/proplan` data-model docs list entities, owner, constraints, indexes and retention.
 
 ## Helper
 
-`python "KIT/skills/database-design/scripts/schema_validator.py" .` supports `--json`, `--verbose`, `--fail-on error|warning|never`. Its pattern scan cannot prove live constraints, performance, isolation or migration safety. Inspect actual migrations and database behavior.
+`python "KIT/skills/database-design/scripts/schema_validator.py" .` scans schema files for common issues (`--json`, `--verbose`, `--fail-on error|warning|never`). Run it on request; it cannot prove live constraints or performance.
+
+## Before you finish, check
+
+- [ ] Each table has exactly one owner system, and no query touches another system's database.
+- [ ] The add-on has an `outbox` table and a unique store for processed idempotency keys.
+- [ ] Money uses exact types, and money or stock rows are voided instead of deleted.
+- [ ] Constraints and indexes match the real queries, and risky migrations note their rollback limits.

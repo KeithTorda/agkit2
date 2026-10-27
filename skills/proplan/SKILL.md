@@ -1,79 +1,73 @@
 ---
 name: proplan
-description: "Plan a system as linked goals, requirements, architecture, domain contracts and delivery milestones in docs/proplan/<slug>. Supports full, --lite and update modes with stable IDs and a structural checker."
-version: 2.8.2
+description: "/proplan - Plan a whole system as a linked document set (goals, requirements, architecture, contracts, roadmap) in docs/proplan/<slug>. Supports full, --lite and update modes."
+version: 3.2.0
 ---
 
 # /proplan
 
-Create a coherent system specification builders can execute and reviewers can challenge. Use full mode for a requested comprehensive plan or substantial cross-domain decisions. Use `--lite` for a compact linked plan. A bounded feature can use plan-writing without a mandatory switch or approval ceremony.
+A system spec builders can execute and reviewers can challenge.
 
 ```text
-/proplan <system brief>
-/proplan --lite <system brief>
+/proplan <brief>            full set
+/proplan --lite <brief>     compact set
 /proplan update <slug> <change>
 ```
 
-## Documents and contracts
+## Documents
 
-Write to `docs/proplan/<slug>/` at the project root. Preserve these filenames and checker contracts; content depth follows the actual system.
+Folder: `docs/proplan/<slug>/`. Keep these filenames.
 
-| File | Owner | Purpose |
+| File | Owner | Holds |
 |---|---|---|
-| 00-overview.md | lead | Summary, set/version, decisions, assumptions, index and changes |
-| 01-goals.md | product-planner | G- business goals, DG- development goals, KPI- measures |
-| 02-requirements.md | product-planner | R- requirements/acceptance, NFR- quality needs, scope |
-| 03-architecture.md | architect | Boundaries, quality drivers, integrations per `rule-04-system-integration` (table ownership, outbox, webhooks, reconciliation), rationale |
-| 04-data-model.md | database-engineer | Entities, constraints, queries and lifecycle |
-| 05-api.md | backend-engineer | API- contracts, authorization, failure and retry behavior |
-| 06-ux.md | ux-designer | S- screens/states, journeys and accepted design direction |
-| 07-security.md | security-engineer | TH- threats, permissions, data handling and controls |
-| 08-quality.md | qa-engineer | TC- acceptance coverage and verification approach |
-| 09-operations.md | devops-engineer | Release, configuration, recovery and observability |
-| 10-roadmap.md | product-planner | M milestones and T- tasks with ownership/dependencies/verify |
-| 11-risks.md | product-planner | RK- risks, triggers, mitigations and owners |
-| 12-documentation.md | docs-writer | DOC- deliverables needed by actual readers |
-| 13-glossary.md | lead | Consistent product vocabulary |
-| adr/ADR-001-<decision>.md | architect | Durable architecture decision and consequences |
-| TRACEABILITY.md | generated | Goal/requirement/contract/task/test coverage |
-| REVIEW.md | architect | RV- findings and their resolution |
+| 00-overview.md | lead | Summary, set, decisions, assumptions, changes |
+| 01-goals.md | product-planner | G-, DG-, KPI- |
+| 02-requirements.md | product-planner | R-, NFR-, scope |
+| 03-architecture.md | architect | Boundaries, integrations per rule-04-system-integration |
+| 04-data-model.md | database-engineer | Entities, constraints, lifecycle |
+| 05-api.md | backend-engineer | API- contracts, auth, retries |
+| 06-ux.md | ux-designer | S- screens, states, design direction |
+| 07-security.md | security-engineer | TH- threats, permissions |
+| 08-quality.md | qa-engineer | TC- acceptance coverage |
+| 09-operations.md | devops-engineer | Release, config, recovery |
+| 10-roadmap.md | product-planner | M milestones, T- tasks |
+| 11-risks.md | product-planner | RK- risks |
+| 12-documentation.md | docs-writer | DOC- deliverables |
+| 13-glossary.md | lead | Vocabulary |
+| adr/ADR-001-<decision>.md | architect | Decision and consequences |
+| TRACEABILITY.md | generated | Coverage links |
+| REVIEW.md | architect | RV- findings |
 
-Full mode uses the complete set. Lite mode uses 00, 01, 02, 03, 10 and TRACEABILITY; 03 includes **Data model summary** and **API summary**, with API IDs defined in its table, and 10 holds a short RK- risks table. An ADR and review artifact can still be useful in lite mode. Do not invent endpoints or screens for a system that does not have them; state why a domain is inapplicable in its full-set document.
+Lite set: 00, 01, 02, 03, 10, TRACEABILITY. In lite, 03 adds **Data model summary** and **API summary** (API IDs in its table) and 10 holds a short RK- table.
 
-Read [reference.md](./reference.md) for exact IDs, definitions and checker behavior. Templates in `templates/` preserve parseable headings and fields. `example/pos-lite/` is an illustrative checker fixture, not an assumed domain, legal policy, stack recommendation or real release report.
+IDs and checker rules: [reference.md](./reference.md). Role inputs: [briefs.md](./briefs.md). Start files from [templates/](./templates/). [example/pos-lite/](./example/pos-lite/) is a format sample only.
 
-## Establish the brief
+## Steps
 
-Read the request, relevant repository/docs and accepted decisions. Identify greenfield versus brownfield, audience, core outcomes and material constraints. In brownfield work map the actual system before proposing replacements; explorer can return a map for `notes/codebase-map.md`.
+1. Read the request, repo and docs. For brownfield work, have `explorer` map the code into `notes/codebase-map.md`.
+2. Ask once only about decisions that change the outcome. If style is unclear, ask one style question and keep writing the other documents.
+3. Pick full or lite, state assumptions, and create only the needed files from templates.
+4. Write goals and requirements, then architecture and contracts. Compare options only where a real choice is open.
+5. Detail data, API, UX, security, quality and operations. Make roles and permissions agree across 04, 05 and 07.
+6. Plan milestones and tasks from finished contracts, with owner, dependencies and verify line.
+7. Reconcile the set and review it for realistic failures in REVIEW.md.
+8. Build traceability:
+   ```powershell
+   python "KIT/scripts/proplan_check.py" docs/proplan/<slug> --stage design
+   python "KIT/scripts/proplan_check.py" docs/proplan/<slug> --write-traceability
+   ```
+   Fix errors; judge warnings on meaning.
+9. Keep `status: draft` until the user actually approves.
 
-Ask only for missing decisions that change the promised outcome or a consequential commitment. If the visual direction is genuinely unclear and no references were given, ask one short style question and continue the nonvisual documents meanwhile; otherwise choose a direction and state it in 06. Carry the accepted answer into 06 and all worker briefs; do not repeat it per role. An unresolved visual choice need not block independent nonvisual discovery.
+For changes, follow [update.md](./update.md).
 
-State the selected set and material assumptions, then create only its needed files from templates. Use a concise shared brief carrying goals, constraints, evidence, accepted decisions and open dependencies; no questionnaire, line count or persona/goal quota is required.
+## Output
 
-## Develop in dependency order
+Path, set, key decisions, delivery order, top risks, checker result, open questions, next milestone. If implementation was also requested, continue with `/orchestrate`.
 
-1. Establish goals, requirements and important UX/security constraints. Explore current code when present; distinguish observed facts, proposed targets and unresolved evidence.
-2. Define architecture and cross-domain contracts. Compare credible alternatives when an actual choice is open. Ask the user for unresolved product commitments or consequential choices they must own; do not require a universal architecture approval. Record routine delegated technical decisions and rationale.
-3. Detail the schema, API, UX, security, quality and operations appropriate to the selected set. Parallelize only independent questions/disjoint files with settled inputs; otherwise sequence them. The schema/API/security matrix and role names must agree before calling contracts ready.
-4. Plan usable milestones and tasks from the completed contracts. Include real migration, recovery, docs and verification work, estimates with uncertainty when useful, and contingency tied to risks. Preserve stable IDs and checkable criteria.
-5. Reconcile the whole set, then review it for realistic failure scenarios. Fix material contradictions and keep unresolved decisions visible. An independent reviewer is useful when available; sequential review is valid and must not be described as independent.
+## Before you finish, check
 
-Read [briefs.md](./briefs.md) for domain inputs and safe delegation/fallback. Shared ownership has one writer per file; the lead reconciles small inconsistencies and records material changes. Avoid blanket phase concurrency when one document consumes another's unfinished contract.
-
-## Validate structure and judgment
-
-```powershell
-python "KIT/scripts/proplan_check.py" docs/proplan/<slug> --stage design
-python "KIT/scripts/proplan_check.py" docs/proplan/<slug> --write-traceability
-python "KIT/scripts/proplan_check.py" docs/proplan/<slug> --lite --json
-```
-
-Use design stage while detailed contracts exist but delivery/review files are unfinished. Regenerate traceability for the final set and resolve errors. Review warnings for actual meaning; do not invent numbers or irrelevant content merely to silence a heuristic. Structural consistency is not product correctness, legal compliance, cost verification or user acceptance.
-
-Keep `status: draft` while unsettled; use a truthful review/ready status per project practice. `approved` requires actual approval. Do not fabricate user decisions, signoffs, research, dates or estimates.
-
-## Handoff and updates
-
-Report the path/set/version, intended outcome, major decisions, scope, delivery sequence, important risks, checker result and outstanding decisions/evidence. Keep the report proportional rather than requiring a fixed script. For a planning-only request, end with the next executable milestone. If the user authorized implementation as well, continue through orchestrate once genuine blocking decisions are settled.
-
-For changes, read [update.md](./update.md). Preserve IDs, update affected contracts and changelog, regenerate traceability and review the delta. A plan task does not authorize unrelated live deployment or destructive data operations.
+- [ ] Every file in the chosen set exists and IDs are stable.
+- [ ] 03 states table ownership and sync design.
+- [ ] TRACEABILITY.md was regenerated, not hand-edited.
+- [ ] No invented approvals, dates, endpoints or research.

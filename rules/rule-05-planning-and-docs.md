@@ -2,8 +2,8 @@
 name: rule-05-planning-and-docs
 version: 3.0.0
 priority: P1
-trigger: model_decision
-description: Rule 05 - apply when the user asks for a plan, roadmap, proposal, spec, task breakdown, architecture document, README, setup guide, handover or any project documentation.
+trigger: always_on
+description: Rule 05 - every plan is a .md file in docs/plans; plan format; documentation minimum.
 ---
 
 # RULE 05 — PLANNING AND DOCS
@@ -53,4 +53,10 @@ Every project keeps these up to date when behavior changes:
 - `CHANGELOG.md` (if the project has releases): one line per user-visible change.
 - `docs/api/` or `05-api.md` when the project exposes an API.
 
-Write docs from the actual code. Do not document features that do not exist yet as if they do.
+Write docs from the actual code. Mark features that do not exist yet as "Planned".
+
+## Before you answer, check
+
+- [ ] The plan is saved at `docs/plans/<yyyy-mm-dd>-<slug>.md` and the chat links it.
+- [ ] Every step has an owner agent and a checkable "Done when".
+- [ ] README/API docs match any behavior I changed.
