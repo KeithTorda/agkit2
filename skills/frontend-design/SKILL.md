@@ -14,7 +14,7 @@ Ship web screens with a clear visual direction, real content and complete behavi
 2. Name the screen's audience, main task and the content that matters most.
 3. Pick the direction. Existing approved design system: match it. No brief or reference: choose one, state it in one line, and continue. Ask one style question only if the direction truly cannot be inferred.
 4. For a new design system, record it with `KIT/skills/design-spec/SKILL.md`.
-5. Start from the matching page recipe in rule-07-template-grade-design. Use the `template-ui-blocks` skill for ready-made sections and chrome.
+5. Rule 07 and the `template-ui-blocks` skill offer ideas and ready sections; use them only where they fit your direction.
 6. Fill the screen with realistic demo data from one `demo-data` file and neutral demo brands.
 7. Build every control with hover, focus, disabled, open and error states, keyboard access and labels.
 8. Style only through tokens so Light, Dark and System all work (rule-01-unified-theme-system).
@@ -36,7 +36,7 @@ Ship web screens with a clear visual direction, real content and complete behavi
 
 ## Stack notes
 
-- Keep the project's framework, CSS system (Bootstrap 5.3 or Tailwind), icon set and font pipeline.
+- Keep the project's framework, CSS system, icon set and font pipeline.
 - Blade: put repeated chrome in layouts and components. Next.js: keep server and client components separate.
 - Add a package only for a concrete need the project cannot cover.
 
@@ -48,7 +48,7 @@ Craft ideas adapted from [taste-skill](https://github.com/Leonxlnx/taste-skill) 
 
 ## Before you finish, check
 
-- [ ] Every section of the matching Rule 07 recipe is present or skipped by request.
+- [ ] The design has a clear direction and nothing is added just to fill space.
 - [ ] Loading, empty, error and success states exist where data loads.
 - [ ] Colors, spacing and shadows come from tokens and work in Light and Dark.
 - [ ] Copy makes no fake real-world claims.

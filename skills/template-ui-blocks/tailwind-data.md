@@ -26,7 +26,49 @@ lucide.createIcons();
 </script>
 ```
 
-`spark()`, the Chart.js config and `themeChart()` (reads `--chart-*`, `--chart-grid`, `--muted-foreground`, re-themes on `themechange` with `chart.update('none')`, no re-init) are stack-agnostic: copy blocks 3 and 4 scripts from [bootstrap-app.md](bootstrap-app.md) unchanged.
+`spark()`, the Chart.js config and `themeChart()` (reads `--chart-*`, `--chart-grid`, `--muted-foreground`, re-themes on `themechange` with `chart.update('none')`, no re-init) are stack-agnostic: shared scripts below.
+
+```html
+<!-- KPI sparkline -->
+<script>
+const spark = (pts) => { const max = Math.max(...pts), min = Math.min(...pts), w = 96, h = 32;
+  const d = pts.map((p, i) => `${(i / (pts.length - 1)) * w},${h - ((p - min) / (max - min || 1)) * h}`).join(' ');
+  return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-hidden="true"><polyline points="${d}" fill="none" stroke="var(--chart-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`; };
+// Render KPI cards with your own markup and call spark(k.trend) for the sparkline.
+</script>
+
+<!-- Chart card -->
+<script>
+const tok = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const S = DEMO.salesByMonth;
+const salesChart = new Chart(document.getElementById('salesChart'), {
+  type: 'line',
+  data: { labels: S.labels, datasets: S.series.map((s, i) => ({ label: s.name, data: s.data, tension: .35, borderWidth: 2,
+    pointRadius: 0, pointHoverRadius: 5, fill: i === 0, borderDash: i === 2 ? [6, 4] : [] })) }, // dash = not color-only
+  options: { responsive: true, maintainAspectRatio: false, animation: reduceMotion ? false : { duration: 600 },
+    interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } },
+      tooltip: { borderWidth: 1, padding: 10, callbacks: { label: (c) => ` ${c.dataset.label}: ${fmt.peso(c.parsed.y)}` } } },
+    scales: { x: { grid: { display: false }, ticks: {} }, y: { border: { display: false }, grid: {}, ticks: { callback: (v) => '₱' + v / 1000 + 'k' } } } },
+});
+function themeChart(ch) {
+  const c = [1, 2, 3, 4, 5].map((n) => tok(`--chart-${n}`)), muted = tok('--muted-foreground'), grid = tok('--chart-grid');
+  ch.data.datasets.forEach((d, i) => { d.borderColor = d.pointBackgroundColor = c[i];
+    d.backgroundColor = (ctx) => { const a = ctx.chart.chartArea; if (!a) return 'transparent';
+      const g = ctx.chart.ctx.createLinearGradient(0, a.top, 0, a.bottom); g.addColorStop(0, c[i] + '40'); g.addColorStop(1, c[i] + '00'); return g; }; }); // tokens are 6-digit hex
+  const o = ch.options; o.scales.x.ticks.color = o.scales.y.ticks.color = o.plugins.legend.labels.color = muted;
+  o.scales.y.grid.color = grid;
+  Object.assign(o.plugins.tooltip, { backgroundColor: tok('--surface-elevated'), titleColor: tok('--foreground'), bodyColor: tok('--foreground'), borderColor: tok('--border') });
+  ch.update('none');
+}
+themeChart(salesChart);
+document.addEventListener('themechange', () => themeChart(salesChart));
+const totals = S.series.map((s) => ({ name: s.name, total: s.data.reduce((a, b) => a + b, 0) })), top = Math.max(...totals.map((t) => t.total));
+document.getElementById('topBranches').innerHTML = totals.map((t, i) => `<div><div class="d-flex justify-content-between small mb-1"><span class="fw-semibold">${t.name}</span><span>${fmt.peso(t.total)}</span></div>
+  <div class="progress" style="height:.5rem" role="progressbar" aria-label="${t.name} share" aria-valuenow="${Math.round(t.total / top * 100)}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar" style="width:${t.total / top * 100}%;background:var(--chart-${i + 1})"></div></div></div>`).join('');
+</script>
+```
 
 ## 2. Data table page
 

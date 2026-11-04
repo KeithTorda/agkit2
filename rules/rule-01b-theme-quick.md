@@ -1,7 +1,7 @@
 ---
 name: rule-01b-theme-quick
 version: 3.2.0
-priority: P0
+priority: P1
 trigger: glob
 globs: "**/*.html, **/*.css, **/*.scss, **/*.tsx, **/*.jsx, **/*.vue, **/*.svelte, **/*.astro, **/*.blade.php, **/tailwind.config.*, **/components/**, **/resources/views/**"
 description: Rule 01 quick card - the 12 must-dos of the Unified Theme System. Full text is rule-01-unified-theme-system.
@@ -9,7 +9,7 @@ description: Rule 01 quick card - the 12 must-dos of the Unified Theme System. F
 
 # RULE 01 QUICK CARD — UNIFIED THEME SYSTEM
 
-Full rule: `rule-01-unified-theme-system`. This card is the short version to apply on every UI change.
+Full rule: `rule-01-unified-theme-system`. Guidance for theming. Apply what is relevant to the change; use judgment.
 
 1. **One theme system.** Reuse the project's existing theme provider and tokens. Add a new provider only when none exists.
 2. **Three modes.** Light, Dark, System. Store `themePreference` (`light|dark|system`) and derive `resolvedTheme` (`light|dark`). Default: System.
@@ -26,7 +26,6 @@ Full rule: `rule-01-unified-theme-system`. This card is the short version to app
 
 ## Stack mapping
 
-- Bootstrap 5.3: `data-bs-theme` on `<html>`, tokens mapped to `--bs-*`, System mode resolved in a head script.
 - Tailwind: tokens as CSS variables; dark variant bound to the same attribute the provider sets.
 - Next.js: one provider (e.g. next-themes) with `suppressHydrationWarning` on `<html>`.
 

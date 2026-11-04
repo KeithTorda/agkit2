@@ -1,14 +1,13 @@
 ---
 name: rule-01-unified-theme-system
 version: 2.0.0
-priority: P0
-trigger: glob
-globs: "**/*.html, **/*.css, **/*.scss, **/*.tsx, **/*.jsx, **/*.vue, **/*.svelte, **/*.astro, **/*.blade.php, **/tailwind.config.*, **/components/**, **/resources/views/**"
+priority: P2
+trigger: model_decision
 description: Rule 01 - Unified Theme System V2.0. One semantic-token design system with Light, Dark and System modes for websites, dashboards, SaaS and web apps.
 ---
 
 # RULE 01 — UNIFIED THEME SYSTEM (V2.0)
-**Priority: CRITICAL | Mandatory | Non-Negotiable**
+Reference document. The quick card (rule-01b) is the everyday guide; read this only when building or fixing a theme system.
 
 **Applies to:** Websites, Admin Dashboards, SaaS Platforms, Enterprise Applications, and Web Applications.
 

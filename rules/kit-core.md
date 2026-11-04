@@ -21,7 +21,7 @@ description: Kit plumbing - where the kit lives, which rule covers what, which a
 | `rule-04-system-integration` | New systems and add-ons: Option B ERP integration |
 | `rule-05-planning-and-docs` | Plan files and project documentation |
 | `rule-06-security-baseline` | Auth, permissions, input, secrets, money records, uploads |
-| `rule-07-template-grade-design` | UI looks like a complete premium ready-made template; minimal only on request |
+| `rule-07-template-grade-design` | Design guide: finished and intentional, creative freedom on visual direction |
 
 Each topic has one owner rule. If two instructions seem to conflict, the user's current message wins, then the more specific rule. In Expo/React Native, apply Rule 01's token, three-mode and accessibility parts; its CSS, `color-scheme` and hydration items do not apply.
 
@@ -43,7 +43,7 @@ Tests, lint/build runs, audits, browser inspection, screenshots, `/see`, `/test`
 | `architect` | system design, tech choices, ADRs, integration design, reviewing plans |
 | `product-planner` | goals, requirements, user stories, acceptance criteria, task plans |
 | `ux-designer` | flows, sitemap, screen list and states, DESIGN.md, token set |
-| `frontend-engineer` | web UI: React/Next, Blade, Bootstrap, Tailwind, theming, SEO |
+| `frontend-engineer` | web UI: React/Next, Blade, any CSS approach, theming, SEO |
 | `backend-engineer` | APIs, services, auth, jobs, webhooks, exports, outbox sync |
 | `database-engineer` | schema, migrations, indexes, queries, seeds, data ownership |
 | `mobile-engineer` | Expo/React Native/Flutter apps, offline, device features, store builds |

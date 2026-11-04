@@ -1,5 +1,10 @@
 # Changes
 
+## 3.3.0 - 2026-11-04
+
+- Creative freedom in UI: rewrote `rule-07` from a strict template checklist into a flexible design guide; moved full `rule-01` and `rule-04` to `model_decision` triggers so they load only when needed.
+- Removed Bootstrap defaults: deleted `bootstrap-patterns` and Bootstrap block templates; agents and skills now adapt to whatever CSS stack a project uses.
+
 ## 3.2.0 — 2026-10-27
 
 - Gemini fit: Rule 01b quick card; "Before you answer, check" recap on every rule; "Do not" lists rewritten as positive instructions; proof-of-work (pasted output) and `Rules applied` line in reports; session discipline in kit-core; Rule 04 now loads by glob on backend/db paths and Rule 05 is always on; validator flags rule files over 12,000 characters (info) and 24,000 bytes (error).

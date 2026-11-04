@@ -1,62 +1,47 @@
 ---
 name: rule-07-template-grade-design
-version: 3.1.0
-priority: P0
+version: 4.0.0
+priority: P2
 trigger: glob
 globs: "**/*.html, **/*.css, **/*.scss, **/*.tsx, **/*.jsx, **/*.vue, **/*.svelte, **/*.astro, **/*.blade.php, **/*.dart, **/components/**, **/resources/views/**, **/app/**/page.*, **/pages/**"
-description: Rule 07 - every page, dashboard and app screen looks like a complete, premium, ready-made template (ThemeForest / Tailwind UI / CoreUI / Metronic level), not a minimal bare page. Works with Rule 01 tokens.
+description: Rule 07 - design guide. UI should feel finished and intentional. You choose the visual direction; these are suggestions, not a checklist.
 ---
 
-# RULE 07 — TEMPLATE-GRADE DESIGN
+# RULE 07 - DESIGN GUIDE
 
-## Default look
+This is guidance, not a checklist. You have creative freedom. Use judgment about what fits the product, the audience and the request.
 
-Every UI you build should look like a **premium ready-made template** someone would buy: complete, polished, rich, and ready to ship. Not minimal, not a wireframe, not a plain white page with text.
+## The bar
 
-- Minimal / editorial style only when the user explicitly asks for minimal.
-- An existing project's approved design system wins; match its level of polish and fill gaps at template grade.
-- All colors, spacing, radius, shadows and motion come from Rule 01 tokens and work in Light and Dark.
+- The result should feel finished and intentional, something the user would be happy to show a client. Not a bare wireframe, and not cluttered either.
+- Pick a clear visual direction for the product and commit to it. Restraint is a valid choice; so is bold. Match the purpose.
+- An existing project's design wins. Fit in with what is there before adding anything new.
+- If the user asks for a specific style (minimal, bold, playful, corporate), follow that.
 
-## What "template-grade" means
+## Things that usually help
 
-Every screen has:
-- **Complete chrome:** header/navbar with logo, navigation, search or actions, user/profile menu; footer on public pages; sidebar with grouped sections, icons and active state on apps.
-- **Visual depth:** layered surfaces, cards with soft shadows or borders, accent colors, gradient or pattern accents used with purpose, consistent icon set (Lucide, Tabler, Bootstrap Icons, Heroicons).
-- **Real-looking content:** realistic demo data (Philippine context: ₱ amounts, local names, branches, dates), never "Lorem ipsum" or "Item 1, Item 2". Demo data lives in one clearly named file (`demo-data.*`) so it is easy to replace.
-- **Imagery:** hero images, illustrations, avatars, product images or tasteful placeholders (gradient blocks with icons, `picsum`/`ui-avatars`-style placeholders) instead of empty boxes.
-- **Interaction polish:** hover, focus, active and pressed states on every control; smooth transitions (150–300 ms); skeleton loaders; toasts; animated counters or charts where fitting; respects `prefers-reduced-motion`.
-- **All states designed:** loading skeleton, empty state with illustration/icon and next action, error with recovery, success feedback.
+Use what fits; skip what does not.
 
-## Page recipes (minimum sections)
+- Clear hierarchy: one obvious primary action per screen, readable type, good spacing.
+- Consistent components and one icon set.
+- Handle the states people will actually hit (loading, empty, error) in a way that looks designed.
+- Hover and focus feedback on interactive elements; subtle motion that respects `prefers-reduced-motion`.
+- Realistic content instead of "Lorem ipsum" or "Item 1, Item 2" when demo data is needed (Philippine context is a good default: peso amounts, local names).
+- Colors and spacing from the project's tokens so Light and Dark both work (Rule 01).
 
-**Landing / marketing page:** sticky navbar → hero (headline, subtext, 2 CTAs, visual) → logos/trust strip → features grid with icons → feature detail rows (image + text alternating) → stats/metrics band → testimonials → pricing (3 tiers, highlighted plan) → FAQ accordion → final CTA band → full footer (columns, socials, newsletter, legal).
+## Ideas, not requirements
 
-**Admin dashboard:** collapsible sidebar with grouped nav + badges → top bar (search, notifications, theme toggle, profile) → page header with breadcrumb and primary action → 4 KPI cards (icon, value, trend %, sparkline) → main chart + side chart/list → recent activity / table with avatars, status badges, actions menu, pagination → quick actions or alerts panel.
+Common sections for reference only. Do not add a section just because it is on this list.
 
-**Data table page:** toolbar (search, filters, date range, export, add button) → table with sticky header, row selection, status badges, row actions, pagination, row count → empty and loading rows → detail drawer or modal.
+- Landing page: navbar, hero, features, social proof, pricing, FAQ, CTA, footer.
+- Dashboard: sidebar or top nav, page header, key numbers, a main chart or table, recent activity.
+- Data table: search/filters, table with status badges and row actions, pagination.
+- Form: grouped fields with helper text, inline validation, clear save/cancel.
+- Auth: focused form card, optional brand visual.
 
-**Form page:** sectioned card layout with titles and helper text → two-column grid on desktop → proper inputs (selects styled, date pickers, file upload with preview, toggles) → inline validation → sticky action bar (Cancel / Save).
+`KIT/skills/template-ui-blocks/SKILL.md` has ready blocks if they help. Adapt them freely.
 
-**Auth pages:** split layout (brand visual or illustration on one side, form card on the other) → social/SSO buttons when relevant → remember me, forgot password, sign-up link.
+## Avoid
 
-**Mobile app screens:** app bar with title/actions → cards and lists with icons/avatars → bottom tab bar or FAB → pull-to-refresh, skeletons, empty states with illustration.
-
-## Component library expectations
-
-Build or reuse a consistent set: buttons (primary, secondary, ghost, danger, icon, loading), badges, avatars, cards (stat, profile, product), tabs, dropdown menus, modals, drawers, toasts, tooltips, breadcrumbs, pagination, steppers, progress, charts (Chart.js / Recharts / ApexCharts), skeletons. Every component has hover, focus, disabled and dark-mode styling.
-
-## Instead of shortcuts
-
-- Instead of centered text and one button: build the full recipe for that page type.
-- Instead of browser-default controls: style every control (`.form-select`, custom checkbox/switch, styled file input).
-- Instead of empty boxes or "TODO": add an icon, illustration or styled placeholder with a caption.
-- Instead of one flat color: use surface layers, accent color, borders and shadows from tokens.
-- Instead of real company logos or certifications: use neutral demo brands.
-
-Copy-ready blocks for every recipe: `KIT/skills/template-ui-blocks/SKILL.md`.
-
-## Before you answer, check
-
-- The screen could be shown to a client as a finished template without "it's still a draft" excuses.
-- Every section in the matching recipe above exists (or the user asked to skip it).
-- Light and Dark both look finished (Rule 01).
+- Filling space with decoration, gradients or sections that serve no purpose.
+- The same generic "AI template" look on every project. Give each product its own character.

@@ -21,7 +21,6 @@ Correct one UI defect at the rule that owns it while keeping the approved design
 
 ## Stack notes
 
-- Bootstrap 5.3: prefer utility classes and CSS variables (`--bs-*`) over custom overrides.
 - Tailwind: fix the class list or the theme config; keep responsive prefixes consistent.
 - Blade: check included partials and stacks for duplicated wrappers.
 - Third-party widgets: a narrow override with a one-line reason comment is fine when the library cannot be configured.

@@ -20,7 +20,7 @@ description: Catalog of the kit's agents (triggers and skills), slash commands, 
 | devops-engineer | deploy, production, staging, server, vps, nginx, pm2, docker, compose, ci, cd, github actions, ssl, domain... | deploy, shell-ops, vulnerability-scanner, app-builder |
 | docs-writer | documentation, docs, readme, guide, manual, how to use, setup guide, deploy guide, api docs, changelog, han... | document-generation, api-patterns, see-doc, clean-code |
 | explorer | explore, map the codebase, where is, how does, explain this code, legacy, old code, undocumented, reverse e... | init-project, architecture, database-design, api-patterns ... |
-| frontend-engineer | component, page, layout, ui, css, tailwind, bootstrap, react, next.js, blade, vue, sidebar, navbar, form, t... | frontend-design, template-ui-blocks, bootstrap-patterns, tailwind-patterns ... |
+| frontend-engineer | component, page, layout, ui, css, tailwind, react, next.js, blade, vue, sidebar, navbar, form, table, modal... | frontend-design, template-ui-blocks, tailwind-patterns, nextjs-react-expert ... |
 | lead | orchestrate, coordinate, full-stack, end-to-end, whole feature, multi-agent, delegate, integrate, milestone... | orchestrate, parallel-agents, plan-writing, proplan ... |
 | mobile-engineer | mobile, app, react native, expo, flutter, ios, android, apk, play store, app store, eas, offline, push noti... | mobile-design, api-patterns, clean-code, testing-patterns |
 | product-planner | requirements, user story, acceptance criteria, PRD, scope, MVP, features list, backlog, prioritize, plan, r... | plan, plan-writing, proplan, brainstorming ... |
@@ -28,10 +28,9 @@ description: Catalog of the kit's agents (triggers and skills), slash commands, 
 | security-engineer | security, audit, vulnerability, owasp, xss, sql injection, csrf, permission, roles, rbac, secrets, pentest... | vulnerability-scanner, red-team-tactics, api-patterns, adversarial-review |
 | ux-designer | user flow, journey, sitemap, information architecture, screen list, wireframe, design system, DESIGN.md, to... | design-spec, frontend-design, template-ui-blocks, web-design-guidelines ... |
 
-## Slash commands (19)
+## Slash commands (13)
 | Command | Does |
 |---|---|
-| /brainstorm | Explore credible approaches and recommend one from the user's constraints. Use /brainstorm for options and tradeoffs... |
 | /create | Build a new site, app, API or tool from the user's brief through working code. Use it for a new project; use /enhance... |
 | /debug | Find and fix the root cause of an error, crash, regression or wrong behavior. Use it when the cause is unknown or a q... |
 | /deploy | Use to prepare or perform a release, preview or rollback. `/deploy check` prepares only; `/deploy production` and `/d... |
@@ -42,23 +41,18 @@ description: Catalog of the kit's agents (triggers and skills), slash commands, 
 | /orchestrate | Coordinate work that spans several areas, or execute a plan or milestone, by assigning owners, settling shared contra... |
 | /plan | Write or update a lightweight plan file for a bounded feature, fix or multi-file change, without writing code. Use /p... |
 | /proplan | Plan a whole system as a linked document set (goals, requirements, architecture, contracts, roadmap) in docs/proplan/... |
-| /remember | Save or update requested project notes in .agents/memory/MEMORY.md. Use /remember or an explicit memory request; ordi... |
 | /review | Review a diff for real correctness, behavior and security defects backed by source evidence. Use it when the user ask... |
 | /see | Open the real rendered web page and inspect it against the intended design and behavior. Use it when the user wants a... |
-| /see-doc | Render and inspect generated PDF output for layout, text, page size and relevant template fidelity. Use /see-doc when... |
-| /status | Read-only summary of current project progress, changes and observed check results. Use /status for where work stands... |
-| /test | Run, add or diagnose meaningful project tests and report actual outcomes. Use /test with a target, coverage or fix; c... |
-| /updatekit | Check upstream AGKIT2 changes or update a clean source repository and activate it with backup/validation. Use /update... |
 | /verify | Use when the user asks to verify a change, a feature or release readiness; runs the relevant checks and reports real... |
 
-## Skills (39)
+## Skills (44)
 | Skill | Use when |
 |---|---|
 | adversarial-review | Review a change for consequential defects using concrete failure scenarios, affected callers and evidence. Use for requested co... |
 | api-patterns | Use when designing, building or reviewing an HTTP API, webhook or integration endpoint - routes, payloads, errors, pagination... |
 | app-builder | Build new applications and substantial features by inspecting the product need, existing repository, platform and hosting const... |
 | architecture | Evaluate system boundaries, persistence, integration and deployment choices against real requirements. Use for material archite... |
-| bootstrap-patterns | Bootstrap 5.3 setup and patterns: Rule 01 tokens mapped to --bs-* variables, data-bs-theme Light/Dark/System, Sass/CSS customiz... |
+| brainstorm | Explore credible approaches and recommend one from the user's constraints. Use /brainstorm for options and tradeoffs before com... |
 | brainstorming | Clarify consequential ambiguities and compare approaches without a forced interview. Use for vague requirements, product or arc... |
 | browser-verification | Inspect rendered web output only when browser/visual verification is explicitly requested; do not activate automatically after... |
 | clean-code | Make code easier to understand and change while preserving required behavior and project conventions. Use for implementation, s... |
@@ -83,13 +77,18 @@ description: Catalog of the kit's agents (triggers and skills), slash commands, 
 | problem-solving | Investigate difficult defects or consequential decisions through contracts, competing explanations and discriminating evidence.... |
 | python-patterns | Implement and review Python services, scripts and APIs with appropriate typing, sync/async boundaries, resource management and... |
 | red-team-tactics | Plan and assess authorized adversary simulations with scoped objectives, safe evidence, detection validation and cleanup. Use f... |
+| remember | Save or update requested project notes in .agents/memory/MEMORY.md. Use /remember or an explicit memory request; ordinary task... |
+| see-doc | Render and inspect generated PDF output for layout, text, page size and relevant template fidelity. Use /see-doc when document... |
 | seo-fundamentals | Improve technical discoverability and accurate page metadata, indexing, structured data and search-oriented content. Use for SE... |
 | shell-ops | Write and diagnose shell commands, scripts, processes and small-server operations with correct Bash or PowerShell semantics. Us... |
+| status | Read-only summary of current project progress, changes and observed check results. Use /status for where work stands; /doctor d... |
 | systematic-debugging | Diagnose bugs, crashes and inconsistent behavior through reproduction, competing hypotheses and causal evidence, then verify a... |
 | tailwind-patterns | Implement and maintain Tailwind styling in the version actually installed. Covers version-aware setup, semantic theme mapping... |
-| template-ui-blocks | Copy-ready, template-grade UI blocks (Bootstrap 5.3 and Tailwind) for every Rule 07 recipe: tokens + theme script, app shell, K... |
+| template-ui-blocks | Optional reference UI blocks (Tailwind) and a tokens + theme script starter: app shell, KPI cards, charts, data table, forms, a... |
+| test | Run, add or diagnose meaningful project tests and report actual outcomes. Use /test with a target, coverage or fix; choose the... |
 | testing-patterns | Use when the user asks to write tests, plan test coverage or fix failing or flaky tests, in Pest/PHPUnit, Vitest/Jest or Playwr... |
 | ui-repair | Reproduce and repair existing web UI defects using rendered state, computed layout, cascade and behavior evidence. Covers overl... |
+| updatekit | Check upstream AGKIT2 changes or update a clean source repository and activate it with backup/validation. Use /updatekit; --che... |
 | verify-changes | Match completion claims to meaningful execution evidence proportional to the changed behavior and consequence. Use only for an... |
 | vulnerability-scanner | Assess source, configuration, dependencies and trust boundaries for supported security defects and prioritize them by real expo... |
 | web-design-guidelines | Review implemented web interfaces for accessibility, useful interaction, responsive behavior, content and performance. Use curr... |

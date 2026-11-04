@@ -24,7 +24,7 @@ Turn a brief into a new, working project in the requested stack.
 
 - Next.js/React: App Router conventions of the installed version; server code for totals and permissions.
 - Laravel/Blade: Form Requests, policies, migrations, Blade components.
-- Bootstrap 5.3 or Tailwind: map tokens once, then use them everywhere.
+- Whatever CSS approach you choose: define tokens once, then use them everywhere.
 - Expo: tokens and three-mode theme from rule-01; native controls.
 - VPS: note Nginx/PM2 setup in the README for later `/deploy`.
 

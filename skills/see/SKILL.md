@@ -17,7 +17,7 @@ Look at the actual render, exercise the changed interaction and report only what
 5. Inspect hierarchy, text wrapping, spacing, contrast, overflow, focus rings and image cropping. Check Light and Dark.
 6. Read the browser console and failed network requests that affect the flow.
 7. Click through the main changed interaction, including one invalid input and its recovery.
-8. Compare against the agreed brief and rule-07-template-grade-design, not a generic checklist.
+8. Compare against the agreed brief and chosen direction, not a generic checklist.
 9. If this is your own implementation task, fix observed defects and render again. If it is review-only, report findings without editing.
 
 ## Output

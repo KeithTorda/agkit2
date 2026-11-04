@@ -2,13 +2,13 @@
 
 The only file in this skill with raw color values. Copy it once per project into `assets/css/tokens.css` (or `app/globals.css`). Every block in the stack files uses these names and nothing else.
 
-Theme attribute: Bootstrap uses `data-bs-theme`, Tailwind/plain CSS uses `data-theme`. The selectors below accept both, so one token file works for either stack.
+Theme attribute: `data-theme` on `<html>`.
 
 ## 1. tokens.css
 
 ```css
 /* ---------- LIGHT (default) ---------- */
-:root, [data-theme="light"], [data-bs-theme="light"] {
+:root, [data-theme="light"] {
   color-scheme: light;
   --background: #f6f7fb;
   --foreground: #0f172a;
@@ -35,11 +35,10 @@ Theme attribute: Bootstrap uses `data-bs-theme`, Tailwind/plain CSS uses `data-t
   --shadow-md: 0 4px 12px -2px rgb(16 24 40 / .08), 0 2px 4px -2px rgb(16 24 40 / .05);
   --shadow-lg: 0 18px 40px -12px rgb(16 24 40 / .18);
   --glow: 0 0 0 1px rgb(91 79 233 / .10), 0 8px 30px -8px rgb(91 79 233 / .35);
-  --bs-primary-rgb: 91, 79, 233;  /* Bootstrap only: needs an r,g,b triplet */
 }
 
 /* ---------- DARK ---------- */
-[data-theme="dark"], [data-bs-theme="dark"] {
+[data-theme="dark"] {
   color-scheme: dark;
   --background: #0b0d17;
   --foreground: #e6e8f2;
@@ -66,11 +65,10 @@ Theme attribute: Bootstrap uses `data-bs-theme`, Tailwind/plain CSS uses `data-t
   --shadow-md: 0 6px 16px -4px rgb(0 0 0 / .55);
   --shadow-lg: 0 24px 48px -12px rgb(0 0 0 / .7);
   --glow: 0 0 0 1px rgb(139 124 255 / .18), 0 10px 40px -10px rgb(139 124 255 / .45);
-  --bs-primary-rgb: 139, 124, 255;
 }
 
 /* ---------- DERIVED + SCALE (same formula in both themes) ---------- */
-:root, [data-theme], [data-bs-theme] {
+:root, [data-theme] {
   --primary-hover: color-mix(in oklab, var(--primary) 88%, var(--foreground));
   --primary-active: color-mix(in oklab, var(--primary) 78%, var(--foreground));
   --primary-soft: color-mix(in oklab, var(--primary) 13%, transparent);
@@ -106,7 +104,7 @@ Resolves System mode before first paint, persists the choice, follows the OS whi
 ```html
 <script>
 (function () {
-  var ATTR = 'data-bs-theme';          // Tailwind / plain CSS: 'data-theme'
+  var ATTR = 'data-theme';
   var KEY = 'themePreference';          // 'light' | 'dark' | 'system'
   var mq = window.matchMedia('(prefers-color-scheme: dark)');
   function getPref() { try { return localStorage.getItem(KEY) || 'system'; } catch (e) { return 'system'; } }
@@ -169,75 +167,7 @@ document.addEventListener('DOMContentLoaded', syncThemeControls);
 </script>
 ```
 
-The Bootstrap topbar dropdown variant (same `data-theme-set` buttons inside `.dropdown-menu`) is in [bootstrap-app.md](bootstrap-app.md).
-
-## 4. Bootstrap 5.3 bridge (load after `bootstrap.min.css`)
-
-Maps Bootstrap's own variables to the tokens so stock components follow the theme.
-
-```css
-:root, [data-bs-theme] {
-  --bs-body-bg: var(--background); --bs-body-color: var(--foreground);
-  --bs-emphasis-color: var(--foreground); --bs-heading-color: var(--foreground);
-  --bs-secondary-color: var(--muted-foreground); --bs-tertiary-color: var(--muted-foreground);
-  --bs-secondary-bg: var(--surface-muted); --bs-tertiary-bg: var(--surface-muted);
-  --bs-border-color: var(--border); --bs-border-color-translucent: var(--border);
-  --bs-border-radius: var(--radius-sm); --bs-border-radius-lg: var(--radius); --bs-border-radius-xl: var(--radius-lg);
-  --bs-primary: var(--primary); --bs-success: var(--success); --bs-warning: var(--warning);
-  --bs-danger: var(--error); --bs-info: var(--info);
-  --bs-link-color: var(--primary); --bs-link-hover-color: var(--primary-hover);
-  --bs-link-color-rgb: var(--bs-primary-rgb); --bs-link-hover-color-rgb: var(--bs-primary-rgb);
-  --bs-focus-ring-color: var(--ring-soft);
-  --bs-form-valid-color: var(--success); --bs-form-valid-border-color: var(--success);
-  --bs-form-invalid-color: var(--error); --bs-form-invalid-border-color: var(--error);
-  --bs-box-shadow-sm: var(--shadow-sm); --bs-box-shadow: var(--shadow-md); --bs-box-shadow-lg: var(--shadow-lg);
-}
-.btn { --bs-btn-focus-box-shadow: 0 0 0 .2rem var(--ring-soft); }
-.btn-primary {
-  --bs-btn-bg: var(--primary); --bs-btn-border-color: var(--primary); --bs-btn-color: var(--primary-foreground);
-  --bs-btn-hover-bg: var(--primary-hover); --bs-btn-hover-border-color: var(--primary-hover); --bs-btn-hover-color: var(--primary-foreground);
-  --bs-btn-active-bg: var(--primary-active); --bs-btn-active-border-color: var(--primary-active); --bs-btn-active-color: var(--primary-foreground);
-  --bs-btn-disabled-bg: var(--primary); --bs-btn-disabled-border-color: var(--primary); --bs-btn-disabled-color: var(--primary-foreground);
-}
-.btn-danger {
-  --bs-btn-bg: var(--error); --bs-btn-border-color: var(--error); --bs-btn-color: var(--primary-foreground);
-  --bs-btn-hover-bg: color-mix(in oklab, var(--error) 88%, var(--foreground)); --bs-btn-hover-border-color: var(--error);
-  --bs-btn-active-bg: color-mix(in oklab, var(--error) 78%, var(--foreground)); --bs-btn-disabled-bg: var(--error);
-}
-.card { --bs-card-bg: var(--surface); --bs-card-color: var(--foreground); --bs-card-border-color: var(--border); --bs-card-cap-bg: transparent; }
-.dropdown-menu {
-  --bs-dropdown-bg: var(--surface-elevated); --bs-dropdown-border-color: var(--border); --bs-dropdown-color: var(--foreground);
-  --bs-dropdown-link-color: var(--foreground); --bs-dropdown-link-hover-bg: var(--surface-muted); --bs-dropdown-link-hover-color: var(--foreground);
-  --bs-dropdown-link-active-bg: var(--primary-soft); --bs-dropdown-link-active-color: var(--primary);
-  --bs-dropdown-link-disabled-color: var(--muted-foreground); --bs-dropdown-header-color: var(--muted-foreground);
-  --bs-dropdown-divider-bg: var(--border); box-shadow: var(--shadow-lg);
-}
-.modal { --bs-modal-bg: var(--surface-elevated); --bs-modal-border-color: var(--border); --bs-modal-color: var(--foreground); }
-.offcanvas { --bs-offcanvas-bg: var(--surface); --bs-offcanvas-color: var(--foreground); }
-.toast { --bs-toast-bg: var(--surface-elevated); --bs-toast-color: var(--foreground); --bs-toast-border-color: var(--border);
-  --bs-toast-header-bg: var(--surface-elevated); --bs-toast-header-color: var(--foreground); --bs-toast-box-shadow: var(--shadow-lg); }
-.table { --bs-table-bg: transparent; --bs-table-color: var(--foreground); --bs-table-border-color: var(--border);
-  --bs-table-hover-bg: var(--surface-muted); --bs-table-hover-color: var(--foreground); --bs-table-striped-bg: var(--surface-muted); }
-.pagination {
-  --bs-pagination-bg: var(--surface); --bs-pagination-color: var(--foreground); --bs-pagination-border-color: var(--border);
-  --bs-pagination-hover-bg: var(--surface-muted); --bs-pagination-hover-color: var(--foreground); --bs-pagination-hover-border-color: var(--border);
-  --bs-pagination-focus-bg: var(--surface-muted); --bs-pagination-focus-color: var(--foreground); --bs-pagination-focus-box-shadow: 0 0 0 .2rem var(--ring-soft);
-  --bs-pagination-active-bg: var(--primary); --bs-pagination-active-border-color: var(--primary); --bs-pagination-active-color: var(--primary-foreground);
-  --bs-pagination-disabled-bg: var(--surface-muted); --bs-pagination-disabled-color: var(--muted-foreground); --bs-pagination-disabled-border-color: var(--border);
-}
-.accordion { --bs-accordion-bg: var(--surface); --bs-accordion-color: var(--foreground); --bs-accordion-border-color: var(--border);
-  --bs-accordion-btn-color: var(--foreground); --bs-accordion-active-bg: var(--primary-soft); --bs-accordion-active-color: var(--foreground);
-  --bs-accordion-btn-focus-box-shadow: 0 0 0 .2rem var(--ring-soft); }
-.progress { --bs-progress-bg: var(--muted); --bs-progress-bar-bg: var(--primary); }
-.form-control, .form-select { background-color: var(--surface); border-color: var(--input); color: var(--foreground); }
-.form-control::placeholder { color: var(--muted-foreground); }
-.form-control:focus, .form-select:focus, .form-check-input:focus { border-color: var(--ring); box-shadow: 0 0 0 .2rem var(--ring-soft); }
-.form-control:disabled, .form-select:disabled { background-color: var(--surface-muted); opacity: .7; }
-.form-check-input { background-color: var(--surface); border-color: var(--input); }
-.form-check-input:checked, .form-check-input:indeterminate { background-color: var(--primary); border-color: var(--primary); }
-.input-group-text { background: var(--surface-muted); border-color: var(--input); color: var(--muted-foreground); }
-```
 
 ## 5. React / Next.js
 
-Keep the same `tokens.css`. Use one provider: `next-themes` with `attribute="data-theme"` (or `"data-bs-theme"`), `defaultTheme="system"`, `enableSystem`, `storageKey="themePreference"`, and `suppressHydrationWarning` on `<html>`. It injects the equivalent head script; do not add the one above as well. Bind the toggle buttons to `setTheme('light' | 'dark' | 'system')` and read `theme` for the checked state.
+Keep the same `tokens.css`. Use one provider: `next-themes` with `attribute="data-theme"`, `defaultTheme="system"`, `enableSystem`, `storageKey="themePreference"`, and `suppressHydrationWarning` on `<html>`. It injects the equivalent head script; do not add the one above as well. Bind the toggle buttons to `setTheme('light' | 'dark' | 'system')` and read `theme` for the checked state.

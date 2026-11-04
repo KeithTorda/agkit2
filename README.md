@@ -22,7 +22,7 @@ Rules are short, each owns one topic, and they never repeat each other.
 | `rule-04-system-integration` | backend, database and plan files | Option B: separate DB per system, one owner per table, outbox + middleman, webhooks + nightly reconciliation, versioned API |
 | `rule-05-planning-and-docs` | always | Every plan saved as `docs/plans/<yyyy-mm-dd>-<slug>.md` in one format; README/API docs minimum |
 | `rule-06-security-baseline` | code files | Server-side auth and per-resource permissions, input validation, secrets, money records never hard-deleted, audit trail, uploads |
-| `rule-07-template-grade-design` | UI files | Every page looks like a complete premium template (full chrome, depth, realistic demo data, imagery, polish, all states); minimal only on request |
+| `rule-07-template-grade-design` | UI files | Design guide: finished and intentional UI with creative freedom on visual direction |
 | `quick-reference` | on demand | Generated catalog of agents, skills, commands and scripts |
 
 ## Agents
@@ -33,7 +33,7 @@ Rules are short, each owns one topic, and they never repeat each other.
 | `architect` | System design, tech choices, ADRs, Rule 04 integration design, plan reviews |
 | `product-planner` | Goals, requirements, acceptance criteria, MVP scope, task plans, milestones, risks |
 | `ux-designer` | Flows, sitemap, screen inventory with states, DESIGN.md, Rule 01 token set |
-| `frontend-engineer` | Web UI in React/Next.js, Blade, Bootstrap 5, Tailwind; theming; SEO |
+| `frontend-engineer` | Web UI in React/Next.js, Blade, any CSS approach; theming; SEO |
 | `backend-engineer` | APIs, Laravel/Node services, auth, jobs, webhooks, outbox sync, exports and receipts |
 | `database-engineer` | Schema, migrations, indexes, queries, seeds, data ownership |
 | `mobile-engineer` | Expo/React Native/Flutter apps, offline sync, device features, store builds |
@@ -71,9 +71,8 @@ Tests, builds, browser checks and reviews **never run automatically**. They run 
 
 | Skill | Use |
 |---|---|
-| `template-ui-blocks` | Copy-ready Bootstrap 5.3 and Tailwind blocks for every Rule 07 page type |
+| `template-ui-blocks` | Optional reference UI blocks (Tailwind) and theme token starter |
 | `laravel-patterns` | Form Requests, Policies, Actions, Resources, jobs, outbox, Blade |
-| `bootstrap-patterns` | Bootstrap 5.3 tokens, `data-bs-theme`, React-Bootstrap, admin layouts |
 | `ph-business-compliance` | VAT, sales invoices (EOPT), senior/PWD discounts, POS readings, e-invoicing |
 | `proplan` / `plan` | System and feature plans |
 

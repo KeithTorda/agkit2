@@ -1,9 +1,8 @@
 ---
 name: rule-04-system-integration
 version: 3.0.0
-priority: P0
-trigger: glob
-globs: "**/app/Http/**, **/app/Models/**, **/app/Services/**, **/app/Jobs/**, **/app/Actions/**, **/database/**, **/migrations/**, **/routes/**, **/api/**, **/server/**, **/prisma/**, **/drizzle/**, **/*.sql, **/docs/plans/**, **/proplan/**, **/outbox*, **/sync*, **/webhook*"
+priority: P1
+trigger: model_decision
 description: Rule 04 - apply when designing or building a new system, an add-on module (POS, SFA, HRIS, inventory, e-invoicing), an API between systems, database ownership, sync jobs, webhooks or reconciliation. ERP <-> add-on integration pattern (Option B).
 ---
 

@@ -4,7 +4,7 @@
 
 ## Stack
 - Framework: <e.g. Laravel 12 / Next.js 15 App Router>
-- UI: <Bootstrap 5.3 / Tailwind 4 / React-Bootstrap>, icons: <set>
+- UI: <CSS approach / component library>, icons: <set>
 - Database: <MySQL 8 / Postgres 16>, ORM: <Eloquent / Prisma>
 - Hosting: <VPS Nginx + PM2 / Docker>, PHP/Node version: <...>
 

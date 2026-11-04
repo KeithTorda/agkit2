@@ -104,7 +104,7 @@ try {
 <!-- AGKIT2:START -->
 # AGKIT2 $version
 Kit: ``$($pluginPath.Replace('\','/'))``.
-Rules: ``$($rulesPath.Replace('\','/'))``. Read kit-core and rule-02-work-style there before acting. UI work follows rule-01 and rule-07 (template-grade, not minimal), code follows rule-03 and rule-06, new systems follow rule-04, plans and docs follow rule-05.
+Rules: ``$($rulesPath.Replace('\','/'))``. Read kit-core and rule-02-work-style there before acting. UI work uses rule-01 and rule-07 as design guides (creative freedom; finished, not cluttered), code follows rule-03 and rule-06, new systems follow rule-04, plans and docs follow rule-05.
 Tests, builds, audits and browser checks run only when the user asks; never append them automatically after implementation. Report only evidence that actually ran.
 <!-- AGKIT2:END -->
 "@
