@@ -30,7 +30,11 @@ if (Test-Path -LiteralPath $targetPluginDir) {
 }
 
 New-Item -ItemType Directory -Path $targetPluginDir -Force | Out-Null
-foreach ($item in @('plugin.json', 'VERSION', 'README.md', 'rules', 'skills', 'agents', 'component-catalog', 'scripts')) {
+# Clean stale subdirectories before copying fresh bundle
+foreach ($existing in Get-ChildItem -LiteralPath $targetPluginDir -Force -ErrorAction SilentlyContinue) {
+    Remove-Item -LiteralPath $existing.FullName -Recurse -Force
+}
+foreach ($item in @('plugin.json', 'VERSION', 'README.md', 'rules', 'skills', 'agents', 'component-catalog', 'ui-kit', 'scripts')) {
     Copy-Item -LiteralPath (Join-Path $sourceRoot $item) -Destination $targetPluginDir -Recurse -Force
 }
 

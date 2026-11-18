@@ -1,5 +1,11 @@
 # Changes
 
+## 5.0.0 - 2026-11-18
+
+- **100% First-Party & Stack-Agnostic UI System:** Removed the 29 MB third-party `reference-template/` bundle and all Bootstrap-only lock-in. Built our own clean, stack-agnostic **Component & Screen Type Catalog (`component-catalog/00`–`07` — 18 screen archetypes + 38+ component types)** plus a lightweight first-party **Token & Theme Settings Engine (`ui-kit/keith-ui-tokens.css` + `ui-kit/keith-ui-settings.js`)** that works seamlessly across **Tailwind CSS + shadcn/ui, React/Next.js, Laravel Blade/Livewire, Vue/Svelte, Vanilla CSS, or Bootstrap**.
+- **Zero-Conflict `@layer` & Semantic Token Rules:** Upgraded `rules/AGENTS.md`, `rule-01-design-and-css-system.md`, `skills/ui-system-builder`, `agents/ui-system-builder`, and `docs/GEMINI.md` (`v3.0.0`) so any UI stack stays conflict-free with pure `#000000` / `#ffffff` contrast and mathematical WCAG AA (`>= 4.5:1`) across all 15 presets in Light & Dark modes.
+- **Updated Validators:** `scripts/validate_keith_kit.py` now enforces zero third-party template remnants and verifies first-party token completeness (`0 errors, 0 warnings`).
+
 ## 4.0.0 - 2026-11-18
 
 - **Zero-Conflict 3-Layer CSS Architecture:** Locked separation of `style.css` (Layer 1 vendor read-only), `component-catalog/08-COMPACT-PURE-CONTRAST-OVERRIDE.css` (Layer 2 semantic token bridge `--kit-*`, `--on-*`, `--primary-ink` verified WCAG AA >= 4.5:1 across all 15 presets and Light/Dark modes), and project `app.css` (Layer 3 `.app-*` namespace only, zero `!important`, zero raw `#hex`).

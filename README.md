@@ -1,49 +1,67 @@
-# Keith Master Kit (`agkit2` / `keith-agkit` v4.0.0)
+# Keith Master Kit (`agkit2` / `keith-agkit` v5.0.0)
 
-Unified Antigravity plugin, engineering rule system, and **reusable UI component library** powered by **Bootstrap 5 Dashboard Template Pro** (`https://starcodekh.github.io/Bootstrap-5-Dashboard-Template-Pro/`).
+Stack-agnostic Antigravity plugin, engineering rulebook, **First-Party Component & Screen Type Catalog**, and **Zero-Conflict Token & Theme Settings Engine** — built to work cleanly across **ANY UI stack** (Tailwind CSS + shadcn/ui, React / Next.js, Laravel Blade / Livewire, Vue / Svelte, Vanilla CSS, or Bootstrap 5) with **zero third-party template bloat**.
 
-Built to replace `agkit2` by merging:
-1. **Keith's Master Coding Rules (`v2.2.0`) & Anti-Jargon Copy Rules** — strict domain-specific naming, direct operational English UI labels, accessible semantic buttons, responsive sidebars, WCAG AA contrast, GPU-composited micro-interactions, database backup safety, and Contabo VPS deployment checks.
-2. **Clean Antigravity Plugin Architecture** — self-contained inside one plugin bundle (`rules/`, `skills/`, `agents/`, `plugin.json`) with valid frontmatter, explicit subagent `tools:` grants, and zero scattered orphan rules.
-3. **Zero-Guesswork Reusable UI Library** — full downloaded template (67 HTML pages, 45 vendor libraries, 10 icon sets, 15 color presets, Light & Dark modes) plus an 8-part itemized `component-catalog/` so every future app reuses proven screens and components immediately.
+---
+
+## What's Inside
+
+1. **Stack-Agnostic First-Party Component Type Catalog (`component-catalog/00`–`07`):**
+   - **18 Screen Archetypes** (Overview Dashboards, Tabbed Ledgers, CRUD Directories, Studio Workspaces, Multi-Step Wizards, POS/Checkout, Printable Official Invoices, Auth & HTTP Error Screens)
+   - **38+ Component Types & Variants** (KPI Stat Cards, Charts, Timelines, Data Tables, Currency/Combobox/Dropzone Inputs, Soft Status Badges, Modals, Drawers, Toasts, Tabs)
+2. **Portable First-Party UI Token & Settings Engine (`ui-kit/`):**
+   - `keith-ui-tokens.css` — Native `@layer tokens, base, components, utilities;` CSS Custom Properties (`--ui-*`, `--on-*`, `--primary-ink`) verified `>= 4.5:1` WCAG AA across **all 15 color presets** in Light & Dark modes.
+   - `keith-ui-settings.js` — Zero-jQuery Vanilla ES6 Right-Side Live Theme & Layout Settings Drawer (`Light/Dark`, `15 Color Presets`, `Vertical/Horizontal`, `Sidebar Mode`, `Font`, `Reset`).
+3. **Zero-Conflict Engineering & Anti-AI-Error Rules (`rules/` + `docs/`):**
+   - Simple everyday English copy, zero jargon, strict zero sample/dummy data (`0` / `₱0.00` + `EmptyState`).
+   - Strict domain-specific naming, clean file headers/sections, smart constants, exact server-side money math (`DECIMAL(12,2)` / centavos), fail-fast `.env` checks, and Contabo VPS backup safety.
+4. **Automated Validators (`scripts/`):**
+   - `validate_keith_kit.py` — Validates plugin manifest, SemVer sync, rule byte budgets (`< 12 KB`), subagent tool grants, catalog completeness, and zero third-party template leftovers.
+   - `audit_project_hygiene.py` — Audits any app project for CSS `!important`/hex/selector conflicts, Dark-Mode-breaking hardcoded color classes, `javascript:void(0)`, and placeholder leftovers.
 
 ---
 
 ## Folder Structure
 
 ```text
-projects/keith-agkit/
-├── plugin.json                              # Native Antigravity plugin manifest
-├── VERSION                                  # Semantic version (1.0.0)
-├── install.ps1                              # Validator + safe timestamped plugin installer
-├── scripts/
-│   └── validate_keith_kit.py                # Automated validator for rules, frontmatter, tools, and catalog
-├── rules/                                   # Clean, conflict-free Antigravity rules (<6 KB each)
-│   ├── AGENTS.md                            # Core always-on rule (language, template mandate, verification, SemVer)
-│   ├── rule-01-template-design-system.md    # UI glob rule (Bootstrap 5 Pro shell, tokens, responsive sidebar, a11y)
-│   ├── rule-02-code-naming-and-states.md    # Code glob rule (strict naming, reusable components, loading/empty/error states)
-│   ├── rule-03-security-db-and-vps.md       # Backend/SQL/VPS glob rule (RBAC, server money totals, DB & Nginx safety)
-│   └── rule-04-planning-and-integration.md  # Model-decision rule (docs/plans/ + optional cross-system outbox sync)
-├── component-catalog/                       # Complete itemized breakdown & copy-ready snippets of all 67 pages
-│   ├── 00-INDEX-AND-PAGE-MAP.md             # Domain-to-page mapping + full 67-file inventory
-│   ├── 01-THEME-TOKENS-AND-PALETTES.md      # Light/Dark CSS tokens + 15 primary brand presets (color_1..15)
-│   ├── 02-APP-SHELL-SIDEBAR-HEADER.md       # Sanitized #main-wrapper, .nav-header, .header, .dlabnav, .content-body
-│   ├── 03-CARDS-KPI-AND-WIDGETS.md          # .invoice-card, .widget-stat, .widget-timeline, EmptyState & Skeleton
-│   ├── 04-TABLES-DATATABLES-AND-FILTERS.md  # .card-tabs.style-1, CRUD tables, .dataTablesCard, sharp row actions
-│   ├── 05-FORMS-PICKERS-AND-WIZARDS.md      # .basic-form, validation, checkboxes, Select2, SmartWizard steps
-│   ├── 06-BUTTONS-BADGES-MODALS-ALERTS.md   # Solid/light/sharp buttons, .badge.light pills, centered & confirm modals
-│   └── 07-AUTH-INVOICE-ECOM-AND-ERRORS.md   # .authincation Login/Register, Printable Invoice, Product Grid, 400–503 pages
+keith-agkit/
+├── plugin.json                              # Antigravity plugin manifest (v5.0.0)
+├── VERSION                                  # Semantic version (5.0.0)
+├── CHANGES.md                               # Release history
+├── install.ps1                              # Validator + safe backed-up plugin installer
+├── ui-kit/                                  # First-party portable token & settings engine
+│   ├── keith-ui-tokens.css                  # @layer semantic tokens + 15 WCAG AA presets
+│   └── keith-ui-settings.js                 # Vanilla ES6 right-side theme & layout drawer
+├── component-catalog/                       # Stack-agnostic component & screen blueprints
+│   ├── 00-MASTER-SCREEN-AND-COMPONENT-TYPES.md
+│   ├── 01-DESIGN-TOKENS-CONTRAST-AND-THEMES.md
+│   ├── 02-APP-SHELLS-SIDEBARS-AND-SETTINGS-PANEL.md
+│   ├── 03-CARDS-KPIS-CHARTS-AND-WIDGETS.md
+│   ├── 04-DATA-TABLES-LEDGERS-AND-FILTERS.md
+│   ├── 05-FORMS-INPUTS-PICKERS-AND-WIZARDS.md
+│   ├── 06-BUTTONS-BADGES-MODALS-ALERTS-AND-NAVS.md
+│   └── 07-AUTH-INVOICE-POS-INBOX-AND-SYSTEM-PAGES.md
+├── rules/                                   # Clean Antigravity rules (<11 KB each, 0 warnings)
+│   ├── AGENTS.md
+│   ├── rule-01-design-and-css-system.md
+│   ├── rule-02-code-naming-and-states.md
+│   ├── rule-03-security-db-and-vps.md
+│   └── rule-04-planning-and-integration.md
 ├── skills/
-│   ├── bootstrap-pro-ui/SKILL.md            # UI assembly workflow for HTML/Blade/PHP and React/Next.js
-│   ├── laravel-fullstack/SKILL.md           # Laravel 11/12 + Bootstrap 5 Pro conventions
-│   └── vps-safe-deploy/SKILL.md             # Contabo VPS safe backup, syntax check, and deployment runbook
-├── agents/                                  # Subagents with explicit read/write/command tool grants
-│   ├── ui-template-builder.md
+│   ├── ui-system-builder/SKILL.md
+│   ├── laravel-fullstack/SKILL.md
+│   └── vps-safe-deploy/SKILL.md
+├── agents/
+│   ├── ui-system-builder.md
 │   ├── fullstack-engineer.md
 │   ├── database-architect.md
 │   └── vps-devops.md
-└── reference-template/
-    └── bootstrap-5-dashboard-pro/           # Complete downloaded StarCodeKH Bootstrap 5 Dashboard Template Pro
+├── scripts/
+│   ├── validate_keith_kit.py
+│   └── audit_project_hygiene.py
+└── docs/
+    ├── GEMINI.md                            # Synced global ~/.gemini/GEMINI.md (v3.0.0)
+    └── AI-ERROR-REGISTRY.md                 # 24 common AI coding errors & preventive rules
 ```
 
 ---
@@ -51,11 +69,9 @@ projects/keith-agkit/
 ## Validation & Installation
 
 ```powershell
-cd "c:\Users\Keith\Desktop\CONTABO VPS\projects\keith-agkit"
-
-# 1. Validate structure, frontmatter, subagent tools, and template catalog (read-only)
+# 1. Validate kit structure, byte budgets, tokens & catalog (read-only)
 .\install.ps1 -Check
 
-# 2. Install into ~/.gemini/config/plugins/keith-agkit (with automatic backup)
+# 2. Install into ~/.gemini/config/plugins/keith-agkit (with timestamped backup)
 .\install.ps1
 ```

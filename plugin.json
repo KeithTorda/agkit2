@@ -1,10 +1,10 @@
 {
   "name": "keith-agkit",
-  "displayName": "Keith Master Kit (Bootstrap 5 Pro + Zero-Conflict Engineering Rules)",
-  "version": "4.0.0",
-  "description": "Unified engineering rules, Zero-Conflict 3-Layer CSS architecture, anti-AI-error guardrails, VPS/database safety, and complete reusable UI library built on Bootstrap 5 Dashboard Template Pro.",
+  "displayName": "Keith Master Kit (Stack-Agnostic UI System + Zero-Conflict Rules)",
+  "version": "5.0.0",
+  "description": "Stack-agnostic engineering rules, first-party Component & Screen Type Catalog (00-07), portable WCAG AA Token & Theme Settings Engine (Tailwind, React, Blade, Vanilla CSS, Bootstrap), anti-AI-error guardrails, and Contabo VPS safety.",
   "suggestedPrompts": [
-    "Build a new admin module reusing the Bootstrap 5 Dashboard Pro shell, KPI cards, and Zero-Conflict CSS tokens",
+    "Build a new dashboard or app module using our Component Type Catalog and Zero-Conflict CSS tokens",
     "Audit this project with audit_project_hygiene.py against our CSS, naming, UI state, and security rules",
     "Prepare a safe Contabo VPS deployment with timestamped config and SQL backups"
   ]

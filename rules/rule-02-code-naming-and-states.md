@@ -40,5 +40,5 @@ Every data view and form must start **100% empty of sample/dummy data** (unless 
 ## 4. Pre-Finish Cleanliness Checklist
 
 - Zero `console.log` / `dd()` / `var_dump` debug lines, commented-out dead code, unused imports, or resolved `TODO`s.
-- Zero leftover template text (`Lorem ipsum`, `DexignLab`, `Dompet`, `John Doe`).
+- Zero leftover placeholder text (`Lorem ipsum`, `John Doe`, `Acme Corp`, `example@email.com`).
 - Comments explain non-obvious *why* decisions, never restate *what* the code already says.

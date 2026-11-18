@@ -1,67 +1,50 @@
-# Master AI Error Registry & Zero-Conflict Rules (`v4.0.0`)
+# Master AI Error Registry & Stack-Agnostic Zero-Conflict Rules (`v5.0.0`)
 
 > [!IMPORTANT]
-> All rules, semantic token stylesheets, skills, subagents, and automated validators are synced and verified with **`0 errors, 0 warnings`** across [AGENTS.md](../rules/AGENTS.md) and [GEMINI.md](./GEMINI.md) (`v2.5.0`).
+> Synced across [AGENTS.md](../rules/AGENTS.md) (`v5.0.0`) and [GEMINI.md](./GEMINI.md) (`v3.0.0`) — 100% first-party, stack-agnostic (Tailwind + shadcn/ui, React/Next.js, Laravel Blade, Vue/Svelte, Vanilla CSS, or Bootstrap), verified with **`0 errors, 0 warnings`**.
 
 ---
 
-## 1. Zero-Conflict 3-Layer CSS Architecture
+## 1. Zero-Conflict Token & `@layer` CSS Architecture
 
 ```mermaid
 flowchart LR
-  L1["Layer 1: style.css (READ-ONLY Vendor Base)"] --> L2["Layer 2: 08-COMPACT-PURE-CONTRAST-OVERRIDE.css (LOCKED Kit Token Bridge)"]
-  L2 --> L3["Layer 3: app.css (.app-* Scoped Only — Zero !important, Zero Hex)"]
-  L3 --> Guard["audit_project_hygiene.py (Automated Pre-Finish Check)"]
+  T["@layer tokens / Semantic CSS Variables (--ui-*, --on-*, --primary-ink)"] --> B["@layer base (Accessible Typography & Focus)"]
+  B --> C["@layer components (.ui-* / Tailwind Semantic / Scoped .app-*)"]
+  C --> Guard["audit_project_hygiene.py (Automated Pre-Finish Check)"]
 ```
 
-- **Layer 1 (`style.css`):** Read-only vendor stylesheet. Never edited.
-- **Layer 2 ([08-COMPACT-PURE-CONTRAST-OVERRIDE.css](../component-catalog/08-COMPACT-PURE-CONTRAST-OVERRIDE.css)):** Copied untouched into every project. Defines semantic tokens (`--kit-canvas`, `--kit-surface`, `--kit-surface-subtle`, `--kit-border`, `--kit-ink`, `--kit-ink-muted`, `--on-primary`, `--primary-ink`, `--on-sidebar`, `--on-header`, `--on-nav-header`) verified >= `4.5:1` WCAG AA across all 15 presets and Light/Dark modes.
-- **Layer 3 (`app.css`):** Strictly `.app-*` domain classes only — zero `!important`, zero raw `#hex`, zero Bootstrap/template selectors.
+- **Token Core ([keith-ui-tokens.css](../ui-kit/keith-ui-tokens.css)):** Defines `--ui-canvas`, `--ui-surface`, `--ui-surface-subtle`, `--ui-border`, `--ui-ink`, `--ui-ink-muted`, `--ui-primary`, `--on-primary`, and `--primary-ink` verified `>= 4.5:1` WCAG AA across **all 15 presets** in Light & Dark modes.
+- **Settings Drawer ([keith-ui-settings.js](../ui-kit/keith-ui-settings.js)):** Zero-jQuery Vanilla ES6 right-side theme & layout drawer (`Light/Dark`, `15 Swatches`, `Vertical/Horizontal`, `Sidebar Mode`, `Font`, `Reset`) backed by a single state store.
+- **Component Catalog ([00-MASTER-SCREEN-AND-COMPONENT-TYPES.md](../component-catalog/00-MASTER-SCREEN-AND-COMPONENT-TYPES.md)):** 18 screen archetypes and 38+ component types usable in **any UI framework**.
 
 ---
 
 ## 2. Complete Registry of 24 Common AI Coding Errors & Preventive Rules
 
-### A. CSS, Theme & Contrast Conflicts
 | # | Common AI Mistake | Preventive Rule Enforced |
 |---|---|---|
-| 1 | Writing `body`, `h1..h6`, `.card`, `.btn`, `[data-*]` overrides + `!important` inside project `app.css` | `app.css` is strictly locked to `.app-*` classes with zero `!important` (enforced by [audit_project_hygiene.py](../scripts/audit_project_hygiene.py)). |
-| 2 | Hardcoding `#000`, `#fff`, `#f8f9fa` inside custom components | Custom CSS must consume `var(--kit-*)` and `var(--primary)` tokens only. |
-| 3 | Putting `text-dark`, `text-black`, `bg-white`, `bg-light`, or inline color `style="..."` in HTML/EJS/Blade/JSX | Banned in markup (Bootstrap's `!important` breaks Dark Mode & dark swatches); use `.kit-subtle-box`, `.kit-muted`, or `.badge.light`. |
-| 4 | Ignoring Dark Mode + default `color_1` (`color_1` turns `#212130` dark navy in Dark Mode, causing black-on-dark text) | Locked token bridge switches `--on-sidebar` / `--on-header` / `--on-nav-header` to `#ffffff` on `[data-theme-version="dark"][data-*="color_1"]`. |
-| 5 | Forcing `#ffffff` text on all primary buttons/active pills (`color_1`/`3` teal `1.88:1`, `color_7` yellow `1.63:1`, `color_8` white `1.00:1`) | Solid primary surfaces bind to `var(--on-primary)`; links/outlines/light badges bind to `var(--primary-ink)` (all 45 combinations >= `4.5:1`). |
-| 6 | Blanket `svg path { fill: ... !important }` wiping out multi-color brand logos | Never override all SVG paths; target only `.svg-title-path` or `currentColor` strokes. |
-| 7 | Two competing theme stores (`localStorage` vs `demo.js` cookies) resetting UI Kit settings on reload | `demo.js` cookies (`getCookie('version')` / `setCookie('version', ...)`) are the single source of truth. |
-
-### B. UI, HTML, Responsive & Accessibility Mistakes
-| # | Common AI Mistake | Preventive Rule Enforced |
-|---|---|---|
-| 8 | Inventing a flat custom layout or forgetting the Right-Side UI Kit Settings Panel | Mandatory Bootstrap 5 Dashboard Pro shell + `demo.js` & `styleSwitcher.js` right-side drawer on every page. |
-| 9 | Seeding sample/dummy records, fake charts, `Lorem ipsum` / `Dompet`, or corporate AI jargon | Strict zero sample data (`0` / `₱0.00` + `EmptyState`) and simple everyday English words. |
-| 10 | Invalid/inaccessible HTML (`javascript:void(0)`, `<button>` inside `<a>`, missing `aria-label`, `outline: none`, missing `<th scope="col">`) | Semantic `<button type="button">`, `aria-label` on icon buttons, `:focus-visible` ring, `<th scope="col">`, `aria-live="polite"`. |
-| 11 | Missing `Loading` / `Empty` / `Error` states or unlocked submit buttons allowing double-POST | Complete states required on every view + in-flight submit button lock (`disabled` + `aria-busy="true"`). |
-| 12 | Overflowing tables on mobile, clipped bottom-row dropdowns, or media layout shift (CLS) | `.table-responsive`, upward-safe `dropup` menus, `tabular-nums`, and explicit `width`/`height` or `aspect-ratio`. |
-
-### C. Naming, File Structure & Code Bloat Mistakes
-| # | Common AI Mistake | Preventive Rule Enforced |
-|---|---|---|
-| 13 | Vague placeholder identifiers (`data`, `items`, `temp`, `res`, `handleData`, `Box1`, `.custom`) | Strict domain-specific `camelCase`, `is/has/can/should`, `handle*`, `PascalCase`, `.app-*`. |
-| 14 | Over-abstracting static one-off labels (`BTN_SAVE = 'Save'`) OR scattering magic numbers inline | Extract magic numbers, limits, status maps, and shared error messages into `UPPER_SNAKE_CASE`; keep static single-language labels inline in markup. |
-| 15 | Putting volatile `.env` ports/versions in file headers, 300-line functions, or leaving `console.log` / dead code | Concise 2–3 line purpose header (no volatile config), `<40` line single-purpose functions, ordered imports, zero dead code/debug logs. |
-| 16 | Broken relative `@import` font paths, unversioned CSS/JS cache issues, or mismatched `VERSION` vs `plugin.json` | Verified asset URLs, `?v=X.Y.Z` cache busting, and validator-checked SemVer sync. |
-
-### D. Backend, Money, Database & Security Mistakes
-| # | Common AI Mistake | Preventive Rule Enforced |
-|---|---|---|
-| 17 | IEEE-754 floating-point money math (`0.1 + 0.2`) or trusting client-sent `price` / `total` / `role` | Server-side RBAC + exact money math in integer centavos or `DECIMAL(12,2)` inside DB transactions. |
-| 18 | SQL/shell string interpolation, N+1 query loops, or unindexed foreign keys | Prepared statements / ORM bindings only, eager loading (`with()`), explicit FK `ON DELETE` + indexes, UTC ISO-8601 timestamps. |
-| 19 | Silent empty `catch (e) {}` blocks, missing startup `.env` checks, or raw stack traces sent to users | Fail-fast `.env` validation on boot, server-side error logging, and clean user-facing error responses. |
-| 20 | Unvalidated file uploads or hard-deleting financial/payout records | Server MIME + max-byte check + safe generated filename; soft-void financial rows with reason & UTC timestamp. |
-| 21 | Exposing secrets/API keys in code, logs, or `NEXT_PUBLIC_*` / `VITE_*` client variables | Secrets strictly in gitignored `.env` with `.env.example` placeholders. |
-
-### E. Live VPS, Deployment & Verification Mistakes
-| # | Common AI Mistake | Preventive Rule Enforced |
-|---|---|---|
+| 1 | Unscoped global tag/framework overrides + `!important` wars in custom CSS | Use `@layer` + `.app-*` namespace with semantic CSS variables; zero `!important`. |
+| 2 | Hardcoding `#000`, `#fff`, `#f8f9fa` inside components | Bind all surfaces, borders, text, and accents to `--ui-*` / Tailwind semantic tokens. |
+| 3 | Unpaired `text-dark`, `text-black`, `bg-white`, `bg-light`, or inline color `style="..."` | Banned without dark tokens; use `bg-card text-foreground` or `.ui-subtle-box`. |
+| 4 | Dark Mode turning default sidebar/header text black-on-dark | Handled by `--on-sidebar` / `--on-header` / `--on-brand` semantic tokens. |
+| 5 | Forcing `#ffffff` text on light/yellow/teal primary buttons | Solid primary fills use `--on-primary`; links/outlines/soft badges use `--primary-ink` (`>= 4.5:1`). |
+| 6 | Blanket `svg path { fill }` wiping out multi-color brand logos | Never override all SVG paths; target only `currentColor` icons. |
+| 7 | Competing `localStorage` vs cookie resetting theme preferences | Single state store (`keith_ui_preferences_v1`) shared by header toggle and drawer. |
+| 8 | Missing component variants or omitting Right-Side Settings Drawer on admin shells | Map screens from `component-catalog/00`–`07` + mount settings drawer on admin shells. |
+| 9 | Seeding sample/dummy records, fake charts, `Lorem ipsum`, or AI corporate jargon | Strict zero sample data (`0` / `₱0.00` + `EmptyState`) and simple everyday English words. |
+| 10 | Invalid/inaccessible HTML (`javascript:void(0)`, `<button>` inside `<a>`, missing `aria-label`, `outline: none`, missing `<th scope="col">`) | `<button type="button">`, `aria-label`, `:focus-visible` ring, `<th scope="col">`, `aria-live="polite"`. |
+| 11 | Missing `Loading` / `Empty` / `Error` states or double-submit bugs | Complete states on every view + in-flight submit button lock (`disabled` + `aria-busy="true"`). |
+| 12 | Overflowing mobile tables, clipped bottom-row dropdowns, or media CLS | `overflow-x-auto`, upward-safe `dropup` menus, `tabular-nums`, explicit `width`/`height` or `aspect-ratio`. |
+| 13 | Vague placeholder identifiers (`data`, `items`, `temp`, `res`, `handleData`, `Box1`) | Strict domain-specific `camelCase`, `is/has/can/should`, `handle*`, `PascalCase`, `.app-*`. |
+| 14 | Over-abstracting static one-off labels (`BTN_SAVE`) OR inline magic numbers | Extract magic numbers, limits, status maps, and shared error messages into `UPPER_SNAKE_CASE`; keep one-off labels inline. |
+| 15 | Volatile `.env` ports/versions in file headers, 300-line functions, or dead code / `console.log` | 2–3 line purpose header, `<40` line single-purpose functions, ordered imports, zero dead code. |
+| 16 | Unversioned static assets or mismatched `VERSION` vs `plugin.json` | `?v=X.Y.Z` asset cache busting and validator-checked SemVer sync. |
+| 17 | Floating-point money math (`0.1 + 0.2`) or trusting client-sent `price` / `total` / `role` | Server-side RBAC + exact money math in integer centavos or `DECIMAL(12,2)` inside DB transactions. |
+| 18 | SQL/shell string interpolation, N+1 query loops, or unindexed foreign keys | Prepared statements / ORM bindings only, eager loading, explicit FK `ON DELETE` + indexes, UTC dates. |
+| 19 | Silent empty `catch (e) {}` blocks, missing startup `.env` checks, or leaked stack traces | Fail-fast `.env` validation on boot, server-side logging, and plain user error responses. |
+| 20 | Unvalidated file uploads or hard-deleting financial records | Server MIME + max-byte check + safe generated filename; soft-void financial rows with reason. |
+| 21 | Exposing secrets/API keys in code, logs, or `NEXT_PUBLIC_*` / `VITE_*` variables | Secrets strictly in gitignored `.env` with `.env.example` placeholders. |
 | 22 | Running `migrate:fresh`, `DROP TABLE`, `TRUNCATE`, or live VPS edits without backup | Explicit user approval + verified timestamped `.sql` / `.bak.YYYYMMDD-HHMM` backup first. |
 | 23 | Reloading Nginx/PHP-FPM/SSH without syntax check or locking out SSH/web ports | Mandatory `nginx -t` / `php-fpm -t` before reload; preserve ports `22`, `80`, `443`. |
-| 24 | Claiming code was "tested and verified" without running real checks | Must execute syntax checks (`node --check` / `php -l`) + `audit_project_hygiene.py` in session before reporting pass. |
+| 24 | Claiming code was "tested and verified" without running real checks | Execute real syntax checks (`node --check` / `php -l` / `tsc --noEmit`) + `audit_project_hygiene.py`. |
