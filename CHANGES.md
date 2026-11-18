@@ -1,5 +1,12 @@
 # Changes
 
+## 4.0.0 - 2026-11-18
+
+- **Zero-Conflict 3-Layer CSS Architecture:** Locked separation of `style.css` (Layer 1 vendor read-only), `component-catalog/08-COMPACT-PURE-CONTRAST-OVERRIDE.css` (Layer 2 semantic token bridge `--kit-*`, `--on-*`, `--primary-ink` verified WCAG AA >= 4.5:1 across all 15 presets and Light/Dark modes), and project `app.css` (Layer 3 `.app-*` namespace only, zero `!important`, zero raw `#hex`).
+- **Automated Hygiene & Validator Guards:** Added `scripts/audit_project_hygiene.py` (blocks `!important`/hex/global selectors in `app.css`, `text-dark`/`bg-white`/`bg-light`/`javascript:void(0)` in templates, and template placeholder leftovers) and `scripts/validate_keith_kit.py`.
+- **Unified Master Rules & 24-Point Anti-AI-Error Registry:** Rebuilt `rules/AGENTS.md` + `rule-01`..`rule-04` (all `< 11 KB`, `0 warnings`), synced `docs/GEMINI.md` (`v2.5.0`) and `docs/AI-ERROR-REGISTRY.md`, and mandated simple plain English copy, zero sample data, server-side integer/decimal money precision, fail-fast `.env` validation, and Contabo VPS backup checks.
+- **Complete Bootstrap 5 Dashboard Pro Library:** Bundled all 67 reference HTML pages, 8 itemized `component-catalog/` guides, mandatory Right-Side UI Kit Settings Panel rule (`demo.js` + `styleSwitcher.js` single cookie store), 3 focused skills (`bootstrap-pro-ui`, `laravel-fullstack`, `vps-safe-deploy`), and 4 write-enabled subagents.
+
 ## 3.3.0 - 2026-11-04
 
 - Creative freedom in UI: rewrote `rule-07` from a strict template checklist into a flexible design guide; moved full `rule-01` and `rule-04` to `model_decision` triggers so they load only when needed.

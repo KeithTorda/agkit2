@@ -1,0 +1,406 @@
+/* ==========================================================================
+   08-COMPACT-PURE-CONTRAST-OVERRIDE.css (v2.0.0 — LOCKED KIT THEME BRIDGE)
+   Bootstrap 5 Dashboard Pro — Token-Driven Scale, Contrast & Component Polish
+   DO NOT EDIT PER PROJECT. Put project-only styles (.app-*) in app.css.
+   ========================================================================== */
+
+/* 1. PROPORTIONAL SCALE (13px root keeps floating rounded Dompet layout intact) */
+html {
+  font-size: 13px;
+}
+
+.dashboard_bar {
+  font-size: 25px !important;
+  font-weight: 700 !important;
+}
+
+.invoice-num {
+  font-size: 26px !important;
+  font-weight: 700 !important;
+}
+
+.invoice-card span.fs-18,
+.invoice-card span.fs-16 {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+.invoice-card-row .invoice-card .icon {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  line-height: 44px !important;
+}
+
+.card-title {
+  font-size: 17px !important;
+  font-weight: 700 !important;
+}
+
+.dlabnav .metismenu > li > a {
+  font-size: 14.5px !important;
+  font-weight: 600 !important;
+  padding: 13px 18px !important;
+}
+
+/* 2. SEMANTIC SURFACE & INK TOKENS (Light & Dark Modes) */
+:root,
+body,
+[data-theme-version="light"] {
+  --kit-canvas: #f6f6f6;
+  --kit-surface: #ffffff;
+  --kit-surface-subtle: #f4f6f9;
+  --kit-border: #d4d8e0;
+  --kit-ink: #000000;
+  --kit-ink-muted: #18181b;
+  --kit-placeholder: #4b5563;
+  --on-nav-header: #000000;
+  --on-header: #000000;
+  --on-sidebar: #000000;
+  --on-primary: #000000;
+  --primary-ink: #0f5e57;
+}
+
+[data-theme-version="dark"] {
+  --kit-canvas: #171622;
+  --kit-surface: #212130;
+  --kit-surface-subtle: #1b1b29;
+  --kit-border: #2e2e42;
+  --kit-ink: #ffffff;
+  --kit-ink-muted: #e4e4e7;
+  --kit-placeholder: #a1a1aa;
+}
+
+/* 3. REGION CONTRAST TOKENS (All 15 Swatches + Dark Mode color_1 Override) */
+[data-nav-headerbg="color_1"],
+[data-nav-headerbg="color_3"],
+[data-nav-headerbg="color_6"],
+[data-nav-headerbg="color_7"],
+[data-nav-headerbg="color_8"],
+[data-nav-headerbg="color_9"],
+[data-nav-headerbg="color_10"],
+[data-nav-headerbg="color_14"],
+[data-nav-headerbg="color_15"] { --on-nav-header: #000000; }
+
+[data-nav-headerbg="color_2"],
+[data-nav-headerbg="color_4"],
+[data-nav-headerbg="color_5"],
+[data-nav-headerbg="color_11"],
+[data-nav-headerbg="color_12"],
+[data-nav-headerbg="color_13"],
+[data-theme-version="dark"][data-nav-headerbg="color_1"] { --on-nav-header: #ffffff; }
+
+[data-headerbg="color_1"],
+[data-headerbg="color_3"],
+[data-headerbg="color_6"],
+[data-headerbg="color_7"],
+[data-headerbg="color_8"],
+[data-headerbg="color_9"],
+[data-headerbg="color_10"],
+[data-headerbg="color_14"],
+[data-headerbg="color_15"] { --on-header: #000000; }
+
+[data-headerbg="color_2"],
+[data-headerbg="color_4"],
+[data-headerbg="color_5"],
+[data-headerbg="color_11"],
+[data-headerbg="color_12"],
+[data-headerbg="color_13"],
+[data-theme-version="dark"][data-headerbg="color_1"] { --on-header: #ffffff; }
+
+[data-sibebarbg="color_1"],
+[data-sibebarbg="color_3"],
+[data-sibebarbg="color_6"],
+[data-sibebarbg="color_7"],
+[data-sibebarbg="color_8"],
+[data-sibebarbg="color_9"],
+[data-sibebarbg="color_10"],
+[data-sibebarbg="color_14"],
+[data-sibebarbg="color_15"] { --on-sidebar: #000000; }
+
+[data-sibebarbg="color_2"],
+[data-sibebarbg="color_4"],
+[data-sibebarbg="color_5"],
+[data-sibebarbg="color_11"],
+[data-sibebarbg="color_12"],
+[data-sibebarbg="color_13"],
+[data-theme-version="dark"][data-sibebarbg="color_1"] { --on-sidebar: #ffffff; }
+
+/* 4. PRIMARY CONTRAST & READABLE ACCENT INK TOKENS (WCAG AA >= 4.5:1 Verified) */
+[data-primary="color_1"]  { --on-primary: #000000; --primary-ink: #0f5e57; }
+[data-primary="color_2"]  { --on-primary: #ffffff; --primary-ink: #520dc2; }
+[data-primary="color_3"]  { --on-primary: #000000; --primary-ink: #0f5e57; }
+[data-primary="color_4"]  { --on-primary: #ffffff; --primary-ink: #4d06a5; }
+[data-primary="color_5"]  { --on-primary: #ffffff; --primary-ink: #b02a37; }
+[data-primary="color_6"]  { --on-primary: #000000; --primary-ink: #9e4700; }
+[data-primary="color_7"]  { --on-primary: #000000; --primary-ink: #7a5a00; }
+[data-primary="color_8"]  { --on-primary: #000000; --primary-ink: #18181b; }
+[data-primary="color_9"]  { --on-primary: #000000; --primary-ink: #0d684d; }
+[data-primary="color_10"] { --on-primary: #000000; --primary-ink: #0c6370; }
+[data-primary="color_11"] { --on-primary: #ffffff; --primary-ink: #74496f; }
+[data-primary="color_12"] { --on-primary: #ffffff; --primary-ink: #212529; }
+[data-primary="color_13"] { --on-primary: #ffffff; --primary-ink: #18181b; }
+[data-primary="color_14"] { --on-primary: #000000; --primary-ink: #1d56b8; }
+[data-primary="color_15"] { --on-primary: #000000; --primary-ink: #286814; }
+
+[data-theme-version="dark"][data-primary="color_1"],
+[data-theme-version="dark"][data-primary="color_3"]  { --primary-ink: #6fe3d9; }
+[data-theme-version="dark"][data-primary="color_2"]  { --primary-ink: #b48bf8; }
+[data-theme-version="dark"][data-primary="color_4"]  { --primary-ink: #c29ffa; }
+[data-theme-version="dark"][data-primary="color_5"]  { --primary-ink: #ff8590; }
+[data-theme-version="dark"][data-primary="color_6"]  { --primary-ink: #ffa94d; }
+[data-theme-version="dark"][data-primary="color_7"]  { --primary-ink: #ffd43b; }
+[data-theme-version="dark"][data-primary="color_8"]  { --primary-ink: #ffffff; }
+[data-theme-version="dark"][data-primary="color_9"]  { --primary-ink: #51e3b8; }
+[data-theme-version="dark"][data-primary="color_10"] { --primary-ink: #5cd6e8; }
+[data-theme-version="dark"][data-primary="color_11"] { --primary-ink: #d7afd2; }
+[data-theme-version="dark"][data-primary="color_12"] { --primary-ink: #ced4da; }
+[data-theme-version="dark"][data-primary="color_13"] { --primary-ink: #e4e4e7; }
+[data-theme-version="dark"][data-primary="color_14"] { --primary-ink: #8ab4f8; }
+[data-theme-version="dark"][data-primary="color_15"] { --primary-ink: #7ee05e; }
+
+/* 5. PURE TEXT CONTRAST BINDINGS (Body, Cards, Forms, Modals, UI Kit Drawer) */
+body {
+  color: var(--kit-ink) !important;
+}
+
+h1,
+h2:not(.text-white),
+h3:not(.text-white),
+h4:not(.text-white),
+h5:not(.text-white),
+h6:not(.text-white),
+.card-title,
+label,
+.form-label,
+.form-check-label,
+.table,
+.table td,
+.list-group-item:not(.active) {
+  color: var(--kit-ink) !important;
+}
+
+.subtitle,
+.text-muted,
+small:not(.text-white),
+.kit-muted,
+.timeline-panel span,
+.timeline-panel h6 {
+  color: var(--kit-ink-muted) !important;
+}
+
+.sidebar-right h4,
+.sidebar-right .admin-settings p,
+.dlab-demo-panel h4 {
+  color: #000000 !important;
+}
+
+.form-control,
+.form-select {
+  color: var(--kit-ink) !important;
+  font-weight: 500;
+  border-color: var(--kit-border);
+  border-radius: 0.5rem;
+}
+
+.form-control::placeholder {
+  color: var(--kit-placeholder) !important;
+  opacity: 1;
+}
+
+[data-theme-version="dark"] .modal-content,
+[data-theme-version="dark"] .list-group-item:not(.active) {
+  background-color: var(--kit-surface);
+  border-color: var(--kit-border);
+}
+
+[data-theme-version="dark"] .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* 6. SHELL REGION BINDINGS (Nav-Header, Top Header, Sidebar) */
+.nav-header .brand-title {
+  color: var(--on-nav-header) !important;
+}
+
+.nav-header .svg-title-path {
+  fill: var(--on-nav-header) !important;
+}
+
+.nav-header .hamburger .line {
+  background: var(--on-nav-header) !important;
+}
+
+/* Keep 3-color wallet logo vibrant on white/dark default; adapt primary path on colored swatches */
+body:not([data-nav-headerbg="color_1"]):not([data-nav-headerbg="color_8"]) .nav-header .svg-logo-primary-path {
+  fill: var(--on-nav-header) !important;
+}
+
+.header .dashboard_bar,
+.header .header-right .nav-link {
+  color: var(--on-header) !important;
+}
+
+.dlabnav .metismenu > li:not(.mm-active) > a,
+.dlabnav .metismenu > li:not(.mm-active) > a i,
+.dlabnav .metismenu > li:not(.mm-active) > a svg,
+.dlabnav .metismenu li ul a,
+.dlabnav .header-profile > a.nav-link .header-info span,
+.dlabnav .header-profile > a.nav-link .header-info small,
+.dlabnav .copyright p {
+  color: var(--on-sidebar) !important;
+}
+
+.dlabnav .metismenu > li:not(.mm-active) > .has-arrow:after {
+  border-color: var(--on-sidebar) !important;
+}
+
+/* 7. DESIGN COMPONENTS — PRIMARY SYNC & PREMIUM ELEVATION */
+.dlabnav .metismenu > li.mm-active > a,
+.dlabnav .metismenu > li.mm-active > a i,
+.dlabnav .metismenu > li.mm-active > a svg,
+.dlabnav .metismenu > li.mm-active > a .nav-text,
+.btn-primary:not(.light):not(.tp-btn):not(.tp-btn-light),
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link,
+.list-group-item.active,
+.page-item.active .page-link,
+.progress-bar {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: var(--on-primary) !important;
+}
+
+/* Ensure white primary swatch (color_8) keeps a crisp border on white Light Mode cards */
+[data-theme-version="light"][data-primary="color_8"] .btn-primary:not(.light),
+[data-theme-version="light"][data-primary="color_8"] .page-item.active .page-link,
+[data-theme-version="light"][data-primary="color_8"] .nav-pills .nav-link.active {
+  border-color: #18181b !important;
+}
+
+.invoice-card .invoice-num,
+.invoice-card span,
+.btn-success:not(.light),
+.btn-danger:not(.light),
+.btn-secondary:not(.light) {
+  color: #ffffff !important;
+}
+
+.btn-outline-primary {
+  color: var(--primary-ink) !important;
+  border-color: var(--primary-ink) !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:active,
+.btn-outline-primary.active,
+.btn-check:checked + .btn-outline-primary,
+.btn-check:active + .btn-outline-primary {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: var(--on-primary) !important;
+}
+
+.light.btn-primary,
+.badge.light.badge-primary {
+  background-color: var(--rgba-primary-2) !important;
+  color: var(--primary-ink) !important;
+  font-weight: 700;
+}
+
+.light.btn-primary:hover {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: var(--on-primary) !important;
+}
+
+.page-item:not(.active) .page-link,
+a:not(.btn):not(.nav-link):not(.dropdown-item):not(.brand-logo) {
+  color: var(--primary-ink);
+}
+
+.form-check-input:checked {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary-ink);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+/* Semantic Light Badges (Light & Dark Safe) */
+[data-theme-version="light"] .badge.light.badge-success { background-color: #d1fae5; color: #064e3b !important; font-weight: 700; }
+[data-theme-version="light"] .badge.light.badge-warning { background-color: #fef3c7; color: #78350f !important; font-weight: 700; }
+[data-theme-version="light"] .badge.light.badge-danger  { background-color: #fee2e2; color: #7f1d1d !important; font-weight: 700; }
+[data-theme-version="light"] .badge.light.badge-info    { background-color: #ede9fe; color: #4c1d95 !important; font-weight: 700; }
+[data-theme-version="light"] .badge.light.badge-secondary { background-color: #e4e7ec; color: #1f2937 !important; font-weight: 700; }
+
+[data-theme-version="dark"] .badge.light.badge-success { background-color: rgba(16, 185, 129, 0.2); color: #6ee7b7 !important; font-weight: 700; }
+[data-theme-version="dark"] .badge.light.badge-warning { background-color: rgba(245, 158, 11, 0.2); color: #fcd34d !important; font-weight: 700; }
+[data-theme-version="dark"] .badge.light.badge-danger  { background-color: rgba(239, 68, 68, 0.2);  color: #fca5a5 !important; font-weight: 700; }
+[data-theme-version="dark"] .badge.light.badge-info    { background-color: rgba(139, 92, 246, 0.2); color: #c4b5fd !important; font-weight: 700; }
+[data-theme-version="dark"] .badge.light.badge-secondary { background-color: rgba(148, 163, 184, 0.2); color: #e2e8f0 !important; font-weight: 700; }
+
+/* Premium Card & Table Elevation */
+.card {
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme-version="dark"] .card {
+  border-color: var(--kit-border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+}
+
+.table thead th {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--kit-ink-muted) !important;
+  border-bottom-width: 1px;
+}
+
+/* Reusable Theme-Safe Kit Utility Classes (Replaces banned bg-light / text-dark) */
+.kit-subtle-box {
+  background-color: var(--kit-surface-subtle);
+  color: var(--kit-ink);
+  border: 1px solid var(--kit-border);
+  border-radius: 0.65rem;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 8. REDUCED MOTION & PRINT SAFETY */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  #preloader, .nav-header, .header, .dlabnav, .sidebar-right, .dlab-demo-panel, .footer, .no-print {
+    display: none !important;
+  }
+  .content-body {
+    margin-left: 0 !important;
+    padding-top: 0 !important;
+  }
+  body, .card {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}

@@ -1,5 +1,11 @@
 {
-  "name": "ag-kit-v2",
-  "version": "3.3.0",
-  "description": "AGKIT2 v3: own rule set (Rules 01-07, flexible design guides), 14 focused agents, domain skills, on-request checks and read-only installation health."
+  "name": "keith-agkit",
+  "displayName": "Keith Master Kit (Bootstrap 5 Pro + Zero-Conflict Engineering Rules)",
+  "version": "4.0.0",
+  "description": "Unified engineering rules, Zero-Conflict 3-Layer CSS architecture, anti-AI-error guardrails, VPS/database safety, and complete reusable UI library built on Bootstrap 5 Dashboard Template Pro.",
+  "suggestedPrompts": [
+    "Build a new admin module reusing the Bootstrap 5 Dashboard Pro shell, KPI cards, and Zero-Conflict CSS tokens",
+    "Audit this project with audit_project_hygiene.py against our CSS, naming, UI state, and security rules",
+    "Prepare a safe Contabo VPS deployment with timestamped config and SQL backups"
+  ]
 }
